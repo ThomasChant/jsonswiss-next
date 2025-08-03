@@ -153,24 +153,6 @@ const schemaFeatures: FeatureCard[] = [
     color: "green",
     href: "/schema-validator",
     category: "schema"
-  },
-  {
-    id: "schema-editor",
-    title: "Schema Editor",
-    description: "Visual JSON Schema editor with live preview",
-    icon: Braces,
-    color: "purple",
-    href: "/schema-editor",
-    category: "schema"
-  },
-  {
-    id: "schema-faker",
-    title: "Schema Faker",
-    description: "Generate fake data from JSON Schema",
-    icon: WrenchIcon,
-    color: "orange",
-    href: "/schema-faker",
-    category: "schema"
   }
 ];
 
