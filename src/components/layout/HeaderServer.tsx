@@ -6,7 +6,6 @@ import {
   ChevronDown, 
   Edit3,
   ArrowRightLeft,
-  ArrowLeftRight,
   Code2,
   FileJson2,
   FileText,
@@ -33,8 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { 
   editorMenuItems, 
-  toJsonMenuItems, 
-  fromJsonMenuItems, 
+  converterMenuSections, 
   generatorMenuSections, 
   schemaMenuItems 
 } from "@/data/navigation";
@@ -153,50 +151,27 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 items={editorMenuItems}
               />
               
-              {/* To JSON Dropdown */}
+              {/* Converter Dropdown */}
               <DropdownMenu
                 trigger={
                   <div className={cn(
                     "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
-                    isActivePathGroup(["/converter/csv-to-json", "/converter/xml-to-json", "/converter/yaml-to-json", "/converter/ini-to-json", "/converter/properties-to-json", "/converter/toml-to-json", "/converter/dict-to-json", "/converter/sql-to-json", "/converter/excel-to-json", "/converter/jar-to-json"])
+                    isActivePathGroup(["/converter/"])
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                       : "hover:bg-slate-100 dark:hover:bg-slate-800"
                   )}
                 >
                   <ArrowRightLeft className={cn(
                     "w-4 h-4",
-                    isActivePathGroup(["/converter/csv-to-json", "/converter/xml-to-json", "/converter/yaml-to-json", "/converter/ini-to-json", "/converter/properties-to-json", "/converter/toml-to-json", "/converter/dict-to-json", "/converter/sql-to-json", "/converter/excel-to-json", "/converter/jar-to-json"])
+                    isActivePathGroup(["/converter/"])
                       ? "text-blue-600 dark:text-blue-400" 
                       : "text-slate-600 dark:text-slate-400"
                   )} />
-                  <span className="text-sm font-medium">To JSON</span>
+                  <span className="text-sm font-medium">Converter</span>
                   <ChevronDown className="w-3 h-3" />
                 </div>
                 }
-                items={toJsonMenuItems}
-              />
-              
-              {/* From JSON Dropdown */}
-              <DropdownMenu
-                trigger={
-                  <div className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
-                    isActivePathGroup(["/converter/json-to-csv", "/converter/json-to-xml", "/converter/json-to-yaml", "/converter/json-to-ini", "/converter/json-to-properties", "/converter/json-to-toml", "/converter/json-to-dict", "/converter/json-to-sql", "/converter/json-to-excel"])
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                  )}
-                >
-                  <ArrowLeftRight className={cn(
-                    "w-4 h-4",
-                    isActivePathGroup(["/converter/json-to-csv", "/converter/json-to-xml", "/converter/json-to-yaml", "/converter/json-to-ini", "/converter/json-to-properties", "/converter/json-to-toml", "/converter/json-to-dict", "/converter/json-to-sql", "/converter/json-to-excel"])
-                      ? "text-blue-600 dark:text-blue-400" 
-                      : "text-slate-600 dark:text-slate-400"
-                  )} />
-                  <span className="text-sm font-medium">From JSON</span>
-                  <ChevronDown className="w-3 h-3" />
-                </div>
-                }
-                items={fromJsonMenuItems}
+                sections={converterMenuSections}
               />
               
               {/* Code Generator Dropdown */}
@@ -246,8 +221,10 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
               />
             </nav>
 
-            {/* Additional Actions */}
-            <div className="flex items-center space-x-2 border-slate-200 dark:border-slate-700 pl-4">
+           
+          </div>
+           {/* Additional Actions */}
+           <div className="flex items-center space-x-2 border-slate-200 dark:border-slate-700 pl-4">
               {/* Theme Toggle - Invisible but with placeholder */}
               <div className="p-2 rounded-lg invisible">
                 <div className="w-5 h-5" />
@@ -258,7 +235,6 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 <div className="w-5 h-5" />
               </div>
             </div>
-          </div>
         </div>
       </div>
     </header>

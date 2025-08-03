@@ -110,43 +110,42 @@ export function DropdownMenu({ trigger, content, items, sections, className }: D
     
     if (sections) {
       return (
-        <div className="w-96 py-2">
-          {sections.map((section, sectionIndex) => (
-            <div key={sectionIndex}>
-              <div className="px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {section.title}
-              </div>
-              <div className="grid grid-cols-2 gap-1 px-2">
-                {section.items.map((item, itemIndex) => {
-                  const IconComponent = item.icon ? iconMap[item.icon] : null;
-                  return (
-                    <Link
-                      key={itemIndex}
-                      href={item.href}
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
-                    >
-                      {IconComponent && (
-                        <IconComponent className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                          {item.title}
-                        </div>
-                        {item.description && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 leading-tight mt-1">
-                            {item.description}
-                          </div>
+        <div className="w-[550px] py-2">
+          <div className="grid grid-cols-2 gap-4">
+            {sections.map((section, sectionIndex) => (
+              <div key={sectionIndex} className="px-2">
+                <div className="px-2 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 mb-2">
+                  {section.title}
+                </div>
+                <div className="space-y-1">
+                  {section.items.map((item, itemIndex) => {
+                    const IconComponent = item.icon ? iconMap[item.icon] : null;
+                    return (
+                      <Link
+                        key={itemIndex}
+                        href={item.href}
+                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
+                      >
+                        {IconComponent && (
+                          <IconComponent className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 flex-shrink-0" />
                         )}
-                      </div>
-                    </Link>
-                  );
-                })}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            {item.title}
+                          </div>
+                          {item.description && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-              {sectionIndex < sections.length - 1 && (
-                <div className="border-t border-slate-200 dark:border-slate-700 my-2" />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       );
     }
