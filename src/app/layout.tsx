@@ -17,34 +17,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: {
     default: "JSON Swiss - Advanced JSON Viewer, Editor, Converter",
-    template: "%s | JSON Swiss",
+    template: "%s",
   },
   description: "Professional JSON viewer, editor, and validator. Format, visualize, search, and manipulate JSON data with AI-powered repair, tree view, table view, and code generation in 12+ programming languages.",
   keywords: ["json viewer", "json editor", "json validator", "json formatter", "json to csv", "json to xml", "code generator", "json repair", "json tools"],
   authors: [{ name: "JSON Swiss" }],
   creator: "JSON Swiss",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://jsonswiss.com",
-    siteName: "JSON Swiss",
-    title: "JSON Swiss - Advanced JSON Viewer, Editor & Validator",
-    description: "Professional JSON tool with AI-powered repair, tree/table views, search, validation, and code generation.",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Swiss - Professional JSON Editor and Validator",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Swiss - Advanced JSON Viewer & Editor",
-    description: "Professional JSON tool with AI-powered repair, visualization, and code generation.",
-    images: ["https://jsonswiss.com/twitter-card.png"],
-  },
   robots: {
     index: true,
     follow: true,
