@@ -2,7 +2,6 @@
 
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
-import { useSampleData } from "@/hooks/useSampleData";
 import { csvToJson } from "@/lib/converters";
 import {
   BookOpen,
@@ -26,15 +25,6 @@ export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: s
     skipEmptyLines: true
   });
 
-  // Load sample data
-  const { loadDemo } = useSampleData({
-    toolType: 'csvToJson',
-    setInput: (data) => {
-      setInputCsv(data);
-      convertCsvToJson(data); // Convert immediately after setting input
-    },
-    autoLoad: true
-  });
 
   const handleInputChange = (value: string | undefined) => {
     const csvValue = value || "";
@@ -152,17 +142,6 @@ export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: s
     </div>
   );
 
-  const extraActions = (
-    <>
-      <button
-        onClick={loadDemo}
-        className="p-1.5 text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-100 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-        title="Load Demo Data"
-      >
-        <BookOpen className="w-4 h-4" />
-      </button>
-    </>
-  );
 
   return (
     <ConverterLayout
@@ -189,7 +168,6 @@ export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: s
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
       settingsPanel={settingsContent}
-      extraActions={extraActions}
     />
   );
 }
