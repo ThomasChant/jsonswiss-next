@@ -31,9 +31,9 @@
     --core-area-max-height: calc(100vh - var(--header-height) - 6rem);
     --core-area-default-height: calc(100vh - var(--header-height) - var(--title-section-height)- 6rem);
     /* JSON Table Editor specific height variables */
-    --json-table-editor-height: calc(100vh - var(--header-height));
-    --json-table-editor-min-height: calc(100vh - var(--header-height));
-    --json-table-editor-max-height: calc(100vh - var(--header-height));
+    --json-table-editor-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
+    --json-table-editor-min-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
+    --json-table-editor-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
     --input-area-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
     --json-input-max-height: 2000px;
     --mobile-input-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
@@ -68,9 +68,9 @@
     --core-area-max-height: calc(100vh - var(--header-height));
     --core-area-default-height: calc(100vh - var(--header-height) - var(--title-section-height));
     /* JSON Table Editor specific height variables */
-    --json-table-editor-height: calc(100vh - var(--header-height));
-    --json-table-editor-min-height: calc(100vh - var(--header-height));
-    --json-table-editor-max-height: calc(100vh - var(--header-height));
+    --json-table-editor-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
+    --json-table-editor-min-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
+    --json-table-editor-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 1rem);
     --input-area-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
     --json-input-max-height: 2000px;
     --mobile-input-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
@@ -337,5 +337,10 @@
     height: 100%;
     min-height: 0;
     overflow-y: auto;
+  }
+
+  /* Full screen height utility for ToolPageLayoutServer */
+  .h-screen-minus-header {
+    height: calc(100vh - var(--header-height) - var(--title-section-height));
   }
 }

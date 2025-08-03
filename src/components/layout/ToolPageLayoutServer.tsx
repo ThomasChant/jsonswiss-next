@@ -68,12 +68,12 @@ export function ToolPageLayoutServer({
       )}>
         {showSidebar ? (
           <div className={cn(
-            "grid h-full",
+            "grid h-full gap-2 p-2",
             rightPanel ? "grid-cols-three-panel" : "grid-cols-sidebar"
           )}>
             {/* Sidebar */}
             {sidebarPosition === 'left' && (
-              <div className="border-r border-t  border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80">
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
                 <div className="h-full overflow-hidden">
                   <Sidebar />
                 </div>
@@ -81,8 +81,8 @@ export function ToolPageLayoutServer({
             )}
             
             {/* Main Content Area */}
-            <div className="flex flex-col min-h-0 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex-1 overflow-x-auto overflow-y-auto min-h-0">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col min-h-0">
+              <div className="flex-1 overflow-hidden min-h-0">
                 <ErrorBoundary>
                   {children}
                 </ErrorBoundary>
@@ -91,7 +91,7 @@ export function ToolPageLayoutServer({
             
             {/* Center Sidebar */}
             {sidebarPosition === 'center' && (
-              <div className="border-l border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80">
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
                 <div className="h-full overflow-hidden">
                   <Sidebar />
                 </div>
@@ -100,7 +100,7 @@ export function ToolPageLayoutServer({
             
             {/* Right Panel */}
             {rightPanel && (
-              <div className="border-l border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80">
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
                 <div className="h-full overflow-hidden">
                   {rightPanel}
                 </div>
@@ -108,9 +108,9 @@ export function ToolPageLayoutServer({
             )}
           </div>
         ) : (
-          <div className="h-full">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-x-auto overflow-y-auto min-h-0">
+          <div className="h-full p-2">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 flex flex-col h-full">
+              <div className="flex-1 overflow-hidden min-h-0">
                 <ErrorBoundary>
                   {children}
                 </ErrorBoundary>

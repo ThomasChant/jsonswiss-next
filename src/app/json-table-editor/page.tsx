@@ -167,9 +167,9 @@ export default function JsonTableEditorPage() {
         sidebarPosition="left"
         useFullScreenHeight={true}
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full min-h-0">
           {/* Header with breadcrumb and controls */}
-          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-t border-gray-200 dark:border-gray-700 border">
+          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-t border-gray-200 dark:border-gray-700 border shrink-0">
             <div className="flex items-center space-x-2">
               {/* <nav className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                 {breadcrumbPath.map((segment, index) => (
@@ -247,8 +247,10 @@ export default function JsonTableEditorPage() {
           </div>
 
           {/* Main content area */}
-          <div className="flex-1 p-4 overflow-x-auto overflow-y-auto">
-            {renderTableContent()}
+          <div className="flex-1 p-4 overflow-hidden min-h-0">
+            <div className="h-full">
+              {renderTableContent()}
+            </div>
           </div>
         </div>
       </ToolPageLayoutServer>

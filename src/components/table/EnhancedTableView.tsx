@@ -655,10 +655,10 @@ export function EnhancedTableView({
   }
   
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("flex flex-col h-full", className)}>
       {/* Enhanced Toolbar */}
       {path.length === 0 && <div className={cn(
-        "flex items-center justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg",
+        "flex items-center justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg shrink-0",
         density === 'compact' ? "p-2 gap-2" : "p-3 gap-4"
       )}>
         <div className="flex items-center gap-3">
@@ -695,7 +695,7 @@ export function EnhancedTableView({
       
       {/* Filter Chips */}
       {filters.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 shrink-0">
           {filters.map(filter => (
             <div
               key={filter.id}
@@ -717,7 +717,7 @@ export function EnhancedTableView({
       
       {/* Table */}
       <div className={cn(
-        "overflow-x-auto overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700",
+        "flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 min-h-0",
         "scrollbar-table"
       )} style={maxHeight ? { maxHeight } : {}}>
         <table ref={tableRef} className="w-full bg-white dark:bg-gray-900" style={{ minWidth: 'max-content' }}>

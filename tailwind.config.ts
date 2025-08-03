@@ -71,6 +71,7 @@ const config: Config = {
         'core-max': 'var(--core-area-max-height)',
         'core-default': 'var(--core-area-default-height)',
         'json-table-editor': 'var(--json-table-editor-height)',
+        'screen-minus-header': 'calc(100vh - var(--header-height) - var(--title-section-height))',
       },
       keyframes: {
         "accordion-down": {
