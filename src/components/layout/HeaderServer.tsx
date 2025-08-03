@@ -190,7 +190,7 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                       ? "text-blue-600 dark:text-blue-400" 
                       : "text-slate-600 dark:text-slate-400"
                   )} />
-                  <span className="text-sm font-medium">Code Generator</span>
+                  <span className="text-sm font-medium">Generator</span>
                   <ChevronDown className="w-3 h-3" />
                 </div>
                 }

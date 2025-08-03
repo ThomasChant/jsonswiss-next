@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { HeaderServer } from "@/components/layout/HeaderServer";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, MessageSquare, Github, Coffee, ExternalLink } from "lucide-react";
+import { Mail, Coffee, ExternalLink } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Contact Us - JSON Swiss",
@@ -36,7 +36,7 @@ export default function ContactPage() {
                 We'd love to hear from you! Whether you have questions, feedback, feature requests, or need support, we're here to help.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mb-12">
                 {/* Contact Methods */}
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
@@ -61,68 +61,10 @@ export default function ContactPage() {
                         </a>
                       </div>
                     </div>
-
-                    <div className="flex items-start space-x-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                      <MessageSquare className="w-6 h-6 text-green-600 dark:text-green-400 mt-1" />
-                      <div>
-                        <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-                          Feature Requests
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-300 text-sm mb-2">
-                          Suggest new features or improvements
-                        </p>
-                        <a 
-                          href="mailto:features@jsonswiss.com" 
-                          className="text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          features@jsonswiss.com
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                      <Github className="w-6 h-6 text-slate-600 dark:text-slate-400 mt-1" />
-                      <div>
-                        <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-                          GitHub Issues
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-300 text-sm mb-2">
-                          Report bugs or contribute to development
-                        </p>
-                        <a 
-                          href="https://github.com/jsonswiss/jsonswiss" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center space-x-1"
-                        >
-                          <span>GitHub Repository</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                      <Coffee className="w-6 h-6 text-orange-600 dark:text-orange-400 mt-1" />
-                      <div>
-                        <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-                          Support Our Work
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-300 text-sm mb-2">
-                          Help us keep JSON Swiss free and awesome
-                        </p>
-                        <a 
-                          href="https://buymeacoffee.com/jsonswiss" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center space-x-1"
-                        >
-                          <span>Buy Me a Coffee</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
                   </div>
                 </div>
+
+              </div>
 
                 {/* FAQ */}
                 <div>
@@ -163,7 +105,7 @@ export default function ContactPage() {
                         How can I request a new feature?
                       </h3>
                       <p className="text-slate-600 dark:text-slate-300 text-sm">
-                        You can send feature requests to features@jsonswiss.com or create an issue on our GitHub repository. We review all suggestions and prioritize based on community needs.
+                        You can send feature requests and suggestions to support@jsonswiss.com. We review all suggestions and prioritize based on community needs.
                       </p>
                     </div>
 
@@ -177,18 +119,7 @@ export default function ContactPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                  Response Time
-                </h2>
-                <p className="text-slate-600 dark:text-slate-300 mb-4">
-                  We strive to respond to all inquiries within 24-48 hours during business days. For urgent issues, please mark your email as "URGENT" in the subject line.
-                </p>
-              </section>
-
-              <section className="mb-8">
+              <section className="mb-8 mt-7">
                 <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
                   Community
                 </h2>
@@ -197,9 +128,9 @@ export default function ContactPage() {
                 </p>
                 <ul className="list-disc pl-6 text-slate-600 dark:text-slate-300 mb-4">
                   <li>Follow us on social media for updates and tips</li>
-                  <li>Star our GitHub repository to show support</li>
                   <li>Share JSON Swiss with your developer friends</li>
-                  <li>Contribute to our open-source projects</li>
+                  <li>Support us through Buy Me a Coffee</li>
+                  <li>Send us feedback and suggestions</li>
                 </ul>
               </section>
 
