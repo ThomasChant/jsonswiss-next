@@ -38,7 +38,6 @@ import {
   generatorMenuSections, 
   schemaMenuItems 
 } from "@/data/navigation";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DropdownMenu } from "@/components/ui/DropdownMenuServer";
 
 // 图标映射

@@ -1,17 +1,14 @@
 
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { Database, Grid, Home, Upload, Shuffle, Trash2 } from 'lucide-react';
-import { ToolPageLayoutServer } from '@/components/layout/ToolPageLayoutServer';
-import { SingleObjectTable, ArrayTable, PrimitiveValueDisplay } from '@/components/table';
-import { EnhancedTableView } from '@/components/table/EnhancedTableView';
-import { useJsonStore } from '@/store/jsonStore';
-import { tableEditorSamples, getSamplesByCategory } from '@/sample-data';
-import { getValueType } from '@/lib/table-utils';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { ImportJsonDialog } from '@/components/import';
+import { ToolPageLayoutServer } from '@/components/layout/ToolPageLayoutServer';
+import { EnhancedTableView } from '@/components/table/EnhancedTableView';
+import { Button } from '@/components/ui/button';
+import { getValueType } from '@/lib/table-utils';
+import { useJsonStore } from '@/store/jsonStore';
+import { Database, Home, Trash2, Upload } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 
 const faqItems = [
   {
@@ -165,7 +162,6 @@ export default function JsonTableEditorPage() {
       <ToolPageLayoutServer
         title="JSON Table Editor"
         description="Interactive table-based JSON editor and viewer with sidebar navigation and real-time synchronization"
-        onNodeSelect={handleNodeSelect}
         faqItems={faqItems}
         showSidebar={true}
         sidebarPosition="left"
@@ -173,7 +169,7 @@ export default function JsonTableEditorPage() {
       >
         <div className="flex flex-col">
           {/* Header with breadcrumb and controls */}
-          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-t border-gray-200 dark:border-gray-700 border">
             <div className="flex items-center space-x-2">
               {/* <nav className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                 {breadcrumbPath.map((segment, index) => (
