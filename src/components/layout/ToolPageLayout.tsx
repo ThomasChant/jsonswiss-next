@@ -2,7 +2,7 @@
 
 import { ReactNode, useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
+import { HeaderServer } from "./HeaderServer";
 import { Footer } from "./Footer";
 import { useJsonStore } from "@/store/jsonStore";
 import { HelpCircle, Plus, Minus } from "lucide-react";
@@ -112,7 +112,7 @@ export function ToolPageLayoutServer({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
       {/* Header */}
-      <Header />
+      <HeaderServer />
       
       {/* Page Title */}
       <div className="px-6 py-8 bg-white/50 dark:bg-slate-900/50">
