@@ -1,47 +1,34 @@
 "use client";
 
-import Link from "next/link";
-import { 
-  FileJson, 
-  Code, 
-  CheckCircle, 
-  ArrowRightLeft,
-  RepeatIcon,
-  Grid,
-  Settings,
-  FileText,
-  Zap,
-  RefreshCw,
-  ChevronRight,
-  Wrench,
-  Database,
-  FileCode,
-  ShieldCheck,
-  FileSearch,
-  GitCompareArrows,
-  WrenchIcon,
-  FileSpreadsheet,
-  FileBarChart,
-  FileCode2,
-  Braces,
-  Table,
-  FileImage,
-  Cpu,
+import {
   Box,
-  Binary,
-  Hash,
+  Braces,
+  Code,
   Coffee,
-  Chrome,
-  Globe,
-  Flame,
-  Terminal,
-  Circle,
+  Cpu,
+  Database,
   Diamond,
+  FileArchive,
+  FileBarChart,
+  FileCode,
+  FileCode2,
+  FileImage,
+  FileSearch,
+  FileSpreadsheet,
+  FileText,
+  Flame,
   Gem,
+  GitCompareArrows,
+  Globe,
+  Hash,
   Zap as Lightning,
-  ArrowRight,
-  FileArchive
+  Settings,
+  ShieldCheck,
+  Table,
+  WrenchIcon
 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 interface FeatureCard {
   id: string;
@@ -50,7 +37,7 @@ interface FeatureCard {
   icon: React.ComponentType<any>;
   color: string;
   href: string;
-  category: "core" | "converter" | "generator";
+  category: "core" | "converter" | "generator" | "schema";
   badge?: string;
 }
 
@@ -147,290 +134,201 @@ const generatorLanguages = [
   { name: "SQL", icon: Database, color: "blue" }
 ];
 
+const schemaFeatures: FeatureCard[] = [
+  {
+    id: "schema-generator",
+    title: "JSON Schema Generator",
+    description: "Generate JSON Schema from sample JSON data",
+    icon: FileSearch,
+    color: "blue",
+    href: "/schema-generator",
+    category: "schema",
+    badge: "New"
+  },
+  {
+    id: "schema-validator",
+    title: "Schema Validator",
+    description: "Validate JSON data against JSON Schema",
+    icon: ShieldCheck,
+    color: "green",
+    href: "/schema-validator",
+    category: "schema"
+  },
+  {
+    id: "schema-editor",
+    title: "Schema Editor",
+    description: "Visual JSON Schema editor with live preview",
+    icon: Braces,
+    color: "purple",
+    href: "/schema-editor",
+    category: "schema"
+  },
+  {
+    id: "schema-faker",
+    title: "Schema Faker",
+    description: "Generate fake data from JSON Schema",
+    icon: WrenchIcon,
+    color: "orange",
+    href: "/schema-faker",
+    category: "schema"
+  }
+];
+
 export function FeatureCards() {
+  const [activeCategory, setActiveCategory] = useState('all');
+  
+  const allTools: FeatureCard[] = [
+    ...coreFeatures,
+    ...schemaFeatures,
+    ...converterFeatures.flatMap(converter => [
+      {
+        id: converter.from,
+        title: `${converter.name} to JSON`,
+        description: `Convert ${converter.name} files into JSON format`,
+        icon: converter.icon,
+        color: converter.color,
+        href: `/converter/${converter.from}`,
+        category: 'converter' as const
+      },
+      ...(converter.to ? [{
+        id: converter.to,
+        title: `JSON to ${converter.name}`,
+        description: `Convert JSON into ${converter.name} format`,
+        icon: converter.icon,
+        color: converter.color,
+        href: `/converter/${converter.to}`,
+        category: 'converter' as const
+      }] : [])
+    ]),
+    ...generatorLanguages.map(lang => ({
+      id: `generator-${lang.name.toLowerCase()}`,
+      title: `${lang.name} Generator`,
+      description: `Generate ${lang.name} data structures from JSON`,
+      icon: lang.icon,
+      color: lang.color,
+      href: `/generator/${lang.name.toLowerCase().replace('#', 'sharp')}`,
+      category: 'generator' as const
+    }))
+  ];
+  
+  const filteredTools = activeCategory === 'all' ? allTools : allTools.filter(tool => tool.category === activeCategory);
+  
   return (
-    <div className="space-y-12">
-      {/* Core Features Section */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Core Features
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              Powerful JSON processing and analysis tools
-            </p>
-          </div>
-          <div className="flex items-center text-slate-500 dark:text-slate-400">
-            <Wrench className="w-5 h-5 mr-2" />
-            <span className="text-sm">{coreFeatures.length} tools</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {coreFeatures.map((feature) => {
-            const IconComponent = feature.icon;
-            return (
-              <Link
-                key={feature.id}
-                href={feature.href}
-                className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:scale-105 hover:border-blue-300 dark:hover:border-blue-600"
-              >
-                {feature.badge && (
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    {feature.badge}
-                  </div>
-                )}
-                
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-${feature.color}-100 dark:bg-${feature.color}-900/20`}>
-                    <IconComponent className={`w-6 h-6 text-${feature.color}-600`} />
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                </div>
-                
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Format Converters Section */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Format Converters
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              Bidirectional conversion between JSON and various data formats
-            </p>
-          </div>
-          <div className="flex items-center text-slate-500 dark:text-slate-400">
-            <RepeatIcon className="w-5 h-5 mr-2" />
-            <span className="text-sm">{converterFeatures.length * 2} converters</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {converterFeatures.map((converter) => {
-            const IconComponent = converter.icon;
-            return (
-              <div
-                key={converter.name}
-                className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <div className={`p-2 rounded-lg ${
-                      converter.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/20' :
-                      converter.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
-                      converter.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                      converter.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' :
-                      converter.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                      converter.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/20' :
-                      converter.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/20' :
-                      converter.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/20' :
-                      'bg-slate-100 dark:bg-slate-900/20'
-                    }`}>
-                      <IconComponent className={`w-4 h-4 ${
-                        converter.color === 'emerald' ? 'text-emerald-600' :
-                        converter.color === 'orange' ? 'text-orange-600' :
-                        converter.color === 'blue' ? 'text-blue-600' :
-                        converter.color === 'green' ? 'text-green-600' :
-                        converter.color === 'purple' ? 'text-purple-600' :
-                        converter.color === 'indigo' ? 'text-indigo-600' :
-                        converter.color === 'cyan' ? 'text-cyan-600' :
-                        converter.color === 'amber' ? 'text-amber-600' :
-                        'text-slate-600'
-                      }`} />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                      {converter.name}
-                    </h3>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <ArrowRightLeft className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">JSON</span>
-                  </div>
-                </div>
-                
-                {converter.to ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href={`/converter/${converter.from}`}
-                      className={`text-center py-2 px-3 bg-slate-50 dark:bg-slate-700 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors ${
-                        converter.color === 'emerald' ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 dark:hover:text-emerald-400' :
-                        converter.color === 'orange' ? 'hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400' :
-                        converter.color === 'blue' ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400' :
-                        converter.color === 'green' ? 'hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400' :
-                        converter.color === 'purple' ? 'hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400' :
-                        converter.color === 'indigo' ? 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400' :
-                        converter.color === 'cyan' ? 'hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400' :
-                        converter.color === 'amber' ? 'hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-600 dark:hover:text-amber-400' :
-                        converter.color === 'red' ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400' :
-                        'hover:bg-slate-50 dark:hover:bg-slate-900/20 hover:text-slate-600 dark:hover:text-slate-400'
-                      }`}
-                    >
-                      {converter.name} → JSON
-                    </Link>
-                    <Link
-                      href={`/converter/${converter.to}`}
-                      className={`text-center py-2 px-3 bg-slate-50 dark:bg-slate-700 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors ${
-                        converter.color === 'emerald' ? 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 dark:hover:text-emerald-400' :
-                        converter.color === 'orange' ? 'hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400' :
-                        converter.color === 'blue' ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400' :
-                        converter.color === 'green' ? 'hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400' :
-                        converter.color === 'purple' ? 'hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400' :
-                        converter.color === 'indigo' ? 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400' :
-                        converter.color === 'cyan' ? 'hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400' :
-                        converter.color === 'amber' ? 'hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-600 dark:hover:text-amber-400' :
-                        converter.color === 'red' ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400' :
-                        'hover:bg-slate-50 dark:hover:bg-slate-900/20 hover:text-slate-600 dark:hover:text-slate-400'
-                      }`}
-                    >
-                      JSON → {converter.name}
-                    </Link>
-                  </div>
-                ) : (
-                  // Single direction converter (like JAR to JSON)
-                  <div className="grid grid-cols-1">
-                    <Link
-                      href={`/converter/${converter.from}`}
-                      className={`text-center py-2 px-3 bg-slate-50 dark:bg-slate-700 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors ${
-                        converter.color === 'red' ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400' :
-                        'hover:bg-slate-50 dark:hover:bg-slate-900/20 hover:text-slate-600 dark:hover:text-slate-400'
-                      }`}
-                    >
-                      {converter.name} → JSON
-                    </Link>
-                  </div>
-                )}
+    <div className="space-y-8">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap justify-center gap-2 mb-8">
+        {[
+          { id: 'all', label: 'All', count: allTools.length },
+          { id: 'core', label: 'Core Tools', count: coreFeatures.length },
+          { id: 'schema', label: 'JSON Schema', count: schemaFeatures.length },
+          { id: 'converter', label: 'Converters', count: converterFeatures.length * 2 },
+          { id: 'generator', label: 'Generators', count: generatorLanguages.length }
+        ].map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setActiveCategory(category.id)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+              activeCategory === category.id
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {category.label}
+          </button>
+        ))}
+      </div>
+      
+      {/* Tools Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3">
+        {filteredTools.map((tool) => {
+          const IconComponent = tool.icon;
+          return (
+            <Link
+              key={tool.id}
+              href={tool.href}
+              className="group bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-lg transition-all duration-200 hover:border-blue-300"
+            >
+              <div className={`w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center ${
+                tool.color === 'blue' ? 'bg-blue-100' :
+                tool.color === 'green' ? 'bg-green-100' :
+                tool.color === 'purple' ? 'bg-purple-100' :
+                tool.color === 'orange' ? 'bg-orange-100' :
+                tool.color === 'cyan' ? 'bg-cyan-100' :
+                tool.color === 'red' ? 'bg-red-100' :
+                tool.color === 'emerald' ? 'bg-emerald-100' :
+                tool.color === 'indigo' ? 'bg-indigo-100' :
+                tool.color === 'amber' ? 'bg-amber-100' :
+                tool.color === 'yellow' ? 'bg-yellow-100' :
+                'bg-gray-100'
+              }`}>
+                <IconComponent className={`w-8 h-8 ${
+                  tool.color === 'blue' ? 'text-blue-600' :
+                  tool.color === 'green' ? 'text-green-600' :
+                  tool.color === 'purple' ? 'text-purple-600' :
+                  tool.color === 'orange' ? 'text-orange-600' :
+                  tool.color === 'cyan' ? 'text-cyan-600' :
+                  tool.color === 'red' ? 'text-red-600' :
+                  tool.color === 'emerald' ? 'text-emerald-600' :
+                  tool.color === 'indigo' ? 'text-indigo-600' :
+                  tool.color === 'amber' ? 'text-amber-600' :
+                  tool.color === 'yellow' ? 'text-yellow-600' :
+                  'text-gray-600'
+                }`} />
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Code Generators Section */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Code Generators
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              Generate data structures from JSON in multiple programming languages
-            </p>
-          </div>
-          <div className="flex items-center text-slate-500 dark:text-slate-400">
-            <FileCode className="w-5 h-5 mr-2" />
-            <span className="text-sm">{generatorLanguages.length} languages</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {generatorLanguages.map((language) => {
-            const IconComponent = language.icon;
-            const href = `/generator/${language.name.toLowerCase().replace('#', 'sharp')}`;
-            return (
-              <Link
-                key={language.name}
-                href={href}
-                className={`group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 text-center hover:shadow-md transition-all duration-200 ${
-                  language.color === 'yellow' ? 'hover:border-yellow-300 dark:hover:border-yellow-600' :
-                  language.color === 'blue' ? 'hover:border-blue-300 dark:hover:border-blue-600' :
-                  language.color === 'green' ? 'hover:border-green-300 dark:hover:border-green-600' :
-                  language.color === 'orange' ? 'hover:border-orange-300 dark:hover:border-orange-600' :
-                  language.color === 'purple' ? 'hover:border-purple-300 dark:hover:border-purple-600' :
-                  language.color === 'cyan' ? 'hover:border-cyan-300 dark:hover:border-cyan-600' :
-                  language.color === 'indigo' ? 'hover:border-indigo-300 dark:hover:border-indigo-600' :
-                  language.color === 'red' ? 'hover:border-red-300 dark:hover:border-red-600' :
-                  'hover:border-slate-300 dark:hover:border-slate-600'
-                }`}
-              >
-                <div className={`w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center ${
-                  language.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/20' :
-                  language.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                  language.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' :
-                  language.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
-                  language.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                  language.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/20' :
-                  language.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/20' :
-                  language.color === 'red' ? 'bg-red-100 dark:bg-red-900/20' :
-                  'bg-slate-100 dark:bg-slate-900/20'
-                }`}>
-                  <IconComponent className={`w-4 h-4 ${
-                    language.color === 'yellow' ? 'text-yellow-600' :
-                    language.color === 'blue' ? 'text-blue-600' :
-                    language.color === 'green' ? 'text-green-600' :
-                    language.color === 'orange' ? 'text-orange-600' :
-                    language.color === 'purple' ? 'text-purple-600' :
-                    language.color === 'cyan' ? 'text-cyan-600' :
-                    language.color === 'indigo' ? 'text-indigo-600' :
-                    language.color === 'red' ? 'text-red-600' :
-                    'text-slate-600'
-                  }`} />
+              
+              <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors text-sm">
+                {tool.title}
+              </h3>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                {tool.description}
+              </p>
+              
+              {tool.badge && (
+                <div className="mt-3">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                    {tool.badge}
+                  </span>
                 </div>
-                <h3 className={`font-medium text-slate-900 dark:text-slate-100 text-sm transition-colors ${
-                  language.color === 'yellow' ? 'group-hover:text-yellow-600' :
-                  language.color === 'blue' ? 'group-hover:text-blue-600' :
-                  language.color === 'green' ? 'group-hover:text-green-600' :
-                  language.color === 'orange' ? 'group-hover:text-orange-600' :
-                  language.color === 'purple' ? 'group-hover:text-purple-600' :
-                  language.color === 'cyan' ? 'group-hover:text-cyan-600' :
-                  language.color === 'indigo' ? 'group-hover:text-indigo-600' :
-                  language.color === 'red' ? 'group-hover:text-red-600' :
-                  'group-hover:text-slate-600'
-                }`}>
-                  {language.name}
-                </h3>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
+              )}
+            </Link>
+          );
+        })}
+      </div>
+      
       {/* Quick Stats */}
-      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+      {/* <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-3">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-2xl font-bold text-gray-900">
               {coreFeatures.length}
             </div>
-            <div className="text-slate-600 dark:text-slate-400 text-sm">Core Tools</div>
+            <div className="text-gray-600 text-sm">Core Tools</div>
           </div>
           
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center mb-3">
               <RepeatIcon className="w-6 h-6 text-white" />
             </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-2xl font-bold text-gray-900">
               {converterFeatures.length * 2}
             </div>
-            <div className="text-slate-600 dark:text-slate-400 text-sm">Format Converters</div>
+            <div className="text-gray-600 text-sm">Format Converters</div>
           </div>
           
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mb-3">
               <FileCode className="w-6 h-6 text-white" />
             </div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="text-2xl font-bold text-gray-900">
               {generatorLanguages.length}
             </div>
-            <div className="text-slate-600 dark:text-slate-400 text-sm">Languages</div>
+            <div className="text-gray-600 text-sm">Languages</div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }
