@@ -12,14 +12,11 @@ import {
 } from "lucide-react";
 import { validateJsonSchema } from "@/lib/json-utils";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
-import { useJsonStore } from "@/store/jsonStore";
-import { ImportJsonDialog } from "@/components/import";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 
 export default function SchemaValidatorPage() {
   const { resolvedTheme } = useTheme();
-  const { jsonData } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [schemaJson, setSchemaJson] = useState("");
   const [validationResult, setValidationResult] = useState<{valid: boolean; errors: string[]} | null>(null);
@@ -41,14 +38,6 @@ export default function SchemaValidatorPage() {
       setTimeout(() => validateWithSchema(jsonValue, schemaJson), 100);
     }
   };
-
-  // Initialize with global JSON data
-  useEffect(() => {
-    if (jsonData && !inputJson) {
-      const jsonString = JSON.stringify(jsonData, null, 2);
-      setInputJson(jsonString);
-    }
-  }, [jsonData, inputJson]);
 
   const handleSchemaChange = (value: string | undefined) => {
     const schemaValue = value || "";

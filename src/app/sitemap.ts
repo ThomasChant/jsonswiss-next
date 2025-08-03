@@ -276,5 +276,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+
+    // Legal Pages
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: currentDate,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: currentDate,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
   ]
 }

@@ -22,26 +22,7 @@ export function Footer() {
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 A comprehensive JSON toolkit for developers. Format, validate, repair, and transform JSON with AI-powered features.
               </p>
-              <div className="flex items-center space-x-3">
-                <a 
-                  href="https://github.com/jsonswiss/jsonswiss" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  title="GitHub Repository"
-                >
-                  <Github className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                </a>
-                <a 
-                  href="https://buymeacoffee.com/jsonswiss" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  title="Support Us"
-                >
-                  <Coffee className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                </a>
-              </div>
+             
             </div>
 
             {/* Tools */}

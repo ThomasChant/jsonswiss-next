@@ -20,23 +20,17 @@ import {
 import { cn } from "@/lib/utils";
 import { JsonValidator, ValidationResult } from "@/lib/json-utils";
 import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
-import { useJsonStore } from "@/store/jsonStore";
-import { ImportJsonDialog, ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { useClipboard } from "@/hooks/useClipboard";
 
 export default function ValidatorPage() {
   const { theme } = useTheme();
   const { copy } = useClipboard();
-  const { jsonData, setJsonData } = useJsonStore();
-  const [inputJson, setInputJson] = useState(() => {
-    // Ensure we always start with a string value
-    return typeof jsonData === 'string' ? jsonData : '';
-  });
+  const [inputJson, setInputJson] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [strictMode, setStrictMode] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [selectedNodeData, setSelectedNodeData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   
   const validator = useMemo(() => new JsonValidator(), []);
@@ -56,19 +50,9 @@ export default function ValidatorPage() {
   const handleInputChange = (value: string | undefined) => {
     const jsonValue = value || "";
     setInputJson(jsonValue);
-    setJsonData(jsonValue);
     validateJson(jsonValue);
   };
 
-  const handleNodeSelect = (path: string[], data: any) => {
-    setSelectedNodeData(data);
-    // 自动验证选中的节点数据
-    if (data !== null && data !== undefined) {
-      const jsonString = JSON.stringify(data, null, 2);
-      setInputJson(jsonString);
-      validateJson(jsonString);
-    }
-  };
 
   // 初始化时使用全局JSON数据
   useEffect(() => {
@@ -80,18 +64,7 @@ export default function ValidatorPage() {
   const handleImport = (json: any) => {
     const jsonString = JSON.stringify(json, null, 2);
     setInputJson(jsonString);
-    setJsonData(jsonString);
     validateJson(jsonString);
-  };
-
-  const handleCopyResult = async () => {
-    if (validationResult) {
-      await copy(JSON.stringify(validationResult, null, 2));
-    }
-  };
-
-  const handleDownload = () => {
-    handleDownloadReport();
   };
 
   const isValidJson = (jsonString: string) => {
