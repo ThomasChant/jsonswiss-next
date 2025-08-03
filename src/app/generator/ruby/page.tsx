@@ -13,7 +13,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function RubyGeneratorPage() {
   const { resolvedTheme } = useTheme();
-  const { jsonData, selectedPath, getNodeAtPath } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,16 +37,11 @@ export default function RubyGeneratorPage() {
   });
 
   // Get the data to convert
-  const getDataToConvert = useCallback(() => {
-    if (selectedPath.length > 0) {
-      return getNodeAtPath(selectedPath);
-    }
-    return jsonData;
-  }, [selectedPath, getNodeAtPath, jsonData]);
+
 
   // Generate Ruby
   const generateRuby = useCallback(() => {
-    const data = getDataToConvert();
+    const data = inputJson;
     if (!data) return "";
 
     try {
@@ -56,7 +50,7 @@ export default function RubyGeneratorPage() {
       console.error('Ruby generation error:', err);
       return "";
     }
-  }, [getDataToConvert, generator, options]);
+  }, [generator, options]);
 
   // Update generated code when data or options change
   useEffect(() => {
