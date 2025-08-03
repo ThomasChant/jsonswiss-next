@@ -1206,3 +1206,110 @@ export class DartGenerator {
                .replace(/^[A-Z]/, letter => letter.toLowerCase());
   }
 }
+
+export class KotlinGenerator {
+  generate(data: any, options: CodeGenOptions): string {
+    const className = options.rootName;
+    const packageName = options.packageName || 'com.example';
+    const framework = options.framework || 'kotlinx';
+    
+    let code = `package ${packageName}\n\n`;
+    
+    // 添加必要的导入
+    if (framework === 'kotlinx') {
+      code += 'import kotlinx.serialization.Serializable\n';
+      code += 'import kotlinx.serialization.SerialName\n\n';
+    } else if (framework === 'gson') {
+      code += 'import com.google.gson.annotations.SerializedName\n\n';
+    } else if (framework === 'jackson') {
+      code += 'import com.fasterxml.jackson.annotation.JsonProperty\n\n';
+    }
+    
+    // 处理空数据的情况
+    if (data === null || data === undefined || (typeof data === 'object' && Object.keys(data).length === 0 && !Array.isArray(data))) {
+      if (framework === 'kotlinx') {
+        code += '@Serializable\n';
+      }
+      code += `data class ${className}(\n`;
+      code += '    // 空类，可以根据需要添加属性\n';
+      code += ')';
+      return code;
+    }
+    
+    if (framework === 'kotlinx') {
+      code += '@Serializable\n';
+    }
+    
+    code += `data class ${className}(\n`;
+    
+    // 生成属性
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+      const entries = Object.entries(data);
+      entries.forEach(([key, value], index) => {
+        const kotlinType = this.getKotlinType(value);
+        const fieldName = this.toKotlinFieldName(key);
+        const isLast = index === entries.length - 1;
+        
+        // 添加序列化注解
+        if (key !== fieldName) {
+          if (framework === 'kotlinx') {
+            code += `    @SerialName("${key}")\n`;
+          } else if (framework === 'gson') {
+            code += `    @SerializedName("${key}")\n`;
+          } else if (framework === 'jackson') {
+            code += `    @JsonProperty("${key}")\n`;
+          }
+        }
+        
+        const nullable = options.useOptional && (value === null || value === undefined) ? '?' : '';
+        const defaultValue = options.useOptional && (value === null || value === undefined) ? ' = null' : '';
+        
+        code += `    val ${fieldName}: ${kotlinType}${nullable}${defaultValue}${isLast ? '' : ','}`;
+        code += '\n';
+      });
+    }
+    
+    code += ')';
+    
+    return code;
+  }
+  
+  private getKotlinType(value: any): string {
+    if (value === null || value === undefined) return 'Any';
+    if (typeof value === 'boolean') return 'Boolean';
+    if (typeof value === 'number') {
+      return Number.isInteger(value) ? 'Int' : 'Double';
+    }
+    if (typeof value === 'string') return 'String';
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 'List<Any>';
+      const elementType = this.getKotlinType(value[0]);
+      return `List<${elementType}>`;
+    }
+    if (typeof value === 'object') return 'Map<String, Any>';
+    return 'Any';
+  }
+  
+  private toKotlinFieldName(name: string): string {
+    // 转换为 camelCase，并确保符合 Kotlin 命名规范
+    let result = name.replace(/[-_]([a-z])/g, (_, letter) => letter.toUpperCase());
+    
+    // 如果以数字开头，添加前缀
+    if (/^\d/.test(result)) {
+      result = 'field' + this.capitalize(result);
+    }
+    
+    // 避免 Kotlin 关键字
+    const kotlinKeywords = ['class', 'fun', 'val', 'var', 'if', 'else', 'when', 'for', 'while', 'do', 'try', 'catch', 'finally', 'throw', 'return', 'break', 'continue', 'object', 'interface', 'package', 'import', 'as', 'is', 'in', 'out', 'by', 'where', 'init', 'constructor', 'this', 'super', 'typeof', 'true', 'false', 'null'];
+    
+    if (kotlinKeywords.includes(result)) {
+      result = '`' + result + '`';
+    }
+    
+    return result;
+  }
+  
+  private capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+}

@@ -1,21 +1,16 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTheme } from "next-themes";
-import { Editor } from "@monaco-editor/react";
-import { useJsonStore } from "@/store/jsonStore";
-import { Download, Copy, Settings2, Wrench, Code2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { CodeGeneratorEmptyState } from "@/components/generator/CodeGeneratorEmptyState";
-import { RustGenerator, CodeGenOptions } from "@/lib/code-generators";
+import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDialog";
+import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
-import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { CodeGenOptions, RustGenerator } from "@/lib/code-generators";
+import { Code2, Wrench } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function RustGeneratorPage() {
-  const { resolvedTheme } = useTheme();
-  const { jsonData, selectedPath, getNodeAtPath } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,16 +35,10 @@ export default function RustGeneratorPage() {
   });
 
   // Get the data to convert
-  const getDataToConvert = useCallback(() => {
-    if (selectedPath.length > 0) {
-      return getNodeAtPath(selectedPath);
-    }
-    return jsonData;
-  }, [selectedPath, getNodeAtPath, jsonData]);
-
+ 
   // Generate Rust
   const generateRust = useCallback(() => {
-    const data = getDataToConvert();
+    const data = inputJson;
     if (!data) return "";
 
     try {
@@ -58,7 +47,7 @@ export default function RustGeneratorPage() {
       console.error('Rust generation error:', err);
       return "";
     }
-  }, [getDataToConvert, generator, options]);
+  }, [generator, options]);
 
   // Update generated code when data or options change
   useEffect(() => {

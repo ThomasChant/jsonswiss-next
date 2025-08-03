@@ -239,6 +239,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/generator/kotlin`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/generator/sql`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
