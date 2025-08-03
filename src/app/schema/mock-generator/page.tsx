@@ -1,17 +1,16 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useTheme } from "next-themes";
-import { Editor } from "@monaco-editor/react";
-import { useJsonStore } from "@/store/jsonStore";
-import { Upload, Copy, Download, Settings2, FileText, RefreshCw, Zap, Dices, FileJson2, Maximize2, Minimize2, Database, Clock, Hash } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
-import { MockDataGenerator, MockDataOptions, generateMockData, validateSchemaForMockGeneration } from "@/lib/mock-data";
-import { analyzeSchema, validateJsonSchema } from "@/lib/schema-utils";
-import { getSchemaById } from "@/sample-data/schemas";
 import { useClipboard } from "@/hooks/useClipboard";
+import { MockDataOptions, generateMockData, validateSchemaForMockGeneration } from "@/lib/mock-data";
+import { analyzeSchema, validateJsonSchema } from "@/lib/schema-utils";
+import { cn } from "@/lib/utils";
+import { getSchemaById } from "@/sample-data/schemas";
+import { useJsonStore } from "@/store/jsonStore";
+import { Clock, Database, Dices, FileJson2, FileText, Hash, RefreshCw, Zap } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useCallback, useEffect, useState } from "react";
 
 export default function MockGeneratorPage() {
   const { resolvedTheme } = useTheme();
