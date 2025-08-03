@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "JSON to C# Code Generator | Generate C# Classes from JSON - JSON Swiss",
+  description: "Free online JSON to C# code generator. Convert JSON data to C# classes, objects, and data models with proper naming conventions, nullable types, and attribute support.",
+  keywords: [
+    "json to c#",
+    "json to csharp",
+    "c# code generator",
+    "json to c# class",
+    "json to c# converter",
+    "csharp code generation",
+    "c# class generator",
+    "json to dotnet",
+    "c# object generator",
+    "programming tools",
+    "code generator",
+    "dotnet tools"
+  ],
+  openGraph: {
+    title: "JSON to C# Code Generator - Generate C# Classes",
+    description: "Generate C# classes, objects, and data models from JSON data with proper naming conventions and type support.",
+    url: "https://jsonswiss.com/generator/csharp",
+    images: [
+      {
+        url: "https://jsonswiss.com/og-csharp-generator.png",
+        width: 1200,
+        height: 630,
+        alt: "JSON to C# Code Generator - Generate C# classes from JSON",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JSON to C# Code Generator",
+    description: "Generate C# classes and data models from JSON data with proper naming and type conventions.",
+    images: ["https://jsonswiss.com/twitter-csharp-generator.png"],
+  },
+  alternates: {
+    canonical: "https://jsonswiss.com/generator/csharp",
+  },
+};
+
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
+}

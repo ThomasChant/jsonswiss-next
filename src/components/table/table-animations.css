@@ -1,0 +1,723 @@
+/* Table-specific styles - simplified and performance-optimized */
+
+/* New row highlight - simplified */
+.table-row-new {
+  background-color: rgb(34 197 94 / 0.1);
+  transition: background-color 0.3s ease;
+}
+
+/* Editing row styles - simplified */
+.table-row-editing {
+  background-color: rgb(59 130 246 / 0.08) !important;
+  border-left: 3px solid rgb(59 130 246);
+  transition: background-color 0.2s ease;
+}
+
+/* Row hover effects - simplified */
+.table-row:hover {
+  background-color: rgb(248 250 252);
+  transition: background-color 0.15s ease;
+}
+
+.dark .table-row:hover {
+  background-color: rgb(30 41 59 / 0.3);
+}
+
+/* Row actions - always visible for better accessibility */
+.table-row-actions {
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.table-row:hover .table-row-actions {
+  opacity: 1;
+}
+
+/* Cell editing - simplified */
+.table-cell-editing {
+  border: 2px solid rgb(59 130 246);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2);
+}
+
+/* Smooth transitions for row state changes */
+.table-row-transition {
+  transition: background-color 0.15s ease;
+}
+
+/* Loading row placeholder - simplified */
+.table-row-loading {
+  background-color: rgb(241 245 249);
+  opacity: 0.6;
+}
+
+.dark .table-row-loading {
+  background-color: rgb(30 41 59);
+  opacity: 0.6;
+}
+
+/* Sort indicator - simplified */
+.sort-indicator {
+  transition: opacity 0.15s ease;
+}
+
+.sort-indicator-active {
+  opacity: 1;
+  color: rgb(59 130 246);
+}
+
+/* Filter chips - simplified transitions */
+.filter-chip-enter {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.filter-chip-enter-active {
+  opacity: 1;
+}
+
+.filter-chip-exit {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.filter-chip-exit-active {
+  opacity: 0;
+}
+
+/* Table container - simplified */
+.table-container {
+  position: relative;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background-color: rgb(255 255 255);
+}
+
+.dark .table-container {
+  border-color: rgb(51 65 85);
+  background-color: rgb(15 23 42);
+}
+
+/* Table scroll shadows - simplified */
+.table-container.scroll-left {
+  box-shadow: inset 10px 0 10px -10px rgb(0 0 0 / 0.1);
+}
+
+.table-container.scroll-right {
+  box-shadow: inset -10px 0 10px -10px rgb(0 0 0 / 0.1);
+}
+
+/* Desktop responsiveness - removed mobile styles as per requirements */
+@media (min-width: 1024px) {
+  .table-container {
+    border-radius: 12px;
+  }
+}
+
+/* Accessibility focus styles - improved */
+.table-cell:focus {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.table-cell:focus-visible {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+/* CSS custom properties - simplified */
+:root {
+  --table-row-hover: rgb(248 250 252);
+  --table-row-editing: rgb(59 130 246 / 0.08);
+  --table-border: rgb(226 232 240);
+  --table-new-row: rgb(34 197 94 / 0.1);
+  --table-header-bg: rgb(248 250 252);
+  --table-text: rgb(15 23 42);
+}
+
+.dark {
+  --table-row-hover: rgb(30 41 59 / 0.3);
+  --table-row-editing: rgb(59 130 246 / 0.12);
+  --table-border: rgb(51 65 85);
+  --table-new-row: rgb(34 197 94 / 0.12);
+  --table-header-bg: rgb(30 41 59);
+  --table-text: rgb(248 250 252);
+}
+
+/* ===== NESTED TABLE STYLES - SIMPLIFIED ===== */
+
+/* Nested table container - simplified */
+.nested-table {
+  margin-top: 0.75rem;
+  margin-left: 1rem;
+  border-left: 3px solid var(--table-border);
+  padding-left: 1rem;
+  background: var(--table-header-bg);
+  border-radius: 6px;
+}
+
+.dark .nested-table {
+  background: var(--table-header-bg);
+}
+
+/* Nested table content - simplified */
+.nested-table-content {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.nested-table-content .table-container {
+  max-height: 300px;
+  border: 1px solid var(--table-border);
+  border-radius: 4px;
+}
+
+/* Visual hierarchy for nesting levels - simplified */
+.nested-table[data-depth="1"] {
+  margin-left: 1rem;
+}
+
+.nested-table[data-depth="2"] {
+  margin-left: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.nested-table[data-depth="3"] {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* ===== EXPANDABLE CELL STYLES - SIMPLIFIED ===== */
+
+/* Expandable cell container - simplified */
+.expandable-cell {
+  position: relative;
+  min-height: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.expandable-cell .table-cell {
+  border-radius: 4px;
+  padding: 0.375rem 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.expandable-cell .table-cell:hover {
+  background-color: var(--table-row-hover);
+}
+
+.dark .expandable-cell .table-cell:hover {
+  background-color: var(--table-row-hover);
+}
+
+/* Expand button - simplified */
+.table-expand-btn {
+  position: relative;
+  flex-shrink: 0;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+  border-radius: 4px;
+}
+
+.table-expand-btn:hover {
+  opacity: 1;
+  background-color: rgb(59 130 246 / 0.08);
+}
+
+.expandable-cell:hover .table-expand-btn {
+  opacity: 1;
+}
+
+/* Simple expand icon rotation */
+.table-expand-btn[data-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.table-expand-btn[data-expanded="false"] svg {
+  transform: rotate(0deg);
+}
+
+/* ===== TRUNCATED TEXT - SIMPLIFIED ===== */
+
+/* Truncated text with tooltip - simplified */
+.truncated-text {
+  cursor: help;
+  border-bottom: 1px dotted rgb(107 114 128);
+  text-decoration: none;
+}
+
+.truncated-text:hover {
+  border-bottom-color: rgb(59 130 246);
+}
+
+/* Simple tooltip */
+.truncated-text:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 50;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  background: rgb(15 23 42);
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dark .truncated-text:hover::after {
+  background: rgb(248 250 252);
+  color: rgb(15 23 42);
+}
+
+/* ===== EXPANSION - SIMPLIFIED ===== */
+
+/* Simple expansion states */
+.nested-table-expanding {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nested-table-expanding.visible {
+  opacity: 1;
+}
+
+.nested-table-collapsing {
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+/* ===== VALUE TYPE INDICATORS - SIMPLIFIED ===== */
+
+/* Simple value type indicators */
+.value-type-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: ui-monospace, monospace;
+}
+
+.value-type-object {
+  background: rgb(168 85 247 / 0.12);
+  color: rgb(147 51 234);
+}
+
+.dark .value-type-object {
+  background: rgb(168 85 247 / 0.2);
+  color: rgb(196 181 253);
+}
+
+.value-type-array {
+  background: rgb(34 197 94 / 0.12);
+  color: rgb(22 163 74);
+}
+
+.dark .value-type-array {
+  background: rgb(34 197 94 / 0.2);
+  color: rgb(134 239 172);
+}
+
+.value-type-primitive {
+  background: rgb(59 130 246 / 0.12);
+  color: rgb(37 99 235);
+}
+
+.dark .value-type-primitive {
+  background: rgb(59 130 246 / 0.2);
+  color: rgb(147 197 253);
+}
+
+/* ===== SINGLE OBJECT TABLE - SIMPLIFIED ===== */
+
+/* Key column styling - simplified */
+.key-column-cell {
+  font-weight: 600;
+  color: rgb(37 99 235);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.key-column-cell:hover {
+  background: rgb(37 99 235 / 0.08);
+}
+
+.dark .key-column-cell {
+  color: rgb(147 197 253);
+}
+
+.dark .key-column-cell:hover {
+  background: rgb(37 99 235 / 0.15);
+}
+
+/* Type badge - simplified */
+.type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: ui-monospace, monospace;
+  background: var(--table-header-bg);
+  color: rgb(71 85 105);
+  border: 1px solid var(--table-border);
+}
+
+.dark .type-badge {
+  background: var(--table-header-bg);
+  color: rgb(148 163 184);
+  border-color: var(--table-border);
+}
+
+/* ===== DEMO PAGE COMPACT STYLES ===== */
+.compact-table-demo .table-container {
+  padding: 0.75rem;
+}
+
+.compact-table-demo .table-row {
+  min-height: 2.5rem;
+}
+
+.compact-table-demo .table-cell {
+  padding: 0.5rem 0.75rem;
+}
+
+.compact-table-demo .expandable-cell {
+  min-height: 1.75rem;
+}
+
+.compact-table-demo .sortable-header {
+  min-height: 2.5rem;
+  padding: 0.5rem;
+}
+
+.compact-table-demo .type-badge {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+}
+
+/* ===== DESKTOP OPTIMIZATIONS ===== */
+
+@media (min-width: 1200px) {
+  .table-container {
+    border-radius: 12px;
+  }
+  
+  .nested-table {
+    border-radius: 8px;
+  }
+  
+  .truncated-text:hover::after {
+    max-width: 400px;
+  }
+}
+
+/* ===== COMPACT TABLE STYLES ===== */
+
+/* CSS custom properties for density levels */
+:root {
+  /* Comfortable density */
+  --density-comfortable-row-height: 3rem;
+  --density-comfortable-cell-padding: 0.75rem 1rem;
+  --density-comfortable-header-height: 3.5rem;
+  --density-comfortable-container-padding: 1rem;
+  
+  /* Regular density (default) */
+  --density-regular-row-height: 2.75rem;
+  --density-regular-cell-padding: 0.625rem 0.875rem;
+  --density-regular-header-height: 3rem;
+  --density-regular-container-padding: 0.875rem;
+  
+  /* Compact density */
+  --density-compact-row-height: 2.25rem;
+  --density-compact-cell-padding: 0.5rem 0.75rem;
+  --density-compact-header-height: 2.5rem;
+  --density-compact-container-padding: 0.75rem;
+}
+
+/* Compact table container */
+.table-container--compact {
+  padding: var(--density-compact-container-padding);
+}
+
+/* Compact table cells */
+.table-cell--compact {
+  padding: var(--density-compact-cell-padding);
+  font-size: 0.875rem;
+}
+
+/* Compact table rows */
+.table-row--compact {
+  min-height: var(--density-compact-row-height);
+}
+
+/* Compact table headers */
+.table-header--compact {
+  min-height: var(--density-compact-header-height);
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Compact sortable headers */
+.sortable-header--compact {
+  min-height: var(--density-compact-header-height);
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.sortable-header--compact .sort-indicator {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Compact expandable cells */
+.expandable-cell--compact {
+  min-height: calc(var(--density-compact-row-height) - 0.5rem);
+}
+
+.expandable-cell--compact .nested-table {
+  margin-top: 0.375rem;
+  margin-left: 0.75rem;
+}
+
+.expandable-cell--compact .table-expand-btn {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Compact nested tables */
+.nested-table--compact {
+  margin-top: 0.375rem;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-radius: 4px;
+}
+
+.nested-table--compact .nested-table-content {
+  font-size: 0.8125rem;
+}
+
+/* Compact type badges */
+.type-badge--compact {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+  border-radius: 8px;
+}
+
+/* Compact toolbar styles */
+.table-toolbar--compact {
+  padding: 0.5rem;
+  gap: 0.5rem;
+}
+
+.table-toolbar--compact .search-input {
+  height: 1.75rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.table-toolbar--compact .toolbar-button {
+  height: 1.75rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.table-toolbar--compact .breadcrumb {
+  font-size: 0.8125rem;
+  gap: 0.25rem;
+}
+
+/* Compact filter chips */
+.filter-chip--compact {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.75rem;
+  gap: 0.25rem;
+}
+
+.filter-chip--compact .remove-button {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Compact dropdown menus */
+.dropdown-menu--compact {
+  padding: 0.25rem;
+}
+
+.dropdown-menu--compact .dropdown-item {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Compact key column cells */
+.key-column-cell--compact {
+  padding: var(--density-compact-cell-padding);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Compact animations - maintain smooth transitions */
+.table-row--compact {
+  transition: background-color 0.15s ease;
+}
+
+.table-cell--compact {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.expandable-cell--compact .table-expand-btn {
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* Compact value type indicators */
+.value-type-indicator--compact {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  border-radius: 10px;
+}
+
+/* ===== COMPACT DIALOG STYLES ===== */
+
+/* 紧凑模态框样式 */
+.compact-table-demo [data-radix-dialog-content] {
+  padding: 1rem; /* 减少模态框内边距 p-6 → p-4 */
+  gap: 0.75rem; /* 减少元素间距 gap-4 → gap-3 */
+}
+
+.compact-table-demo .space-y-3 {
+  gap: 0.5rem; /* 减少表单元素间距 */
+}
+
+.compact-table-demo .space-y-3 > * + * {
+  margin-top: 0.5rem;
+}
+
+.compact-table-demo .space-y-1\.5 {
+  gap: 0.25rem; /* 减少标签和输入框间距 */
+}
+
+.compact-table-demo .space-y-1\.5 > * + * {
+  margin-top: 0.25rem;
+}
+
+/* 紧凑Dialog标题 */
+.compact-table-demo [data-radix-dialog-title] {
+  font-size: 1rem; /* 减小标题字体 text-lg → text-base */
+  margin-bottom: 0.5rem;
+}
+
+/* 紧凑Dialog底部按钮区域 */
+.compact-table-demo [data-radix-dialog-content] > div:last-child {
+  margin-top: 0.75rem; /* 减少底部间距 */
+  gap: 0.5rem; /* 减少按钮间距 */
+}
+
+/* ===== HIGH CONTRAST ACCESSIBILITY ===== */
+
+@media (prefers-contrast: high) {
+  .table-row:hover {
+    background-color: rgb(0 0 0 / 0.1);
+  }
+  
+  .dark .table-row:hover {
+    background-color: rgb(255 255 255 / 0.1);
+  }
+  
+  .table-expand-btn {
+    border: 2px solid currentColor;
+  }
+  
+  .sort-indicator-active {
+    font-weight: bold;
+  }
+}
+
+/* ===== TABLE SCROLL IMPROVEMENTS ===== */
+
+/* Table scroll container with enhanced scrolling */
+.table-scroll-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) rgb(241 245 249);
+}
+
+.dark .table-scroll-container {
+  scrollbar-color: rgb(71 85 105) rgb(30 41 59);
+}
+
+/* Table content with proper min-width handling */
+.table-content {
+  min-width: max-content;
+  width: 100%;
+}
+
+/* Horizontal scroll optimizations */
+.table-horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-height: thin;
+}
+
+/* Enhanced scrollbar styling for tables */
+.table-scroll-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: rgb(241 245 249);
+  border-radius: 4px;
+}
+
+.dark .table-scroll-container::-webkit-scrollbar-track {
+  background: rgb(30 41 59);
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+.dark .table-scroll-container::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+.dark .table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}
+
+/* Table cell width handling for horizontal scrolling */
+.table-cell-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Table header fixed width for better scrolling */
+.table-header-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
+}

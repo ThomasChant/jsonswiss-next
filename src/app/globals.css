@@ -1,0 +1,341 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 211 100% 50%;
+    --radius: 0.5rem;
+    
+    /* Core area height variables */
+    --header-height: 4rem;
+    --title-section-height: 4rem; /* Initial value, dynamically updated by JS */
+    --core-area-height: calc(100vh - var(--header-height) - var(--title-section-height) - 6rem);
+    --core-area-min-height: calc(100vh - var(--header-height) - var(--title-section-height)- 6rem);
+    --core-area-max-height: calc(100vh - var(--header-height) - 6rem);
+    --core-area-default-height: calc(100vh - var(--header-height) - var(--title-section-height)- 6rem);
+    /* JSON Table Editor specific height variables */
+    --json-table-editor-height: calc(100vh - var(--header-height));
+    --json-table-editor-min-height: calc(100vh - var(--header-height));
+    --json-table-editor-max-height: calc(100vh - var(--header-height));
+    --input-area-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
+    --json-input-max-height: 2000px;
+    --mobile-input-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 211 100% 50%;
+    
+    /* Core area height variables (same as light mode) */
+    --header-height: 4rem;
+    --title-section-height: 4rem; /* Initial value, dynamically updated by JS */
+    --core-area-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
+    --core-area-min-height: calc(100vh - var(--header-height) - var(--title-section-height));
+    --core-area-max-height: calc(100vh - var(--header-height));
+    --core-area-default-height: calc(100vh - var(--header-height) - var(--title-section-height));
+    /* JSON Table Editor specific height variables */
+    --json-table-editor-height: calc(100vh - var(--header-height));
+    --json-table-editor-min-height: calc(100vh - var(--header-height));
+    --json-table-editor-max-height: calc(100vh - var(--header-height));
+    --input-area-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
+    --json-input-max-height: 2000px;
+    --mobile-input-max-height: calc(100vh - var(--header-height) - var(--title-section-height) - 2rem);
+  }
+}
+
+@layer base {
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-inter), sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Enhanced table scrollbar styles */
+  .scrollbar-table {
+    scrollbar-width: auto;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+  }
+
+  .scrollbar-table::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .scrollbar-table::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 6px;
+  }
+
+  .scrollbar-table::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.4);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollbar-table::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .scrollbar-table::-webkit-scrollbar-corner {
+    background: hsl(var(--muted) / 0.3);
+  }
+
+  /* Horizontal-specific scrollbar */
+  .scrollbar-horizontal {
+    scrollbar-width: auto;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .scrollbar-horizontal::-webkit-scrollbar {
+    width: 8px;
+    height: 12px;
+  }
+
+  .scrollbar-horizontal::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 6px;
+  }
+
+  .scrollbar-horizontal::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.4);
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .min-h-0 {
+    min-height: 0;
+  }
+
+  .grid-cols-sidebar {
+    grid-template-columns: 24rem minmax(0, 1fr);
+  }
+
+  .grid-cols-three-panel {
+    grid-template-columns: 1fr 24rem 1fr;
+  }
+
+  /* Sidebar scrollbar styling */
+  .sidebar-navigation-container {
+    min-width: 24rem;
+    height: 100%;
+  }
+
+  .sidebar-navigation-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .sidebar-navigation-container::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 4px;
+  }
+
+  .sidebar-navigation-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 4px;
+  }
+
+  .sidebar-navigation-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+  }
+
+  .sidebar-navigation-container::-webkit-scrollbar-corner {
+    background: rgba(148, 163, 184, 0.1);
+  }
+
+  /* Dark mode scrollbar */
+  .dark .sidebar-navigation-container::-webkit-scrollbar-track {
+    background: rgba(71, 85, 105, 0.1);
+  }
+
+  .dark .sidebar-navigation-container::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.4);
+  }
+
+  .dark .sidebar-navigation-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(71, 85, 105, 0.6);
+  }
+
+  .dark .sidebar-navigation-container::-webkit-scrollbar-corner {
+    background: rgba(71, 85, 105, 0.1);
+  }
+
+  .h-core {
+    height: var(--core-area-height);
+  }
+
+  .min-h-core {
+    min-height: var(--core-area-min-height);
+  }
+
+  .max-h-core {
+    max-height: var(--core-area-max-height);
+  }
+
+  .h-core-default {
+    height: var(--core-area-default-height);
+  }
+
+  .h-json-table-editor {
+    height: var(--json-table-editor-height);
+  }
+
+  .min-h-json-table-editor {
+    min-height: var(--json-table-editor-min-height);
+  }
+
+  .max-h-json-table-editor {
+    max-height: var(--json-table-editor-max-height);
+  }
+
+  .max-h-input {
+    max-height: var(--input-area-max-height);
+  }
+
+  .max-h-json-input {
+    max-height: var(--json-input-max-height);
+  }
+
+  .max-h-mobile-input {
+    max-height: var(--mobile-input-max-height);
+  }
+
+  /* Page title centering utilities */
+  .page-title-center {
+    text-align: center;
+  }
+
+  .faq-section-center {
+    text-align: center;
+  }
+
+  .section-heading-center {
+    text-align: center;
+  }
+
+  /* Editor specific height utilities */
+  .h-editor-full {
+    height: calc(100vh - var(--header-height) - var(--title-section-height) - 4rem);
+    min-height: 400px;
+  }
+
+  .h-sidebar-editor {
+    height: calc(100vh - var(--header-height) - var(--title-section-height) - 8rem);
+    min-height: 250px;
+  }
+
+  /* Monaco editor container fixes */
+  .monaco-editor-container {
+    height: 100% !important;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Flex layout utilities for editors */
+  .editor-flex-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .editor-content-area {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Sidebar specific editor height fix */
+  .sidebar-editor-container {
+    min-height: calc(100vh - var(--header-height) - var(--title-section-height) - 6rem);
+    height: calc(100vh - 6rem);
+    max-height: calc(100vh - var(--header-height) - 6rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Sidebar navigation container optimization */
+  .sidebar-navigation-container {
+    /* height: calc(100vh - var(--header-height) - var(--title-section-height) - 10rem); */
+    min-height: 300px;
+    max-height: calc(100vh - var(--header-height) - 6rem);
+  }
+
+  /* Sidebar tree content area */
+  .sidebar-tree-content {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
