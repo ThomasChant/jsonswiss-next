@@ -1,19 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  FileSpreadsheet, 
-  Copy, 
-  Download, 
-  Upload, 
-  FileText,
-  BookOpen,
-  Settings2
-} from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
-import { csvToJson } from "@/lib/converters";
-import { useSampleData } from "@/hooks/useSampleData";
 import { useClipboard } from "@/hooks/useClipboard";
+import { useSampleData } from "@/hooks/useSampleData";
+import { csvToJson } from "@/lib/converters";
+import {
+  BookOpen,
+  FileSpreadsheet,
+  FileText
+} from "lucide-react";
+import { useState } from "react";
 
 export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: string; answer: string }> }) {
   const [inputCsv, setInputCsv] = useState("");
