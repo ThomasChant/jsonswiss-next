@@ -6,7 +6,6 @@ import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDial
 import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { CodeGenOptions, RubyGenerator } from "@/lib/code-generators";
-import { useJsonStore } from "@/store/jsonStore";
 import { Code2, Gem } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useMemo, useState } from "react";

@@ -6,14 +6,12 @@ import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDial
 import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { CodeGenOptions, ScalaGenerator } from "@/lib/code-generators";
-import { useJsonStore } from "@/store/jsonStore";
 import { Code2, Layers } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function ScalaGeneratorPage() {
   const { resolvedTheme } = useTheme();
-  const { jsonData, selectedPath, getNodeAtPath } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,17 +36,9 @@ export default function ScalaGeneratorPage() {
     errorMessage: 'Failed to copy Scala code to clipboard'
   });
 
-  // Get the data to convert
-  const getDataToConvert = useCallback(() => {
-    if (selectedPath.length > 0) {
-      return getNodeAtPath(selectedPath);
-    }
-    return jsonData;
-  }, [selectedPath, getNodeAtPath, jsonData]);
-
   // Generate Scala
   const generateScala = useCallback(() => {
-    const data = getDataToConvert();
+    const data = inputJson;
     if (!data) return "";
 
     try {
@@ -57,7 +47,7 @@ export default function ScalaGeneratorPage() {
       console.error('Scala generation error:', err);
       return "";
     }
-  }, [getDataToConvert, generator, options]);
+  }, [generator, options]);
 
   // Update generated code when data or options change
   useEffect(() => {

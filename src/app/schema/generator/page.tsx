@@ -1,17 +1,14 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { FileJson2, RefreshCw } from "lucide-react";
-import { JsonSchemaGenerator } from "@/lib/json-utils";
+import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDialog";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
-import { useJsonStore } from "@/store/jsonStore";
-import { ImportJsonDialog } from "@/components/import";
 import { useClipboard } from "@/hooks/useClipboard";
-import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { JsonSchemaGenerator } from "@/lib/json-utils";
+import { FileJson2, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function SchemaGeneratorPage() {
-  const { jsonData } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [outputSchema, setOutputSchema] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,15 +46,6 @@ export default function SchemaGeneratorPage() {
       setOutputSchema("");
     }
   }, [schemaGenerator]);
-
-  // Initialize with global JSON data
-  useEffect(() => {
-    if (jsonData && !inputJson) {
-      const jsonString = JSON.stringify(jsonData, null, 2);
-      setInputJson(jsonString);
-      generateSchema(jsonString);
-    }
-  }, [jsonData, inputJson, generateSchema]);
 
   const handleImport = (json: any, source: ImportSource, metadata?: ImportMetadata) => {
     const jsonString = JSON.stringify(json, null, 2);
