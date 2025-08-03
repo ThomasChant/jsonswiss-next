@@ -92,14 +92,14 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">J</span>
+                <div className="w-12 h-12 bg-gradient-to-brrounded-xl flex items-center justify-center">
+                  <img src="/icon-128.png" alt="JSON Swiss Logo" className="w-full h-full" />
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold">
                   JSON Swiss
-                </h1>
+                </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">Visual JSON Editor & Toolkit</p>
               </div>
             </Link>
