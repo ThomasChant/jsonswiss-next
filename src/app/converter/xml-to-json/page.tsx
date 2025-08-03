@@ -6,7 +6,7 @@ import { FileCode, FileText } from "lucide-react";
 import { xmlToJson } from "@/lib/converters";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
-import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+// 移除了多格式导入对话框的导入
 
 export default function XmlToJsonPage() {
   const [inputXml, setInputXml] = useState("");
@@ -15,7 +15,7 @@ export default function XmlToJsonPage() {
   const [isInputMaximized, setIsInputMaximized] = useState(false);
   const [isOutputMaximized, setIsOutputMaximized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  // 移除了多格式导入对话框状态
   const { copy } = useClipboard({ successMessage: 'JSON copied to clipboard' });
 
   const handleInputChange = (value: string | undefined) => {
@@ -44,7 +44,7 @@ export default function XmlToJsonPage() {
   const handleFileImport = () => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".xml,.txt";
+    input.accept = ".xml";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -58,14 +58,6 @@ export default function XmlToJsonPage() {
       }
     };
     input.click();
-  };
-
-  const handleImport = (data: any, source: ImportSource, metadata?: ImportMetadata) => {
-    // For XML converter, we expect the imported data to be XML string
-    const xmlString = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-    setInputXml(xmlString);
-    handleInputChange(xmlString);
-    setImportDialogOpen(false);
   };
 
   const handleCopy = async () => {
@@ -116,7 +108,6 @@ export default function XmlToJsonPage() {
       isInputMaximized={isInputMaximized}
       isOutputMaximized={isOutputMaximized}
       showSettings={showSettings}
-      importDialogOpen={importDialogOpen}
       inputLanguage="xml"
       outputLanguage="json"
       inputLanguageDisplayName="XML"
@@ -126,12 +117,10 @@ export default function XmlToJsonPage() {
       onInputChange={handleInputChange}
       onCopy={handleCopy}
       onDownload={handleDownload}
-      onImport={handleImport}
       onFileImport={handleFileImport}
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
-      onToggleImportDialog={setImportDialogOpen}
     />
   );
 }
