@@ -97,6 +97,12 @@ export const converterMenuSections: NavigationSection[] = [
         href: "/converter/sql-to-json",
         icon: "Database",
         description: "Convert SQL to JSON format"
+      },
+      {
+        title: "JAR to JSON",
+        href: "/converter/jar-to-json",
+        icon: "FileArchive",
+        description: "Convert JAR to JSON format"
       }
     ]
   },
