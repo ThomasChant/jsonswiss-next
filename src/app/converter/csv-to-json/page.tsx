@@ -18,25 +18,6 @@ export const metadata: Metadata = {
     "spreadsheet to json",
     "tabular data converter"
   ],
-  openGraph: {
-    title: "CSV to JSON Converter - Convert CSV Files Online",
-    description: "Free CSV to JSON converter with custom delimiters, header options, and data type detection. Convert CSV files to JSON instantly.",
-    url: "https://jsonswiss.com/converter/csv-to-json",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-csv-to-json.png",
-        width: 1200,
-        height: 630,
-        alt: "CSV to JSON Converter - Convert CSV files to JSON format",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "CSV to JSON Converter",
-    description: "Convert CSV files to JSON format with custom options and data type detection.",
-    images: ["https://jsonswiss.com/twitter-csv-to-json.png"],
-  },
   alternates: {
     canonical: "https://jsonswiss.com/converter/csv-to-json",
   },

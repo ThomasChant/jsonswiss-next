@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "configuration tools",
     "java tools"
   ],
-  openGraph: {
-    title: "JSON to Properties Converter - Convert JSON to Java Properties",
-    description: "Free JSON to Properties converter with nested path handling and proper escaping. Convert JSON to Java properties files instantly.",
-    url: "https://jsonswiss.com/converter/json-to-properties",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-json-to-properties.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON to Properties Converter - Convert JSON to Java properties files",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON to Properties Converter",
-    description: "Convert JSON data to Java properties file format with key-value pairs and nested path handling.",
-    images: ["https://jsonswiss.com/twitter-json-to-properties.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/converter/json-to-properties",
-  },
-};
+    canonical: "https://jsonswiss.com/converter/json-to-properties"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

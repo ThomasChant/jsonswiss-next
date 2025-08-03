@@ -17,25 +17,7 @@ export const metadata: Metadata = {
     "json row column editor",
     "online json table"
   ],
-  openGraph: {
-    title: "JSON Table Editor - Edit JSON in Spreadsheet Format",
-    description: "Interactive JSON table editor with spreadsheet interface. Edit JSON data visually with add/remove rows and columns functionality.",
-    url: "https://jsonswiss.com/json-table-editor",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-table-editor.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Table Editor - Edit JSON data in table format",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Table Editor",
-    description: "Edit JSON data in spreadsheet format with interactive table interface.",
-    images: ["https://jsonswiss.com/twitter-table-editor.png"],
-  },
+
   alternates: {
     canonical: "https://jsonswiss.com/json-table-editor",
   },

@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "data generation",
     "testing tools"
   ],
-  openGraph: {
-    title: "JSON Schema Mock Data Generator - Generate Test Data",
-    description: "Generate realistic test data and mock JSON objects from JSON Schema definitions with customizable options.",
-    url: "https://jsonswiss.com/schema/mock-generator",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-schema-mock-generator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Schema Mock Data Generator - Generate test data from schema",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Schema Mock Data Generator",
-    description: "Generate realistic test data and mock JSON objects from JSON Schema definitions.",
-    images: ["https://jsonswiss.com/twitter-schema-mock-generator.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/schema/mock-generator",
-  },
-};
+    canonical: "https://jsonswiss.com/schema/mock-generator"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

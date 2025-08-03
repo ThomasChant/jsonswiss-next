@@ -17,25 +17,7 @@ export const metadata: Metadata = {
     "json format checker",
     "web development tools"
   ],
-  openGraph: {
-    title: "JSON Validator - Validate JSON Online with Schema Support",
-    description: "Free JSON validator with detailed error reporting and schema validation. Check JSON syntax, structure, and compliance instantly.",
-    url: "https://jsonswiss.com/validator",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-validator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Validator - Validate JSON syntax and schema online",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Validator & Schema Validation",
-    description: "Free JSON validator with detailed error reporting and schema validation.",
-    images: ["https://jsonswiss.com/twitter-validator.png"],
-  },
+
   alternates: {
     canonical: "https://jsonswiss.com/validator",
   },

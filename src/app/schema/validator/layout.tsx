@@ -15,25 +15,11 @@ export const metadata: Metadata = {
     'schema verification',
     'JSON integrity check'
   ],
-  openGraph: {
-    title: 'JSON Schema Validator - JSONSwiss',
-    description: 'Validate your JSON data against JSON schemas. Ensure data integrity and catch validation errors with comprehensive validation reporting.',
-    type: 'website',
-    url: 'https://jsonswiss.com/schema/validator',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'JSON Schema Validator - JSONSwiss',
-    description: 'Validate your JSON data against JSON schemas. Ensure data integrity and catch validation errors.',
-  },
   alternates: {
-    canonical: 'https://jsonswiss.com/schema/validator',
-  },
-};
+    canonical: 'https://jsonswiss.com/schema/validator'}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

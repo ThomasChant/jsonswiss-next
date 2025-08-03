@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "code generator",
     "web development"
   ],
-  openGraph: {
-    title: "JSON to PHP Code Generator - Generate PHP Classes",
-    description: "Generate PHP classes, arrays, and objects from JSON data with proper syntax and PSR standards compliance.",
-    url: "https://jsonswiss.com/generator/php",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-php-generator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON to PHP Code Generator - Generate PHP classes from JSON",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON to PHP Code Generator",
-    description: "Generate PHP classes and objects from JSON data with proper syntax and type hints.",
-    images: ["https://jsonswiss.com/twitter-php-generator.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/generator/php",
-  },
-};
+    canonical: "https://jsonswiss.com/generator/php"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "code generator",
     "python tools"
   ],
-  openGraph: {
-    title: "JSON to Python Code Generator",
-    description: "Generate Python dictionaries, classes, and dataclasses from JSON data with custom formatting options.",
-    url: "https://jsonswiss.com/generator/python",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-python-generator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON to Python Code Generator",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON to Python Code Generator",
-    description: "Generate Python code from JSON data with dictionary and dataclass support.",
-    images: ["https://jsonswiss.com/twitter-python-generator.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/generator/python",
-  },
-};
+    canonical: "https://jsonswiss.com/generator/python"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

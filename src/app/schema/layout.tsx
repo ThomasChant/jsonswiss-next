@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "api development",
     "data structure validation"
   ],
-  openGraph: {
-    title: "JSON Schema Tools - Complete Schema Toolkit",
-    description: "Professional JSON Schema tools including generator, validator, mock data creator, and comprehensive template library.",
-    url: "https://jsonswiss.com/schema",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-schema-tools.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Schema Tools - Complete schema toolkit for developers",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Schema Tools",
-    description: "Complete JSON Schema toolkit with generator, validator, and template library for API development.",
-    images: ["https://jsonswiss.com/twitter-schema-tools.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/schema",
-  },
-};
+    canonical: "https://jsonswiss.com/schema"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

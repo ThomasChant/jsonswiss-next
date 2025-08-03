@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "python tools",
     "programming tools"
   ],
-  openGraph: {
-    title: "Python Dict to JSON Converter - Convert Dictionary Online",
-    description: "Free Python dictionary to JSON converter with nested structure support and data type preservation. Convert dict objects instantly.",
-    url: "https://jsonswiss.com/converter/dict-to-json",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-dict-to-json.png",
-        width: 1200,
-        height: 630,
-        alt: "Python Dict to JSON Converter - Convert dictionary to JSON format",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Python Dict to JSON Converter",
-    description: "Convert Python dictionary objects to JSON format with proper formatting and structure preservation.",
-    images: ["https://jsonswiss.com/twitter-dict-to-json.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/converter/dict-to-json",
-  },
-};
+    canonical: "https://jsonswiss.com/converter/dict-to-json"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "database tools",
     "sql tools"
   ],
-  openGraph: {
-    title: "SQL to JSON Converter - Convert SQL Results to JSON",
-    description: "Free SQL to JSON converter with query result parsing and data type mapping. Convert database data to JSON instantly.",
-    url: "https://jsonswiss.com/converter/sql-to-json",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-sql-to-json.png",
-        width: 1200,
-        height: 630,
-        alt: "SQL to JSON Converter - Convert SQL results to JSON format",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "SQL to JSON Converter",
-    description: "Convert SQL query results and database data to JSON format with proper structure mapping.",
-    images: ["https://jsonswiss.com/twitter-sql-to-json.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/converter/sql-to-json",
-  },
-};
+    canonical: "https://jsonswiss.com/converter/sql-to-json"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

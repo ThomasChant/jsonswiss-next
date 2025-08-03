@@ -15,25 +15,11 @@ export const metadata: Metadata = {
     'schema inference',
     'JSON structure analysis'
   ],
-  openGraph: {
-    title: 'JSON Schema Generator - JSONSwiss',
-    description: 'Generate JSON schemas from your JSON data automatically. Create validation rules and documentation from sample data.',
-    type: 'website',
-    url: 'https://jsonswiss.com/schema/generator',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'JSON Schema Generator - JSONSwiss',
-    description: 'Generate JSON schemas from your JSON data automatically. Create validation rules and documentation from sample data.',
-  },
   alternates: {
-    canonical: 'https://jsonswiss.com/schema/generator',
-  },
-};
+    canonical: 'https://jsonswiss.com/schema/generator'}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

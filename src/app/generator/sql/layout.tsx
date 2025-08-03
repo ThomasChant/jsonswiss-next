@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "code generator",
     "sql tools"
   ],
-  openGraph: {
-    title: "JSON to SQL Code Generator - Generate SQL Tables",
-    description: "Generate SQL CREATE TABLE statements and database schemas from JSON data with proper data type mapping.",
-    url: "https://jsonswiss.com/generator/sql",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-sql-generator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON to SQL Code Generator - Generate SQL tables from JSON",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON to SQL Code Generator",
-    description: "Generate SQL tables and database schemas from JSON data with proper type mapping and constraints.",
-    images: ["https://jsonswiss.com/twitter-sql-generator.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/generator/sql",
-  },
-};
+    canonical: "https://jsonswiss.com/generator/sql"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

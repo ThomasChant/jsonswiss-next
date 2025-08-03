@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "code generator",
     "web development"
   ],
-  openGraph: {
-    title: "JSON to Ruby Code Generator - Generate Ruby Classes",
-    description: "Generate Ruby classes, hashes, and objects from JSON data with proper naming conventions and serialization support.",
-    url: "https://jsonswiss.com/generator/ruby",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-ruby-generator.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON to Ruby Code Generator - Generate Ruby classes from JSON",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON to Ruby Code Generator",
-    description: "Generate Ruby classes and objects from JSON data with proper conventions and attr_accessor.",
-    images: ["https://jsonswiss.com/twitter-ruby-generator.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/generator/ruby",
-  },
-};
+    canonical: "https://jsonswiss.com/generator/ruby"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

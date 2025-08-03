@@ -17,33 +17,11 @@ export const metadata: Metadata = {
     "json validation",
     "data structure templates"
   ],
-  openGraph: {
-    title: "JSON Schema Library - Browse Templates & Examples",
-    description: "Comprehensive collection of JSON Schema templates and examples for common data structures and API patterns.",
-    url: "https://jsonswiss.com/schema/library",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-schema-library.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Schema Library - Browse schema templates and examples",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "JSON Schema Library",
-    description: "Browse comprehensive collection of JSON Schema templates and examples for common data structures.",
-    images: ["https://jsonswiss.com/twitter-schema-library.png"],
-  },
   alternates: {
-    canonical: "https://jsonswiss.com/schema/library",
-  },
-};
+    canonical: "https://jsonswiss.com/schema/library"}};
 
 export default function Layout({
-  children,
-}: {
+  children}: {
   children: React.ReactNode;
 }) {
   return children;

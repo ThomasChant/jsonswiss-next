@@ -29,30 +29,7 @@ export const metadata: Metadata = {
   creator: "JSON Swiss",
   publisher: "JSON Swiss",
   category: "Web Development Tools",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://jsonswiss.com",
-    siteName: "JSON Swiss",
-    title: "JSON Swiss - Professional JSON Editor & Converter",
-    description: "Complete JSON toolkit with formatting, validation, conversion, and AI-powered repair. Support for CSV, XML, YAML and 12+ programming languages.",
-    images: [
-      {
-        url: "https://jsonswiss.com/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "JSON Swiss - Professional JSON Editor and Validator",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@jsonswiss",
-    creator: "@jsonswiss", 
-    title: "JSON Swiss - Professional JSON Tools",
-    description: "Complete JSON toolkit with formatting, validation, conversion, and AI-powered repair. Free online JSON editor.",
-    images: ["https://jsonswiss.com/twitter-card.png"],
-  },
+
   robots: {
     index: true,
     follow: true,
