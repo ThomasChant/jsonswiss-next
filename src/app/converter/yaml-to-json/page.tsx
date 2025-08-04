@@ -4,9 +4,6 @@
 import { useState } from "react";
 import { 
   FileText, 
-  Copy, 
-  Download, 
-  Upload, 
   Code
 } from "lucide-react";
 import { yamlToJson } from "@/lib/converters";
@@ -101,16 +98,6 @@ export default function YamlToJsonPage() {
     }
   ];
 
-  const extraActions = (
-    <button
-      onClick={handleFileImport}
-      className="p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-100 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-      title="Import YAML File"
-    >
-      <Upload className="w-4 h-4" />
-    </button>
-  );
-
   return (
     <ConverterLayout
       title="YAML to JSON Converter"
@@ -131,10 +118,10 @@ export default function YamlToJsonPage() {
       onInputChange={handleInputChange}
       onCopy={handleCopyJson}
       onDownload={handleDownload}
+      onFileImport={handleFileImport}
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
-      extraActions={extraActions}
     />
   );
 }
