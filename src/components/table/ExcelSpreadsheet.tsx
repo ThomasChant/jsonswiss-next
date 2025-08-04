@@ -160,6 +160,22 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
   // 计算列宽度
   const columnWidths = useMemo(() => calculateColumnWidths(data), [data]);
   
+  // 计算行号列宽度
+  const rowNumberWidth = useMemo(() => {
+    return calculateRowNumberWidth(data?.length || 0);
+  }, [data?.length]);
+  
+  // 生成Grid模板列定义
+  const gridTemplateColumns = useMemo(() => {
+    if (!data || data.length === 0) return `${rowNumberWidth} repeat(0, minmax(120px, 1fr))`;
+    
+    const firstRow = data[0];
+    const columnKeys = Object.keys(firstRow);
+    const columnWidthsList = columnKeys.map(key => `${columnWidths[key] || 120}px`);
+    
+    return `${rowNumberWidth} ${columnWidthsList.join(' ')}`;
+  }, [data, columnWidths, rowNumberWidth]);
+  
   // 从数据中提取列定义
   const columns = useMemo<ColumnDef<any>[]>(() => {
     if (!data || data.length === 0) return [];
@@ -189,11 +205,6 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
   });
 
   const { rows } = table.getRowModel();
-
-  // 计算行号列宽度
-  const rowNumberWidth = useMemo(() => {
-    return calculateRowNumberWidth(data?.length || 0);
-  }, [data?.length]);
 
   // 创建虚拟化容器的引用
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -260,12 +271,12 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
       )}
       {/* 表头 */}
       <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div className="flex">
+        <div 
+          className="grid"
+          style={{ gridTemplateColumns }}
+        >
           {/* 行号列表头 */}
-          <div 
-            className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 text-center bg-slate-50 dark:bg-slate-800/50"
-            style={{ width: rowNumberWidth }}
-          >
+          <div className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-100 dark:bg-slate-700/50">
             #
           </div>
           {/* 列号表头 */}
@@ -274,10 +285,6 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
               <div
                  key={header.id}
                  className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
-                 style={{ 
-                   width: `${(header.column.columnDef.meta as any)?.width || 120}px`,
-                   flexShrink: 0
-                 }}
                >
                 {header.isPlaceholder
                   ? null
@@ -305,23 +312,19 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
             return (
               <div
                 key={row.id}
-                style={
-                  {
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }
-                }
-                className="flex border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  gridTemplateColumns
+                }}
+                className="grid border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
                 {/* 行号列 */}
-                <div 
-                  className="px-2 py-2 text-xs text-slate-500 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 flex items-center justify-center bg-slate-50 dark:bg-slate-800/30"
-                  style={{ width: rowNumberWidth }}
-                >
+                <div className="px-2 py-2 text-xs text-slate-500 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 flex items-center justify-center bg-slate-50 dark:bg-slate-800/30">
                   {virtualRow.index + 1}
                 </div>
                 {/* 数据列 */}
@@ -329,10 +332,6 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
                   <div
                     key={cell.id}
                     className="border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex items-center px-3 py-2"
-                    style={{ 
-                      width: `${(cell.column.columnDef.meta as any)?.width || 120}px`,
-                      flexShrink: 0
-                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </div>
