@@ -171,9 +171,34 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
     
     const firstRow = data[0];
     const columnKeys = Object.keys(firstRow);
-    const columnWidthsList = columnKeys.map(key => `${columnWidths[key] || 120}px`);
+    // 为了确保在range模式下也能滚动，给每列都设置一个较大的最小宽度
+    const columnWidthsList = columnKeys.map(key => {
+      const width = columnWidths[key] || 120;
+      // 在range模式或列数较少时，确保每列有足够宽度触发滚动
+      const minWidth = columnKeys.length <= 3 ? Math.max(width, 200) : width;
+      return `${minWidth}px`;
+    });
     
     return `${rowNumberWidth} ${columnWidthsList.join(' ')}`;
+  }, [data, columnWidths, rowNumberWidth]);
+  
+  // 计算表格总宽度，用于确保滚动功能
+  const totalGridWidth = useMemo(() => {
+    if (!data || data.length === 0) return 'auto';
+    
+    const rowNumberWidthNum = parseInt(rowNumberWidth.replace('px', ''));
+    const firstRow = data[0];
+    const columnKeys = Object.keys(firstRow);
+    const totalColumnWidth = columnKeys.reduce((sum, key) => sum + (columnWidths[key] || 120), 0);
+    const calculatedWidth = rowNumberWidthNum + totalColumnWidth;
+    
+    // 为了确保在任何情况下都能触发滚动（包括range模式），
+    // 我们将宽度设置为计算宽度和一个基础值的较大者
+    // 这个基础值确保即使在数据很少的情况下也能进行滚动测试
+    const baseMinWidth = 800; // 增加基础最小宽度以确保滚动
+    const effectiveWidth = Math.max(calculatedWidth, baseMinWidth);
+    
+    return `${effectiveWidth}px`;
   }, [data, columnWidths, rowNumberWidth]);
   
   // 从数据中提取列定义
@@ -208,6 +233,9 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
 
   // 创建虚拟化容器的引用
   const parentRef = React.useRef<HTMLDivElement>(null);
+  
+  // 创建表头的引用，用于同步滚动
+  const headerRef = React.useRef<HTMLDivElement>(null);
 
   // 设置虚拟化
   const virtualizer = useVirtualizer({
@@ -216,6 +244,23 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
     estimateSize: () => 35, // 每行的估计高度
     overscan: 10, // 预渲染的行数
   });
+  
+  // 同步表头和数据区域的水平滚动
+  React.useEffect(() => {
+    const handleScroll = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (headerRef.current && target) {
+        // 直接同步，不使用 requestAnimationFrame 以确保立即响应
+        headerRef.current.scrollLeft = target.scrollLeft;
+      }
+    };
+
+    const scrollElement = parentRef.current;
+    if (scrollElement) {
+      scrollElement.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scrollElement.removeEventListener('scroll', handleScroll);
+    }
+  }, [data]); // 添加data作为依赖，确保数据变化时重新绑定滚动监听器
   
   // 如果没有数据，显示空状态或loading状态但保留统计信息
   if (!data || data.length === 0) {
@@ -272,26 +317,35 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
       {/* 表头 */}
       <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
         <div 
-          className="grid"
-          style={{ gridTemplateColumns }}
+          ref={headerRef}
+          className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {/* 行号列表头 */}
-          <div className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-100 dark:bg-slate-700/50">
-            #
+          <div 
+            className="grid"
+            style={{ 
+              gridTemplateColumns,
+              minWidth: totalGridWidth
+            }}
+          >
+            {/* 行号列表头 */}
+            <div className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-100 dark:bg-slate-700/50">
+              #
+            </div>
+            {/* 列号表头 */}
+            {table.getHeaderGroups().map((headerGroup) =>
+              headerGroup.headers.map((header) => (
+                <div
+                   key={header.id}
+                   className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
+                 >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </div>
+              ))
+            )}
           </div>
-          {/* 列号表头 */}
-          {table.getHeaderGroups().map((headerGroup) =>
-            headerGroup.headers.map((header) => (
-              <div
-                 key={header.id}
-                 className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
-               >
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
-              </div>
-            ))
-          )}
         </div>
       </div>
 
@@ -304,6 +358,7 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
           style={{
             height: `${virtualizer.getTotalSize()}px`,
             width: "100%",
+            minWidth: totalGridWidth,
             position: "relative",
           }}
         >
@@ -319,7 +374,8 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
                   width: "100%",
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
-                  gridTemplateColumns
+                  gridTemplateColumns,
+                  minWidth: totalGridWidth
                 }}
                 className="grid border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
