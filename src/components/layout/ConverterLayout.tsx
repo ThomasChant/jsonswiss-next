@@ -33,6 +33,9 @@ interface ConverterLayoutProps {
   showSettings: boolean;
   importDialogOpen?: boolean;
   
+  // 验证状态
+  inputValidationStatus?: ReactNode;
+  
   // 语言配置
   inputLanguage: string;
   outputLanguage: string;
@@ -79,6 +82,7 @@ export function ConverterLayout({
   isOutputMaximized,
   showSettings,
   importDialogOpen = false,
+  inputValidationStatus,
   inputLanguage,
   outputLanguage,
   inputLanguageDisplayName,
@@ -141,6 +145,12 @@ export function ConverterLayout({
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">{inputLanguageDisplayName} Input</h3>
                   </div>
                   <div className="flex items-center gap-1">
+                    {/* Validation Status in Header */}
+                    {inputValidationStatus && (
+                      <div className="mr-2">
+                        {inputValidationStatus}
+                      </div>
+                    )}
                     {onFileImport && (
                       <button
                         onClick={onFileImport}

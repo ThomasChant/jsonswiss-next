@@ -1,46 +1,31 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useTheme } from "next-themes";
-import { Editor } from "@monaco-editor/react";
-import { 
-  Wrench, 
-  Copy, 
-  Download, 
-  Upload, 
-  CheckCircle2, 
-  AlertCircle,
-  Settings,
-  Maximize2,
-  Minimize2,
-  FileText,
-  Zap,
-  RefreshCw,
-  Sparkles
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { AIRepairService, AIProvider, defaultAIProviders } from "@/lib/ai-utils";
-import { ConverterLayout } from "@/components/layout/ConverterLayout";
-import { useJsonStore } from "@/store/jsonStore";
 import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
+import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
+import { AIRepairService } from "@/lib/ai-utils";
+import {
+  AlertCircle,
+  CheckCircle2,
+  RefreshCw,
+  Sparkles,
+  Wrench,
+  Zap
+} from "lucide-react";
+import { useState } from "react";
 
 export default function RepairPage() {
-  const { resolvedTheme } = useTheme();
-  const { jsonData } = useJsonStore();
   const [inputJson, setInputJson] = useState("");
   const [repairedJson, setRepairedJson] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRepairing, setIsRepairing] = useState(false);
   const [repairProvider, setRepairProvider] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedNodeData, setSelectedNodeData] = useState<any>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const { copy } = useClipboard({ successMessage: 'JSON repaired and copied to clipboard' });
   
   const [aiService] = useState(() => new AIRepairService());
-  const [providers, setProviders] = useState<AIProvider[]>(() => aiService.getProviders());
 
   const handleInputChange = (value: string | undefined) => {
     const jsonValue = value || "";
@@ -49,26 +34,6 @@ export default function RepairPage() {
     setRepairedJson("");
     setRepairProvider(null);
   };
-
-  const handleNodeSelect = (path: string[], data: any) => {
-    setSelectedNodeData(data);
-    // 如果选中的节点数据是破损的JSON，自动设置为输入
-    if (data !== null && data !== undefined) {
-      const jsonString = JSON.stringify(data, null, 2);
-      setInputJson(jsonString);
-      setError(null);
-      setRepairedJson("");
-      setRepairProvider(null);
-    }
-  };
-
-  // 初始化时使用全局JSON数据
-  useEffect(() => {
-    if (jsonData && !inputJson) {
-      const jsonString = JSON.stringify(jsonData, null, 2);
-      setInputJson(jsonString);
-    }
-  }, [jsonData, inputJson]);
 
   const repairJson = async () => {
     if (!inputJson || !inputJson.trim()) {
@@ -121,12 +86,6 @@ export default function RepairPage() {
     URL.revokeObjectURL(url);
   };
 
-  const updateProvider = (index: number, updatedProvider: AIProvider) => {
-    const newProviders = [...providers];
-    newProviders[index] = updatedProvider;
-    setProviders(newProviders);
-    aiService.updateProvider(index, updatedProvider);
-  };
 
   const isValidJson = (json: string): boolean => {
     try {
@@ -139,20 +98,20 @@ export default function RepairPage() {
 
   const faqItems = [
     {
-      question: "How does AI JSON repair work?",
-      answer: "Our AI repair service uses multiple AI providers to analyze broken JSON and intelligently fix common issues like missing commas, unclosed brackets, malformed strings, and structural problems."
+      question: "How does JSON repair work?",
+      answer: "Our repair system uses a multi-layered approach: first the JSONRepair library for fast, reliable fixes, then basic pattern matching, and finally AI providers (DeepSeek, OpenRouter, Groq) for complex issues."
     },
     {
-      question: "Which AI providers are supported?",
-      answer: "We support multiple AI providers including OpenRouter, Groq, and HuggingFace. You can configure API keys for each provider in the settings panel for best results."
+      question: "What repair methods are used?",
+      answer: "1) JSONRepair library - Fast, accurate repair for most common issues. 2) Basic repair - Pattern-based fixes for simple syntax errors. 3) AI repair - DeepSeek and other AI providers for complex structural problems."
     },
     {
-      question: "What if the repair fails?",
-      answer: "If one AI provider fails, the system automatically tries other enabled providers. If all providers fail, you'll see a detailed error message explaining what went wrong."
+      question: "Do I need API keys?",
+      answer: "No! The JSONRepair library and basic repair work without any configuration. AI providers are only used as a fallback for complex cases, and you can optionally configure API keys for better results."
     },
     {
       question: "How accurate is the repair process?",
-      answer: "The accuracy depends on the complexity of the issues. Simple syntax errors are fixed with high accuracy, while complex structural issues may require manual review of the repaired result."
+      answer: "Very high accuracy for common issues using the JSONRepair library. Basic pattern matching handles simple syntax errors. AI providers provide intelligent analysis for complex structural problems when needed."
     }
   ];
 
@@ -160,7 +119,7 @@ export default function RepairPage() {
     <>
       <ConverterLayout 
         title="JSON Repair" 
-        description="AI-powered JSON repair service"
+        description="Intelligent JSON repair with JSONRepair library and AI-powered fallback. No configuration required."
         faqItems={faqItems}
         inputData={inputJson}
         outputData={repairedJson}
@@ -169,6 +128,31 @@ export default function RepairPage() {
         isOutputMaximized={false}
         showSettings={showSettings}
         importDialogOpen={importDialogOpen}
+        inputValidationStatus={
+          inputJson ? (
+            isValidJson(inputJson) ? (
+              <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-sm font-medium">Valid JSON</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">Invalid JSON</span>
+                </div>
+                <button
+                  onClick={repairJson}
+                  disabled={isRepairing}
+                  className="flex items-center space-x-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white text-xs rounded transition-colors"
+                >
+                  {isRepairing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                  <span>{isRepairing ? "Repairing..." : "Repair"}</span>
+                </button>
+              </div>
+            )
+          ) : null
+        }
         inputLanguage="json"
         outputLanguage="json"
         inputLanguageDisplayName="Broken JSON"
@@ -183,40 +167,37 @@ export default function RepairPage() {
         onToggleImportDialog={setImportDialogOpen}
         settingsPanel={
           <div className="space-y-4">
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">AI Provider Settings</h3>
-            <div className="grid gap-4">
-              {providers.map((provider, index) => (
-                <div key={provider.name} className="flex items-center space-x-4 p-3 bg-white dark:bg-slate-900 rounded-lg border">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={provider.enabled}
-                      onChange={(e) => updateProvider(index, { ...provider, enabled: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500"
-                    />
-                    <label className="font-medium text-slate-700 dark:text-slate-300">{provider.name}</label>
-                  </div>
-                  <input
-                    type="password"
-                    placeholder="API Key"
-                    value={provider.apiKey || ""}
-                    onChange={(e) => updateProvider(index, { ...provider, apiKey: e.target.value })}
-                    className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm"
-                  />
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{provider.model}</span>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">How JSON Repair Works</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              When you enter invalid JSON, our system automatically tries these methods in order:
+            </p>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center justify-center w-6 h-6 bg-green-500 text-white text-xs font-bold rounded-full">1</div>
+                <div>
+                  <div className="font-medium text-green-800 dark:text-green-200">JSONRepair Library</div>
+                  <div className="text-sm text-green-600 dark:text-green-300">Fast, accurate repair for most common issues</div>
                 </div>
-              ))}
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-xs font-bold rounded-full">2</div>
+                <div>
+                  <div className="font-medium text-blue-800 dark:text-blue-200">Basic Pattern Matching</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-300">Handles simple syntax errors</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center justify-center w-6 h-6 bg-purple-500 text-white text-xs font-bold rounded-full">3</div>
+                <div>
+                  <div className="font-medium text-purple-800 dark:text-purple-200">AI Providers</div>
+                  <div className="text-sm text-purple-600 dark:text-purple-300">DeepSeek & others for complex cases</div>
+                </div>
+              </div>
             </div>
-            <div className="mt-4">
-              <button
-                onClick={repairJson}
-                disabled={!inputJson || !inputJson.trim() || isRepairing}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-lg transition-colors"
-              >
-                {isRepairing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                <span>{isRepairing ? "Repairing..." : "Repair JSON"}</span>
-              </button>
-            </div>
+
           </div>
         }
         emptyStateContent={
@@ -230,23 +211,7 @@ export default function RepairPage() {
         }
         stats={
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            {inputJson && (
-              <>
-                <span>Characters: {inputJson.length}</span>
-                <span>•</span>
-                {isValidJson(inputJson) ? (
-                  <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Valid JSON</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-1 text-red-600 dark:text-red-400">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Invalid JSON</span>
-                  </div>
-                )}
-              </>
-            )}
+            
             {repairedJson && (
               <>
                 <span>•</span>
