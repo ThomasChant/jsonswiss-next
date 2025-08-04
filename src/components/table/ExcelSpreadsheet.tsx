@@ -10,6 +10,60 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 
+// 生成Excel风格的列名 (A, B, ..., Z, AA, AB, ...)
+function getExcelColumnName(index: number): string {
+  let result = '';
+  let num = index;
+  
+  while (num >= 0) {
+    result = String.fromCharCode(65 + (num % 26)) + result;
+    num = Math.floor(num / 26) - 1;
+    if (num < 0) break;
+  }
+  
+  return result;
+}
+
+// 计算行号列宽度
+function calculateRowNumberWidth(rowCount: number): string {
+  const digits = rowCount.toString().length;
+  // 基础宽度 + 每个数字的宽度 + 内边距
+  const width = Math.max(48, 24 + digits * 8); // 最小48px，每个数字约8px
+  return `${width}px`;
+}
+
+// 计算列宽度的工具函数
+function calculateColumnWidths(data: any[]): { [key: string]: number } {
+  if (!data || data.length === 0) return {};
+  
+  const columnWidths: { [key: string]: number } = {};
+  const firstRow = data[0];
+  const columnKeys = Object.keys(firstRow);
+  
+  columnKeys.forEach((key, index) => {
+    // 计算列标题宽度 (Excel风格的列名如 A, B, C...)
+    const headerText = getExcelColumnName(index);
+    const headerWidth = Math.max(headerText.length * 12, 40); // 每个字符约12px，最小40px
+    
+    // 计算内容的最大宽度
+    const maxContentLength = data.reduce((max, row) => {
+      const value = row[key];
+      const stringValue = String(value || '');
+      return Math.max(max, stringValue.length);
+    }, 0);
+    
+    // 基于内容长度估算像素宽度
+    // 每个字符约8px，加上内边距24px (左右各12px)
+    const contentWidth = Math.max(maxContentLength * 8 + 24, 80);
+    
+    // 取标题宽度和内容宽度的最大值，但限制在合理范围内
+    const calculatedWidth = Math.max(headerWidth, contentWidth);
+    columnWidths[key] = Math.min(Math.max(calculatedWidth, 100), 300); // 最小100px，最大300px
+  });
+  
+  return columnWidths;
+}
+
 interface ExcelSpreadsheetProps {
   data: any[];
   className?: string;
@@ -99,28 +153,34 @@ function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export function ExcelSpreadsheet({ data, className, maxHeight = "400px", isLoading = false }: ExcelSpreadsheetProps) {
+export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSpreadsheetProps) {
   // 计算统计数据
   const stats = useMemo(() => calculateTableStats(data), [data]);
+  
+  // 计算列宽度
+  const columnWidths = useMemo(() => calculateColumnWidths(data), [data]);
   
   // 从数据中提取列定义
   const columns = useMemo<ColumnDef<any>[]>(() => {
     if (!data || data.length === 0) return [];
     
     const firstRow = data[0];
-    return Object.keys(firstRow).map((key) => ({
+    return Object.keys(firstRow).map((key, index) => ({
       accessorKey: key,
-      header: key,
+      header: getExcelColumnName(index), // 使用Excel风格的列名
       cell: ({ getValue }) => {
         const value = getValue();
         return (
-          <div className="px-2 py-1 text-sm truncate" title={String(value)}>
+          <div className="text-sm truncate" title={String(value)}>
             {String(value)}
           </div>
         );
       },
+      meta: {
+        width: columnWidths[key] || 120, // 使用计算的宽度，默认120px
+      },
     }));
-  }, [data]);
+  }, [data, columnWidths]);
 
   const table = useReactTable({
     data: data || [],
@@ -129,6 +189,11 @@ export function ExcelSpreadsheet({ data, className, maxHeight = "400px", isLoadi
   });
 
   const { rows } = table.getRowModel();
+
+  // 计算行号列宽度
+  const rowNumberWidth = useMemo(() => {
+    return calculateRowNumberWidth(data?.length || 0);
+  }, [data?.length]);
 
   // 创建虚拟化容器的引用
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -180,7 +245,7 @@ export function ExcelSpreadsheet({ data, className, maxHeight = "400px", isLoadi
 
   return (
     <div className={cn(
-      "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden flex flex-col h-full relative",
+      "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative",
       className
     )}>
       {/* Loading覆盖层 */}
@@ -196,12 +261,24 @@ export function ExcelSpreadsheet({ data, className, maxHeight = "400px", isLoadi
       {/* 表头 */}
       <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
         <div className="flex">
+          {/* 行号列表头 */}
+          <div 
+            className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 text-center bg-slate-50 dark:bg-slate-800/50"
+            style={{ width: rowNumberWidth }}
+          >
+            #
+          </div>
+          {/* 列号表头 */}
           {table.getHeaderGroups().map((headerGroup) =>
             headerGroup.headers.map((header) => (
               <div
-                key={header.id}
-                className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
-              >
+                 key={header.id}
+                 className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
+                 style={{ 
+                   width: `${(header.column.columnDef.meta as any)?.width || 120}px`,
+                   flexShrink: 0
+                 }}
+               >
                 {header.isPlaceholder
                   ? null
                   : flexRender(header.column.columnDef.header, header.getContext())}
@@ -240,10 +317,22 @@ export function ExcelSpreadsheet({ data, className, maxHeight = "400px", isLoadi
                 }
                 className="flex border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
               >
+                {/* 行号列 */}
+                <div 
+                  className="px-2 py-2 text-xs text-slate-500 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 flex items-center justify-center bg-slate-50 dark:bg-slate-800/30"
+                  style={{ width: rowNumberWidth }}
+                >
+                  {virtualRow.index + 1}
+                </div>
+                {/* 数据列 */}
                 {row.getVisibleCells().map((cell) => (
                   <div
                     key={cell.id}
-                    className="flex-1 min-w-[120px] border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex items-center"
+                    className="border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex items-center px-3 py-2"
+                    style={{ 
+                      width: `${(cell.column.columnDef.meta as any)?.width || 120}px`,
+                      flexShrink: 0
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </div>
