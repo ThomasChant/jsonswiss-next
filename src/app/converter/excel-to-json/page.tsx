@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
+import { ExcelSpreadsheet } from "@/components/table/ExcelSpreadsheet";
 import { excelToJson, getExcelSheetNames, type ExcelToJsonOptions } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
 
@@ -17,6 +18,8 @@ export default function ExcelToJsonPage() {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [availableSheets, setAvailableSheets] = useState<string[]>([]);
+  const [spreadsheetData, setSpreadsheetData] = useState<any[]>([]); // 用于电子表格展示的数据
+  const [isLoading, setIsLoading] = useState(false); // Excel导入loading状态
   const { copy } = useClipboard({ successMessage: 'JSON copied to clipboard' });
   
   const [options, setOptions] = useState<ExcelToJsonOptions>({
@@ -25,17 +28,24 @@ export default function ExcelToJsonPage() {
     range: undefined
   });
 
-  const convertExcelToJson = (buffer: ArrayBuffer, opts: ExcelToJsonOptions) => {
+  const convertExcelToJson = async (buffer: ArrayBuffer, opts: ExcelToJsonOptions) => {
     if (!buffer) {
       setOutputJson("");
+      setSpreadsheetData([]);
       setError(null);
       return;
     }
 
+    setIsLoading(true);
+    setError(null);
+    
     try {
+      // 添加一个小延迟以确保loading状态能够显示
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const result = excelToJson(buffer, opts);
       setOutputJson(JSON.stringify(result.data, null, 2));
-      setError(null);
+      setSpreadsheetData(result.data); // 设置电子表格数据
       
       // Update available sheets if not already set
       if (availableSheets.length === 0 && result.metadata.sheetNames) {
@@ -44,15 +54,18 @@ export default function ExcelToJsonPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
       setOutputJson("");
+      setSpreadsheetData([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleOptionsChange = (newOptions: Partial<ExcelToJsonOptions>) => {
+  const handleOptionsChange = async (newOptions: Partial<ExcelToJsonOptions>) => {
     const updatedOptions = { ...options, ...newOptions };
     setOptions(updatedOptions);
     
     if (fileBuffer) {
-      convertExcelToJson(fileBuffer, updatedOptions);
+      await convertExcelToJson(fileBuffer, updatedOptions);
     }
   };
 
@@ -63,25 +76,27 @@ export default function ExcelToJsonPage() {
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        setIsLoading(true);
         const reader = new FileReader();
-        reader.onload = (e) => {
-          const buffer = e.target?.result as ArrayBuffer;
-          setFileBuffer(buffer);
-          setFileName(file.name);
-          setInputData(file.name); // Update input to show file name
-          
-          // Get sheet names first
+        reader.onload = async (e) => {
           try {
+            const buffer = e.target?.result as ArrayBuffer;
+            setFileBuffer(buffer);
+            setFileName(file.name);
+            setInputData(file.name); // Update input to show file name
+            
+            // Get sheet names first
             const sheets = getExcelSheetNames(buffer);
             setAvailableSheets(sheets);
             
             // Reset options when loading new file
             const resetOptions = { ...options, sheetIndex: 0 };
             setOptions(resetOptions);
-            convertExcelToJson(buffer, resetOptions);
+            await convertExcelToJson(buffer, resetOptions);
           } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to read Excel file");
             setOutputJson("");
+            setIsLoading(false);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -206,6 +221,16 @@ export default function ExcelToJsonPage() {
     </div>
   );
 
+  // 自定义输入内容 - 电子表格展示
+  const customInputContent = (
+    <ExcelSpreadsheet 
+      data={spreadsheetData}
+      maxHeight="100%"
+      className="h-full"
+      isLoading={isLoading}
+    />
+  );
+
   return (
     <ConverterLayout
       title="Excel to JSON Converter"
@@ -219,7 +244,7 @@ export default function ExcelToJsonPage() {
       showSettings={showSettings}
       inputLanguage="plaintext"
       outputLanguage="json"
-      inputLanguageDisplayName="Excel File"
+      inputLanguageDisplayName="Excel Spreadsheet"
       outputLanguageDisplayName="JSON"
       inputIcon={<FileSpreadsheet className="w-4 h-4" />}
       outputIcon={<FileText className="w-4 h-4" />}
@@ -232,6 +257,7 @@ export default function ExcelToJsonPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       settingsPanel={settingsContent}
       emptyStateContent={emptyStateContent}
+      customInputContent={customInputContent}
     />
   );
 }

@@ -59,6 +59,9 @@ interface ConverterLayoutProps {
   // 空状态内容
   emptyStateContent?: ReactNode;
   
+  // 自定义输入面板内容
+  customInputContent?: ReactNode;
+  
   // 额外的操作按钮
   extraActions?: ReactNode;
   
@@ -94,6 +97,7 @@ export function ConverterLayout({
   onToggleImportDialog,
   settingsPanel,
   emptyStateContent,
+  customInputContent,
   extraActions,
   stats
 }: ConverterLayoutProps) {
@@ -167,25 +171,29 @@ export function ConverterLayout({
                   </div>
                 </div>
                 <div className="flex-1 min-h-0" style={{ minHeight: '300px' }}>
-                  <Editor
-                    height="100%"
-                    defaultLanguage={inputLanguage}
-                    value={inputData}
-                    onChange={onInputChange}
-                    theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      fontFamily: "var(--font-mono)",
-                      wordWrap: "on",
-                      automaticLayout: true,
-                      scrollBeyondLastLine: false,
-                      renderLineHighlight: 'none',
-                      cursorBlinking: 'smooth',
-                      formatOnPaste: true,
-                      formatOnType: true,
-                    }}
-                  />
+                  {customInputContent ? (
+                    customInputContent
+                  ) : (
+                    <Editor
+                      height="100%"
+                      defaultLanguage={inputLanguage}
+                      value={inputData}
+                      onChange={onInputChange}
+                      theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: "var(--font-mono)",
+                        wordWrap: "on",
+                        automaticLayout: true,
+                        scrollBeyondLastLine: false,
+                        renderLineHighlight: 'none',
+                        cursorBlinking: 'smooth',
+                        formatOnPaste: true,
+                        formatOnType: true,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             )}
