@@ -64,6 +64,9 @@ interface ConverterLayoutProps {
   // 自定义输入面板内容
   customInputContent?: ReactNode;
   
+  // 自定义输出面板内容
+  customOutputContent?: ReactNode;
+  
   // 额外的操作按钮
   extraActions?: ReactNode;
   
@@ -101,6 +104,7 @@ export function ConverterLayout({
   settingsPanel,
   emptyStateContent,
   customInputContent,
+  customOutputContent,
   extraActions,
   stats
 }: ConverterLayoutProps) {
@@ -265,7 +269,9 @@ export function ConverterLayout({
                 )}
                 
                 <div className="flex-1 min-h-0" style={{ minHeight: '300px' }}>
-                  {error ? (
+                  {customOutputContent ? (
+                    customOutputContent
+                  ) : error ? (
                     <div className="h-full flex items-center justify-center p-6">
                       <div className="text-center max-w-md">
                         <FileText className="w-12 h-12 mx-auto mb-4 text-red-500" />

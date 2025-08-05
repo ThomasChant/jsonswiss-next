@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "JSON to Excel Converter",
-  description: "Convert JSON data to Excel spreadsheet format online. Support for multiple sheets, custom formatting, headers, and various Excel formats. Free JSON to Excel converter tool.",
-  keywords: ["json to excel", "json to xlsx", "json excel converter", "convert json to excel", "json to spreadsheet", "json parser excel"],
+  title: "JSON to Excel Converter Online - Convert JSON to Excel XLSX Free - JSON Swiss",
+  description: "Convert JSON to Excel online with live preview. Free JSON to Excel converter with table preview, nested data flattening, and multiple Excel formats. Transform JSON data to XLSX, XLS, CSV instantly.",
+  keywords: [
+    "json to excel", "convert json to excel", "json to excel converter", "json excel converter", "conversion of json to excel", "import json to excel",
+    "textract json to excel",
+    "json to xlsx", "json to xls", "json to csv", "json to excel online",
+    "json to excel conversion", "json to excel table",  "convert json to excel online"
+  ],
   alternates: {
     canonical: "https://jsonswiss.com/converter/json-to-excel"
   }

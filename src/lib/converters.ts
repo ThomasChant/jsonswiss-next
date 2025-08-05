@@ -79,15 +79,59 @@ export function excelToJson(arrayBuffer: ArrayBuffer, options: ExcelToJsonOption
   }
 }
 
+// Helper function to flatten nested objects for better Excel representation
+function flattenObject(obj: any, prefix: string = '', separator: string = '.'): any {
+  const flattened: any = {};
+  
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = prefix ? `${prefix}${separator}${key}` : key;
+      const value = obj[key];
+      
+      if (value === null || value === undefined) {
+        flattened[newKey] = value;
+      } else if (Array.isArray(value)) {
+        // Handle arrays - convert to readable format
+        if (value.length === 0) {
+          flattened[newKey] = '[]';
+        } else if (value.every(item => typeof item !== 'object' || item === null)) {
+          // Array of primitives - join with commas
+          flattened[newKey] = value.join(', ');
+        } else {
+          // Array of objects - flatten each object with index
+          value.forEach((item, index) => {
+            if (typeof item === 'object' && item !== null) {
+              const subFlattened = flattenObject(item, `${newKey}[${index}]`, separator);
+              Object.assign(flattened, subFlattened);
+            } else {
+              flattened[`${newKey}[${index}]`] = item;
+            }
+          });
+        }
+      } else if (typeof value === 'object') {
+        // Nested object - flatten recursively
+        const subFlattened = flattenObject(value, newKey, separator);
+        Object.assign(flattened, subFlattened);
+      } else {
+        // Primitive value
+        flattened[newKey] = value;
+      }
+    }
+  }
+  
+  return flattened;
+}
+
 // JSON to Excel converter
 export interface JsonToExcelOptions {
   sheetName?: string;
   includeHeaders?: boolean;
   bookType?: XLSX.BookType;
+  flattenData?: boolean;
 }
 
 export function jsonToExcel(jsonData: any, options: JsonToExcelOptions = {}): ArrayBuffer {
-  const { sheetName = 'Sheet1', includeHeaders = true, bookType = 'xlsx' } = options;
+  const { sheetName = 'Sheet1', includeHeaders = true, bookType = 'xlsx', flattenData = true } = options;
   
   try {
     let data: any[];
@@ -96,8 +140,14 @@ export function jsonToExcel(jsonData: any, options: JsonToExcelOptions = {}): Ar
     if (Array.isArray(jsonData)) {
       data = jsonData;
     } else if (typeof jsonData === 'object' && jsonData !== null) {
-      // Convert single object to array
-      data = [jsonData];
+      // Smart detection: if object contains only one array property, use that array
+      const keys = Object.keys(jsonData);
+      if (keys.length === 1 && Array.isArray(jsonData[keys[0]])) {
+        data = jsonData[keys[0]];
+      } else {
+        // Convert single object to array
+        data = [jsonData];
+      }
     } else {
       throw new Error('Data must be an object or array of objects');
     }
@@ -106,13 +156,34 @@ export function jsonToExcel(jsonData: any, options: JsonToExcelOptions = {}): Ar
       throw new Error('Data array cannot be empty');
     }
     
-    // Ensure all items are objects for proper table structure
-    const processedData = data.map((item, index) => {
-      if (typeof item !== 'object' || item === null) {
-        return { [`value_${index}`]: item };
-      }
-      return item;
-    });
+    // Check if all items are primitive values (not objects)
+    const allPrimitive = data.every(item => typeof item !== 'object' || item === null);
+    
+    // Process data based on flattenData option
+    const processedData = allPrimitive
+      ? data.map(item => ({ value: item })) // Use consistent column name for primitive arrays
+      : flattenData 
+        ? data.map((item, index) => {
+            if (typeof item !== 'object' || item === null) {
+              return { [`value_${index}`]: item };
+            }
+            return flattenObject(item);
+          })
+        : data.map((item, index) => {
+            if (typeof item !== 'object' || item === null) {
+              return { [`value_${index}`]: item };
+            }
+            // For nested data without flattening, convert complex values to JSON strings
+            const processedItem: any = {};
+            for (const [key, value] of Object.entries(item)) {
+              if (typeof value === 'object' && value !== null) {
+                processedItem[key] = JSON.stringify(value);
+              } else {
+                processedItem[key] = value;
+              }
+            }
+            return processedItem;
+          });
     
     // Create worksheet from JSON
     const worksheet = XLSX.utils.json_to_sheet(processedData, {
@@ -129,6 +200,7 @@ export function jsonToExcel(jsonData: any, options: JsonToExcelOptions = {}): Ar
       type: 'array',
     });
     
+    // The XLSX library returns an ArrayBuffer when type is 'array'
     return excelBuffer;
   } catch (error) {
     throw new Error(`Excel generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
