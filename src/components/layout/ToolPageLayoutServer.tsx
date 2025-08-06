@@ -64,7 +64,7 @@ export function ToolPageLayoutServer({
       {/* Main Content */}
       <div className={cn(
         "flex-1",
-        useFullScreenHeight ? "" : "min-h-0"
+        useFullScreenHeight ? "h-screen-minus-header" : "min-h-0"
       )}>
         {showSidebar ? (
           <div className={cn(
