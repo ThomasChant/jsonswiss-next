@@ -64,12 +64,12 @@ export function ToolPageLayoutServer({
       {/* Main Content */}
       <div className={cn(
         "flex-1",
-        useFullScreenHeight ? "h-screen-minus-header" : "min-h-0"
+        useFullScreenHeight ? "" : "min-h-0"
       )}>
         {showSidebar ? (
           <div className={cn(
             "grid h-full gap-2 p-2",
-            rightPanel ? "grid-cols-three-panel" : "grid-cols-sidebar"
+            rightPanel ? "grid-cols-three-panel" : "grid-cols-sidebar flex-1"
           )}>
             {/* Sidebar */}
             {sidebarPosition === 'left' && (
