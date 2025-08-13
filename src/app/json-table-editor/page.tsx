@@ -152,6 +152,7 @@ export default function JsonTableEditorPage() {
           onUpdate={handleDataUpdate}
           density={density}
           className="w-full"
+          isMainView={true}
         />
       </div>
     );

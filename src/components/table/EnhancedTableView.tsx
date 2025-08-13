@@ -66,6 +66,7 @@ interface EnhancedTableViewProps {
   density?: 'comfortable' | 'regular' | 'compact';
   showSearch?: boolean;
   searchTerm?: string;
+  isMainView?: boolean; // 区分主视图和嵌套视图
 }
 
 export function EnhancedTableView({
@@ -76,7 +77,8 @@ export function EnhancedTableView({
   maxHeight,
   density = 'compact',
   showSearch = true,
-  searchTerm: parentSearchTerm
+  searchTerm: parentSearchTerm,
+  isMainView = false
 }: EnhancedTableViewProps) {
   // State management
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
@@ -575,8 +577,9 @@ export function EnhancedTableView({
                 className="text-xs"
                 maxHeight="300px"
                 density={density}
-                showSearch={showSearch && effectiveSearchTerm ? true : false}
+                showSearch={false}
                 searchTerm={effectiveSearchTerm}
+                isMainView={false}
               />
             </div>
           )}
@@ -656,42 +659,42 @@ export function EnhancedTableView({
   
   return (
     <div className={cn("flex flex-col h-full", className)}>
-      {/* Enhanced Toolbar */}
-      {path.length === 0 && <div className={cn(
-        "flex items-center justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg shrink-0",
-        density === 'compact' ? "p-2 gap-2" : "p-3 gap-4"
-      )}>
-        <div className="flex items-center gap-3">
-          {/* Search Component */}
-          <TableSearch
-            showSearch={showSearch}
-            searchTerm={parentSearchTerm}
-            data={data}
-            tableInfo={tableInfo}
-            path={path}
-            onUpdate={onUpdate}
-            onSearchChange={setSearchTerm}
-            onSearchStateChange={handleSearchOptionsUpdate}
-            density={density}
-          />
+      {/* Enhanced Toolbar - Show for main view only */}
+      {isMainView && (
+        <div className={cn(
+          "flex items-center justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg shrink-0",
+          density === 'compact' ? "p-2 gap-2" : "p-3 gap-4"
+        )}>
+          <div className="flex items-center gap-3">
+            {/* Search Component */}
+            <TableSearch
+              showSearch={showSearch}
+              searchTerm={parentSearchTerm}
+              data={data}
+              tableInfo={tableInfo}
+              path={path}
+              onUpdate={onUpdate}
+              onSearchChange={setSearchTerm}
+              onSearchStateChange={handleSearchOptionsUpdate}
+              density={density}
+            />
+            
+            {/* Filter status indicator */}
+            {filters.length > 0 && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                {filters.length} filter{filters.length > 1 ? 's' : ''} active
+              </span>
+            )}
+          </div>
           
-          {/* Filter status indicator */}
-          {filters.length > 0 && (
-            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-              {filters.length} filter{filters.length > 1 ? 's' : ''} active
-            </span>
-          )}
-        </div>
-        
-        {/* Only show item count for main tables, not nested tables */}
-        {path.length === 0 && (
+          {/* Show item count for main view */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600 dark:text-gray-400">
               {processedData.length} {processedData.length === 1 ? 'item' : 'items'}
             </span>
           </div>
-        )}
-      </div>}
+        </div>
+      )}
       
       {/* Filter Chips */}
       {filters.length > 0 && (
