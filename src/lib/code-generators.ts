@@ -315,6 +315,253 @@ export class TypeScriptGenerator {
   }
 }
 
+export class CGenerator {
+  generate(data: any, options: CodeGenOptions): string {
+    const structName = options.rootName;
+    const framework = options.framework || 'plain';
+    
+    let code = '';
+    
+    // 添加必要的头文件
+    if (framework === 'json-c') {
+      code += '#include <json-c/json.h>\n';
+    }
+    code += '#include <stdio.h>\n';
+    code += '#include <stdlib.h>\n';
+    code += '#include <string.h>\n\n';
+    
+    // 处理空数据的情况
+    if (data === null || data === undefined || (typeof data === 'object' && Object.keys(data).length === 0 && !Array.isArray(data))) {
+      code += `typedef struct {\n`;
+      code += '    // 空结构体，可以根据需要添加字段\n';
+      code += `} ${structName};\n`;
+      return code;
+    }
+    
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+      code += `typedef struct {\n`;
+      
+      for (const [key, value] of Object.entries(data)) {
+        const cType = this.getCType(value);
+        const fieldName = this.toCFieldName(key);
+        code += `    ${cType} ${fieldName};\n`;
+      }
+      
+      code += `} ${structName};\n\n`;
+      
+      // 生成初始化函数
+      code += `${structName}* create_${structName.toLowerCase()}() {\n`;
+      code += `    ${structName}* obj = malloc(sizeof(${structName}));\n`;
+      code += '    if (obj == NULL) return NULL;\n';
+      
+      for (const [key, value] of Object.entries(data)) {
+        const fieldName = this.toCFieldName(key);
+        const defaultValue = this.getCDefaultValue(value);
+        code += `    obj->${fieldName} = ${defaultValue};\n`;
+      }
+      
+      code += '    return obj;\n';
+      code += '}\n\n';
+      
+      // 生成释放函数
+      code += `void free_${structName.toLowerCase()}(${structName}* obj) {\n`;
+      code += '    if (obj != NULL) {\n';
+      
+      for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'string') {
+          const fieldName = this.toCFieldName(key);
+          code += `        if (obj->${fieldName} != NULL) free(obj->${fieldName});\n`;
+        }
+      }
+      
+      code += '        free(obj);\n';
+      code += '    }\n';
+      code += '}';
+    }
+    
+    return code;
+  }
+  
+  private getCType(value: any): string {
+    if (value === null) return 'void*';
+    if (typeof value === 'boolean') return 'int'; // C语言中使用int表示布尔值
+    if (typeof value === 'number') {
+      return Number.isInteger(value) ? 'int' : 'double';
+    }
+    if (typeof value === 'string') return 'char*';
+    if (Array.isArray(value)) return 'void**'; // 指向指针数组
+    if (typeof value === 'object') return 'void*'; // 指向其他结构体
+    return 'void*';
+  }
+  
+  private getCDefaultValue(value: any): string {
+    if (value === null) return 'NULL';
+    if (typeof value === 'boolean') return value ? '1' : '0';
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'string') return 'NULL'; // 需要动态分配
+    return 'NULL';
+  }
+  
+  private toCFieldName(name: string): string {
+    // 将驼峰命名转换为下划线命名
+    return name.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+  }
+}
+
+export class CppGenerator {
+  generate(data: any, options: CodeGenOptions): string {
+    const className = options.rootName;
+    const namespace = options.namespace || '';
+    const framework = options.framework || 'plain';
+    
+    let code = '';
+    
+    // 添加必要的头文件
+    code += '#include <iostream>\n';
+    code += '#include <string>\n';
+    code += '#include <vector>\n';
+    code += '#include <map>\n';
+    
+    if (framework === 'nlohmann') {
+      code += '#include <nlohmann/json.hpp>\n';
+      code += 'using json = nlohmann::json;\n';
+    } else if (framework === 'rapidjson') {
+      code += '#include <rapidjson/document.h>\n';
+      code += '#include <rapidjson/writer.h>\n';
+      code += '#include <rapidjson/stringbuffer.h>\n';
+    }
+    
+    code += '\n';
+    
+    if (namespace) {
+      code += `namespace ${namespace} {\n\n`;
+    }
+    
+    // 处理空数据的情况
+    if (data === null || data === undefined || (typeof data === 'object' && Object.keys(data).length === 0 && !Array.isArray(data))) {
+      code += `class ${className} {\n`;
+      code += 'public:\n';
+      code += '    // 空类，可以根据需要添加成员变量\n';
+      code += '};';
+      
+      if (namespace) {
+        code += '\n\n} // namespace ' + namespace;
+      }
+      
+      return code;
+    }
+    
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+      code += `class ${className} {\n`;
+      code += 'private:\n';
+      
+      // 生成成员变量
+      for (const [key, value] of Object.entries(data)) {
+        const cppType = this.getCppType(value);
+        const fieldName = this.toCppFieldName(key);
+        code += `    ${cppType} ${fieldName};\n`;
+      }
+      
+      code += '\npublic:\n';
+      
+      // 生成默认构造函数
+      code += `    ${className}() = default;\n\n`;
+      
+      // 生成参数化构造函数
+      code += `    ${className}(`;
+      const params = Object.entries(data).map(([key, value]) => {
+        const cppType = this.getCppType(value);
+        const fieldName = this.toCppFieldName(key);
+        return `const ${cppType}& ${fieldName}`;
+      });
+      code += params.join(', ');
+      code += ') :\n';
+      
+      const initializers = Object.entries(data).map(([key, value]) => {
+        const fieldName = this.toCppFieldName(key);
+        return `        ${fieldName}(${fieldName})`;
+      });
+      code += initializers.join(',\n');
+      code += ' {}\n\n';
+      
+      // 生成getter和setter方法
+      for (const [key, value] of Object.entries(data)) {
+        const cppType = this.getCppType(value);
+        const fieldName = this.toCppFieldName(key);
+        const methodName = this.capitalize(fieldName);
+        
+        // Getter
+        code += `    const ${cppType}& get${methodName}() const { return ${fieldName}; }\n`;
+        
+        // Setter
+        code += `    void set${methodName}(const ${cppType}& value) { ${fieldName} = value; }\n\n`;
+      }
+      
+      // 如果使用nlohmann json，生成序列化方法
+      if (framework === 'nlohmann') {
+        code += '    // JSON序列化\n';
+        code += '    json toJson() const {\n';
+        code += '        json j;\n';
+        
+        for (const [key, value] of Object.entries(data)) {
+          const fieldName = this.toCppFieldName(key);
+          code += `        j["${key}"] = ${fieldName};\n`;
+        }
+        
+        code += '        return j;\n';
+        code += '    }\n\n';
+        
+        code += '    // JSON反序列化\n';
+        code += '    static ' + className + ' fromJson(const json& j) {\n';
+        code += '        ' + className + ' obj;\n';
+        
+        for (const [key, value] of Object.entries(data)) {
+          const fieldName = this.toCppFieldName(key);
+          code += `        if (j.contains("${key}")) obj.${fieldName} = j["${key}"];\n`;
+        }
+        
+        code += '        return obj;\n';
+        code += '    }\n';
+      }
+      
+      code += '};';
+    }
+    
+    if (namespace) {
+      code += '\n\n} // namespace ' + namespace;
+    }
+    
+    return code;
+  }
+  
+  private getCppType(value: any): string {
+    if (value === null) return 'std::nullptr_t';
+    if (typeof value === 'boolean') return 'bool';
+    if (typeof value === 'number') {
+      return Number.isInteger(value) ? 'int' : 'double';
+    }
+    if (typeof value === 'string') return 'std::string';
+    if (Array.isArray(value)) {
+      if (value.length > 0) {
+        const elementType = this.getCppType(value[0]);
+        return `std::vector<${elementType}>`;
+      }
+      return 'std::vector<std::string>'; // 默认字符串向量
+    }
+    if (typeof value === 'object') return 'std::map<std::string, std::string>'; // 简化处理
+    return 'std::string';
+  }
+  
+  private toCppFieldName(name: string): string {
+    // 将驼峰命名转换为下划线命名
+    return name.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+  }
+  
+  private capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+}
+
 export class PythonGenerator {
   generate(data: any, options: CodeGenOptions): string {
     let code = '';

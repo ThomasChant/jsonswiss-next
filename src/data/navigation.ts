@@ -196,6 +196,18 @@ export const generatorMenuSections: NavigationSection[] = [
         description: "Generate C# classes"
       },
       {
+        title: "C",
+        href: "/generator/c",
+        icon: "FileCode",
+        description: "Generate C structs"
+      },
+      {
+        title: "C++",
+        href: "/generator/cpp",
+        icon: "FileCode",
+        description: "Generate C++ classes"
+      },
+      {
         title: "Go",
         href: "/generator/go",
         icon: "Code2",
