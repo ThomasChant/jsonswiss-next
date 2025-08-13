@@ -237,6 +237,12 @@ export const generatorMenuSections: NavigationSection[] = [
         description: "Generate Kotlin data classes"
       },
       {
+        title: "Scala",
+        href: "/generator/scala",
+        icon: "Layers",
+        description: "Generate Scala case classes"
+      },
+      {
         title: "Dart",
         href: "/generator/dart",
         icon: "Zap",
