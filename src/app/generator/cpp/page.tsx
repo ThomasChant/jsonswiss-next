@@ -1,13 +1,11 @@
 "use client";
 
 import { CodeGeneratorEmptyState } from "@/components/generator/CodeGeneratorEmptyState";
-import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDialog";
 import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { CodeGenOptions, CppGenerator } from "@/lib/code-generators";
 import { Code2, FileCode } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function CppGeneratorPage() {
   const [inputJson, setInputJson] = useState("");
@@ -61,31 +59,30 @@ export default function CppGeneratorPage() {
   };
 
   // 处理导入
-  const handleImport = (data: any, source: ImportSource, metadata?: ImportMetadata) => {
+  const handleImport = (data: any) => {
     const jsonString = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     setInputJson(jsonString);
     handleInputChange(jsonString);
   };
 
-  // 生成C++代码
-  const generateCpp = useCallback(() => {
-    const data = inputJson;
-    if (!data) return "";
+  // 当选项变化时重新生成代码
+  useEffect(() => {
+    if (!inputJson.trim()) {
+      setGeneratedCode("");
+      setError(null);
+      return;
+    }
 
     try {
-      return generator.generate(data, options);
+      const parsedData = JSON.parse(inputJson);
+      const result = generator.generate(parsedData, options);
+      setGeneratedCode(result);
+      setError(null);
     } catch (err) {
-      console.error('C++ generation error:', err);
-      return "";
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setGeneratedCode("");
     }
-  }, [generator, options]);
-
-  // 当数据或选项变化时更新生成的代码
-  useEffect(() => {
-    const newCode = generateCpp();
-    setGeneratedCode(newCode);
-    setError(null);
-  }, [generateCpp]);
+  }, [inputJson, options, generator]);
 
   const handleCopyCode = async () => {
     await copy(generatedCode);

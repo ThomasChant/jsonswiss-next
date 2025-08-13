@@ -2,13 +2,12 @@
 "use client";
 
 import { CodeGeneratorEmptyState } from "@/components/generator/CodeGeneratorEmptyState";
-import { ImportMetadata, ImportSource } from "@/components/import/ImportJsonDialog";
 import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { CodeGenOptions, ScalaGenerator } from "@/lib/code-generators";
 import { Code2, Layers } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function ScalaGeneratorPage() {
   const { resolvedTheme } = useTheme();
@@ -36,25 +35,24 @@ export default function ScalaGeneratorPage() {
     errorMessage: 'Failed to copy Scala code to clipboard'
   });
 
-  // Generate Scala
-  const generateScala = useCallback(() => {
-    const data = inputJson;
-    if (!data) return "";
+  // 当选项变化时重新生成代码
+  useEffect(() => {
+    if (!inputJson.trim()) {
+      setGeneratedCode("");
+      setError(null);
+      return;
+    }
 
     try {
-      return generator.generate(data, options);
+      const parsedData = JSON.parse(inputJson);
+      const result = generator.generate(parsedData, options);
+      setGeneratedCode(result);
+      setError(null);
     } catch (err) {
-      console.error('Scala generation error:', err);
-      return "";
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setGeneratedCode("");
     }
-  }, [generator, options]);
-
-  // Update generated code when data or options change
-  useEffect(() => {
-    const newCode = generateScala();
-    setGeneratedCode(newCode);
-    setError(null);
-  }, [generateScala]);
+  }, [inputJson, options, generator]);
 
   const handleInputChange = (value: string | undefined) => {
     const jsonValue = value || "";
@@ -81,7 +79,7 @@ export default function ScalaGeneratorPage() {
     setOptions(prev => ({ ...prev, ...newOptions }));
   };
 
-  const handleImport = (data: any, source: ImportSource, metadata?: ImportMetadata) => {
+  const handleImport = (data: any) => {
     const jsonString = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     setInputJson(jsonString);
     handleInputChange(jsonString);
