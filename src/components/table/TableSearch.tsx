@@ -298,15 +298,15 @@ export function TableSearch({
   }, [searchResults, currentSearchIndex, caseSensitive, useRegex, wholeWord, onSearchStateChange]);
   
   // Helper function to create regex for replacement
-  const createReplaceRegex = useCallback((searchTerm: string) => {
+  const createReplaceRegex = useCallback((searchTerm: string, globalFlag: boolean = true) => {
     if (useRegex) {
       try {
-        const flags = caseSensitive ? 'g' : 'gi';
+        const flags = globalFlag ? (caseSensitive ? 'g' : 'gi') : (caseSensitive ? '' : 'i');
         return new RegExp(searchTerm, flags);
       } catch (error) {
         // If regex is invalid, fall back to escaped string
         const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const flags = caseSensitive ? 'g' : 'gi';
+        const flags = globalFlag ? (caseSensitive ? 'g' : 'gi') : (caseSensitive ? '' : 'i');
         return new RegExp(escapedTerm, flags);
       }
     } else {
@@ -314,10 +314,96 @@ export function TableSearch({
       if (wholeWord) {
         pattern = `\\b${pattern}\\b`;
       }
-      const flags = caseSensitive ? 'g' : 'gi';
+      const flags = globalFlag ? (caseSensitive ? 'g' : 'gi') : (caseSensitive ? '' : 'i');
       return new RegExp(pattern, flags);
     }
   }, [caseSensitive, useRegex, wholeWord]);
+
+  // Helper function to replace only a specific occurrence of the search term
+  const replaceSpecificOccurrence = useCallback((text: string, searchTerm: string, replaceValue: string, occurrenceIndex: number): string => {
+    try {
+      if (useRegex) {
+        const flags = caseSensitive ? 'g' : 'gi';
+        const regex = new RegExp(searchTerm, flags);
+        const matches = [...text.matchAll(regex)];
+        
+        if (occurrenceIndex >= 0 && occurrenceIndex < matches.length) {
+          const match = matches[occurrenceIndex];
+          const before = text.substring(0, match.index!);
+          const after = text.substring(match.index! + match[0].length);
+          return before + replaceValue + after;
+        }
+        return text;
+      } else {
+        const searchStr = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+        const targetStr = caseSensitive ? text : text.toLowerCase();
+        
+        if (wholeWord) {
+          const wordRegex = new RegExp(`\\b${searchStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, caseSensitive ? 'g' : 'gi');
+          const matches = [...text.matchAll(wordRegex)];
+          
+          if (occurrenceIndex >= 0 && occurrenceIndex < matches.length) {
+            const match = matches[occurrenceIndex];
+            const before = text.substring(0, match.index!);
+            const after = text.substring(match.index! + match[0].length);
+            return before + replaceValue + after;
+          }
+          return text;
+        } else {
+          // Find all occurrences
+          const indices: number[] = [];
+          let position = 0;
+          while (true) {
+            const index = targetStr.indexOf(searchStr, position);
+            if (index === -1) break;
+            indices.push(index);
+            position = index + 1; // Allow overlapping matches
+          }
+          
+          if (occurrenceIndex >= 0 && occurrenceIndex < indices.length) {
+            const index = indices[occurrenceIndex];
+            const before = text.substring(0, index);
+            const after = text.substring(index + searchTerm.length);
+            return before + replaceValue + after;
+          }
+          return text;
+        }
+      }
+    } catch (error) {
+      // Fallback to simple string replacement
+      const searchStr = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+      const targetStr = caseSensitive ? text : text.toLowerCase();
+      const indices: number[] = [];
+      let position = 0;
+      while (true) {
+        const index = targetStr.indexOf(searchStr, position);
+        if (index === -1) break;
+        indices.push(index);
+        position = index + 1;
+      }
+      
+      if (occurrenceIndex >= 0 && occurrenceIndex < indices.length) {
+        const index = indices[occurrenceIndex];
+        const before = text.substring(0, index);
+        const after = text.substring(index + searchTerm.length);
+        return before + replaceValue + after;
+      }
+      return text;
+    }
+  }, [caseSensitive, useRegex, wholeWord]);
+
+  // Helper function to calculate which occurrence in a text should be replaced based on search result index
+  const calculateOccurrenceIndexInText = useCallback((text: string, searchTerm: string, globalSearchIndex: number): number => {
+    // Count how many search results come before this one that have the same text
+    let occurrenceIndex = 0;
+    for (let i = 0; i < globalSearchIndex; i++) {
+      const result = searchResults[i];
+      if (result && result.text === text) {
+        occurrenceIndex++;
+      }
+    }
+    return occurrenceIndex;
+  }, [searchResults]);
   
   // Search navigation handlers
   const handleSearchNext = useCallback(() => {
@@ -447,8 +533,10 @@ export function TableSearch({
               console.log('Attempting key replacement for:', currentKey);
               
               if (currentKey.includes(effectiveSearchTerm)) {
-                const newKey = currentKey.replace(regex, replaceValue);
-                console.log('New key after replacement:', newKey);
+                // Calculate which occurrence in this key should be replaced
+                const occurrenceIndex = calculateOccurrenceIndexInText(currentKey, effectiveSearchTerm, currentSearchIndex);
+                const newKey = replaceSpecificOccurrence(currentKey, effectiveSearchTerm, replaceValue, occurrenceIndex);
+                console.log('New key after specific replacement:', newKey);
                 
                 if (newKey !== currentKey && !targetData.hasOwnProperty(newKey)) {
                   // Replace the key while preserving the value and order
@@ -515,8 +603,10 @@ export function TableSearch({
               });
               
               if (searchMatches) {
-                const newValue = formattedValue.replace(regex, replaceValue);
-                console.log('Value after regex replacement:', newValue);
+                // Calculate which occurrence in this value should be replaced
+                const occurrenceIndex = calculateOccurrenceIndexInText(formattedValue, effectiveSearchTerm, currentSearchIndex);
+                const newValue = replaceSpecificOccurrence(formattedValue, effectiveSearchTerm, replaceValue, occurrenceIndex);
+                console.log('Value after specific occurrence replacement:', newValue);
                 
                 const convertedValue = convertToOriginalType(newValue, currentValue);
                 console.log('Converted value:', convertedValue);
@@ -650,7 +740,9 @@ export function TableSearch({
         const formattedValue = formatValue(currentValue);
         // 对可替换的数据类型进行替换，且搜索结果中的文本要与格式化值匹配
         if (isReplaceableValue(currentValue) && currentResult.text === formattedValue) {
-          const newValue = formattedValue.replace(regex, replaceValue);
+          // Calculate which occurrence in this value should be replaced
+          const occurrenceIndex = calculateOccurrenceIndexInText(formattedValue, effectiveSearchTerm, currentSearchIndex);
+          const newValue = replaceSpecificOccurrence(formattedValue, effectiveSearchTerm, replaceValue, occurrenceIndex);
           // 尝试将新值转换回原始数据类型
           const convertedValue = convertToOriginalType(newValue, currentValue);
           newData[rowIndex][columnKey] = convertedValue;
@@ -660,7 +752,9 @@ export function TableSearch({
         const formattedValue = formatValue(currentValue);
         // 对可替换的数据类型进行替换，且搜索结果中的文本要与格式化值匹配
         if (isReplaceableValue(currentValue) && currentResult.text === formattedValue) {
-          const newValue = formattedValue.replace(regex, replaceValue);
+          // Calculate which occurrence in this value should be replaced
+          const occurrenceIndex = calculateOccurrenceIndexInText(formattedValue, effectiveSearchTerm, currentSearchIndex);
+          const newValue = replaceSpecificOccurrence(formattedValue, effectiveSearchTerm, replaceValue, occurrenceIndex);
           // 尝试将新值转换回原始数据类型
           const convertedValue = convertToOriginalType(newValue, currentValue);
           newData[rowIndex] = convertedValue;
@@ -676,7 +770,9 @@ export function TableSearch({
           const entries = Object.entries(newData);
           const [oldKey, value] = entries[rowIndex];
           if (typeof oldKey === 'string' && currentResult.text === oldKey) {
-            const newKey = oldKey.replace(regex, replaceValue);
+            // Calculate which occurrence in this key should be replaced
+            const occurrenceIndex = calculateOccurrenceIndexInText(oldKey, effectiveSearchTerm, currentSearchIndex);
+            const newKey = replaceSpecificOccurrence(oldKey, effectiveSearchTerm, replaceValue, occurrenceIndex);
             if (newKey !== oldKey && !newData.hasOwnProperty(newKey)) {
               // 保持键的顺序：重新构建对象而不是删除后添加
               const newObject: any = {};
@@ -705,7 +801,9 @@ export function TableSearch({
           const formattedValue = formatValue(currentValue);
           // 对可替换的数据类型进行替换，且搜索结果中的文本要与格式化值匹配
           if (isReplaceableValue(currentValue) && currentResult.text === formattedValue) {
-            const newValue = formattedValue.replace(regex, replaceValue);
+            // Calculate which occurrence in this value should be replaced
+            const occurrenceIndex = calculateOccurrenceIndexInText(formattedValue, effectiveSearchTerm, currentSearchIndex);
+            const newValue = replaceSpecificOccurrence(formattedValue, effectiveSearchTerm, replaceValue, occurrenceIndex);
             // 尝试将新值转换回原始数据类型
             const convertedValue = convertToOriginalType(newValue, currentValue);
             newData[key] = convertedValue;
@@ -722,7 +820,9 @@ export function TableSearch({
           const formattedValue = formatValue(data);
           // 对可替换的数据类型进行替换，且搜索结果中的文本要与格式化值匹配
           if (isReplaceableValue(data) && currentResult.text === formattedValue) {
-            const newValue = formattedValue.replace(regex, replaceValue);
+            // Calculate which occurrence in this value should be replaced
+            const occurrenceIndex = calculateOccurrenceIndexInText(formattedValue, effectiveSearchTerm, currentSearchIndex);
+            const newValue = replaceSpecificOccurrence(formattedValue, effectiveSearchTerm, replaceValue, occurrenceIndex);
             // 尝试将新值转换回原始数据类型
             const convertedValue = convertToOriginalType(newValue, data);
             onUpdate(convertedValue);
