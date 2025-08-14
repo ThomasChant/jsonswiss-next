@@ -9,7 +9,6 @@ interface SearchResult {
 }
 
 interface HighlightTextOptions {
-  showSearch: boolean;
   caseSensitive: boolean;
   useRegex: boolean;
   wholeWord: boolean;
@@ -28,7 +27,6 @@ export function highlightText(
   options: HighlightTextOptions
 ) {
   const { 
-    showSearch, 
     caseSensitive, 
     useRegex, 
     wholeWord, 
@@ -42,7 +40,7 @@ export function highlightText(
   // Skip highlighting for computed type column
   if (actualColumnKey === 'type') return text;
   
-  if (!showSearch || !searchTerm || !text) return text;
+  if (!searchTerm || !text) return text;
   
   const textStr = String(text);
   let regex: RegExp;

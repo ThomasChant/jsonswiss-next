@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/lib/toast';
 import { formatValue } from '@/lib/table-utils';
+import { highlightText } from './utils/searchUtils';
 
 // Helper functions for replace operations
 function isReplaceableValue(value: any): boolean {
@@ -232,7 +233,7 @@ export function TableSearch({
   
   // Calculate search results with nested search support
   const searchResultsData = useMemo(() => {
-    if (!showSearch || !effectiveSearchTerm || effectiveSearchTerm.trim().length === 0) {
+    if (!effectiveSearchTerm || effectiveSearchTerm.trim().length === 0) {
       setCurrentSearchIndex(-1);
       return [];
     }
@@ -318,18 +319,47 @@ export function TableSearch({
         
         // Search nested structures within this cell
         if (cellValue && typeof cellValue === 'object') {
-          const nestedResults = searchNestedData(cellValue, effectiveSearchTerm, [...path, index.toString(), column.key]);
+          // Build the correct data access path for nested search
+          let dataAccessPath;
+          if (tableInfo.type === 'object-array') {
+            dataAccessPath = [...path, index.toString(), column.key];
+          } else if (tableInfo.type === 'primitive-array') {
+            dataAccessPath = [...path, index.toString()];
+          } else if (tableInfo.type === 'single-object') {
+            // For single object, we need to find the actual key at this row index
+            const entries = Object.entries(data);
+            if (entries[index]) {
+              const [objectKey] = entries[index];
+              dataAccessPath = [...path, objectKey];
+            } else {
+              dataAccessPath = [...path, column.key];
+            }
+          } else {
+            dataAccessPath = [...path, column.key];
+          }
+          
+          console.log('Building nested search path:', {
+            tableType: tableInfo.type,
+            baseDataPath: path,
+            rowIndex: index,
+            columnKey: column.key,
+            finalDataAccessPath: dataAccessPath
+          });
+          
+          const nestedResults = searchNestedData(cellValue, effectiveSearchTerm, dataAccessPath);
           results.push(...nestedResults.map(result => ({
             ...result,
+            // Keep the original path from nested search but update display position
             rowIndex: index, // Keep the parent row index for highlighting
             columnKey: column.key // Keep the parent column for highlighting
+            // path: result.path is preserved from the nested search
           })));
         }
       });
     });
     
     return results;
-  }, [tableInfo, effectiveSearchTerm, showSearch, searchNestedData, path, caseSensitive, useRegex, wholeWord]);
+  }, [tableInfo, effectiveSearchTerm, searchNestedData, path, caseSensitive, useRegex, wholeWord]);
   
   // Update search results when they change
   useEffect(() => {
@@ -400,11 +430,302 @@ export function TableSearch({
     const rowIndex = currentResult.rowIndex;
     const columnKey = currentResult.columnKey;
     
+    console.log('=== REPLACEMENT CONTEXT DEBUG ===');
+    console.log('Input data parameter:', data);
+    console.log('Current table path:', path);
+    console.log('Table info:', tableInfo);
+    console.log('Search result:', currentResult);
+    console.log('Is nested replacement:', !!(currentResult.path && currentResult.path.length > 0));
+    
     try {
       const newData = JSON.parse(JSON.stringify(data));
+      console.log('Cloned data for replacement:', newData);
       
       const regex = createReplaceRegex(effectiveSearchTerm);
       
+      // Handle nested path replacements FIRST (most important case)
+      if (currentResult.path && currentResult.path.length > 0) {
+        console.log('=== NESTED PATH REPLACEMENT START ===');
+        console.log('Saved path from search:', currentResult.path);
+        console.log('Current table path:', path);
+        console.log('Available data:', newData);
+        
+        // Calculate the relative path from current table position to target
+        let relativePath = [...currentResult.path];
+        
+        // Remove the current table path prefix if it exists
+        if (path && path.length > 0) {
+          console.log('Removing table path prefix:', path);
+          // Check if the saved path starts with the current table path
+          let matchesPrefix = true;
+          for (let i = 0; i < path.length && i < relativePath.length; i++) {
+            if (path[i] !== relativePath[i]) {
+              matchesPrefix = false;
+              break;
+            }
+          }
+          
+          if (matchesPrefix && relativePath.length > path.length) {
+            relativePath = relativePath.slice(path.length);
+            console.log('Calculated relative path:', relativePath);
+          } else {
+            console.log('Path prefix mismatch - using full path');
+          }
+        }
+        
+        // Navigate to the nested location using the relative path
+        let targetData = newData;
+        const pathCopy = [...relativePath];
+        const lastKey = pathCopy.pop(); // Get the final key/index
+        
+        console.log('Path steps to navigate:', pathCopy);
+        console.log('Final key/index:', lastKey);
+        
+        // Navigate to the parent object/array
+        for (let i = 0; i < pathCopy.length; i++) {
+          const key = pathCopy[i];
+          console.log(`Step ${i + 1}: Navigating to key "${key}"`);
+          console.log('Current targetData:', targetData);
+          console.log('targetData type:', typeof targetData);
+          console.log('Is array:', Array.isArray(targetData));
+          
+          // Check if key exists in current data structure
+          let keyExists = false;
+          if (targetData) {
+            if (Array.isArray(targetData)) {
+              const index = parseInt(key, 10);
+              keyExists = !isNaN(index) && index >= 0 && index < targetData.length;
+              console.log(`Array check: index=${index}, length=${targetData.length}, exists=${keyExists}`);
+            } else if (typeof targetData === 'object') {
+              keyExists = targetData.hasOwnProperty(key);
+              console.log(`Object check: key="${key}", exists=${keyExists}`);
+            }
+          }
+          
+          if (keyExists) {
+            console.log(`✓ Key "${key}" exists in targetData`);
+            targetData = targetData[key];
+            console.log('New targetData after navigation:', targetData);
+          } else {
+            console.log(`✗ NAVIGATION FAILED: Key "${key}" not found`);
+            console.log('Available keys/indices:', Array.isArray(targetData) ? 
+              `Array[${targetData?.length || 0}] - indices 0 to ${(targetData?.length || 1) - 1}` : 
+              Object.keys(targetData || {}));
+            console.log('Is target an array?', Array.isArray(targetData));
+            console.log('Target data:', targetData);
+            console.log('=== NESTED PATH REPLACEMENT FAILED ===');
+            toast.error(`Failed to navigate to nested location: key "${key}" not found`);
+            return;
+          }
+        }
+        
+        console.log('=== FINAL REPLACEMENT STEP ===');
+        console.log('Final targetData:', targetData);
+        console.log('Last key:', lastKey);
+        
+        if (targetData && lastKey !== undefined) {
+          // Check if this is a key replacement or value replacement
+          if (currentResult.columnKey === 'key') {
+            // Handle key replacement for nested objects
+            if (typeof targetData === 'object' && !Array.isArray(targetData)) {
+              const currentKey = String(lastKey);
+              console.log('Attempting key replacement for:', currentKey);
+              
+              if (currentKey.includes(effectiveSearchTerm)) {
+                const newKey = currentKey.replace(regex, replaceValue);
+                console.log('New key after replacement:', newKey);
+                
+                if (newKey !== currentKey && !targetData.hasOwnProperty(newKey)) {
+                  // Replace the key while preserving the value and order
+                  const currentValue = targetData[lastKey];
+                  const entries = Object.entries(targetData);
+                  const newObject: any = {};
+                  
+                  for (const [key, value] of entries) {
+                    if (key === currentKey) {
+                      newObject[newKey] = currentValue;
+                    } else {
+                      newObject[key] = value;
+                    }
+                  }
+                  
+                  // Replace all properties in target object
+                  Object.keys(targetData).forEach(key => delete targetData[key]);
+                  Object.assign(targetData, newObject);
+                  
+                  console.log('=== NESTED KEY REPLACEMENT SUCCESS ===');
+                  onUpdate(newData);
+                  toast.success('Key replaced successfully');
+                  handleSearchNext();
+                  return;
+                } else if (newKey === currentKey) {
+                  console.log('✗ No change needed for key');
+                } else {
+                  console.log('✗ New key already exists:', newKey);
+                  toast.error('Cannot replace key: new key already exists');
+                  return;
+                }
+              } else {
+                console.log('✗ Key does not contain search term');
+              }
+            } else {
+              console.log('✗ Cannot replace keys in arrays or non-objects');
+            }
+          } else {
+            // Handle value replacement for nested paths
+            const currentValue = targetData[lastKey];
+            console.log('Current value at final location:', currentValue);
+            console.log('Is replaceable value:', isReplaceableValue(currentValue));
+            
+            if (isReplaceableValue(currentValue)) {
+              const formattedValue = formatValue(currentValue);
+              console.log('Formatted value:', formattedValue);
+              console.log('Search result text:', currentResult.text);
+              console.log('Values match:', currentResult.text === formattedValue);
+              
+              // Check if the search term is present in the formatted value
+              const searchMatches = formattedValue.includes(effectiveSearchTerm) || 
+                                  (useRegex && regex.test(formattedValue)) ||
+                                  currentResult.text === formattedValue;
+              
+              console.log('Replacement validation:', {
+                formattedValue,
+                searchTerm: effectiveSearchTerm,
+                resultText: currentResult.text,
+                exactMatch: currentResult.text === formattedValue,
+                containsSearch: formattedValue.includes(effectiveSearchTerm),
+                regexMatch: useRegex ? regex.test(formattedValue) : false,
+                finalMatch: searchMatches
+              });
+              
+              if (searchMatches) {
+                const newValue = formattedValue.replace(regex, replaceValue);
+                console.log('Value after regex replacement:', newValue);
+                
+                const convertedValue = convertToOriginalType(newValue, currentValue);
+                console.log('Converted value:', convertedValue);
+                
+                targetData[lastKey] = convertedValue;
+                console.log('Updated targetData:', targetData);
+                console.log('Final complete data:', newData);
+                console.log('=== NESTED PATH REPLACEMENT SUCCESS ===');
+                
+                onUpdate(newData);
+                toast.success('Value replaced successfully');
+                handleSearchNext();
+                return;
+              } else {
+                console.log('✗ No search match found in value');
+                console.log('Expected search term:', effectiveSearchTerm);
+                console.log('Result text:', currentResult.text);
+                console.log('Formatted value:', formattedValue);
+              }
+            } else {
+              console.log('✗ Value is not replaceable');
+              console.log('Value type:', typeof currentValue);
+              console.log('Value:', currentValue);
+            }
+          }
+        } else {
+          console.log('✗ Final navigation failed');
+          console.log('targetData exists:', !!targetData);
+          console.log('lastKey defined:', lastKey !== undefined);
+        }
+        
+        console.log('=== NESTED PATH REPLACEMENT FAILED ===');
+        console.log('Attempting fallback: simple replacement in current data');
+        
+        // Fallback: Try to replace directly in the current level data
+        // This handles cases where the nested path might be incorrectly calculated
+        let fallbackSuccess = false;
+        
+        // Try to find and replace the value in the current table data
+        try {
+          const findAndReplace = (obj: any, searchValue: string, replaceValue: string): boolean => {
+            if (typeof obj === 'string' && obj.includes(searchValue)) {
+              return obj.replace(regex, replaceValue) !== obj;
+            }
+            
+            if (Array.isArray(obj)) {
+              for (let i = 0; i < obj.length; i++) {
+                if (typeof obj[i] === 'string' && obj[i].includes(searchValue)) {
+                  const newValue = obj[i].replace(regex, replaceValue);
+                  if (newValue !== obj[i]) {
+                    obj[i] = convertToOriginalType(newValue, obj[i]);
+                    return true;
+                  }
+                }
+                if (typeof obj[i] === 'object' && obj[i] !== null) {
+                  if (findAndReplace(obj[i], searchValue, replaceValue)) {
+                    return true;
+                  }
+                }
+              }
+            }
+            
+            if (typeof obj === 'object' && obj !== null) {
+              // First check for key replacements
+              for (const [key] of Object.entries(obj)) {
+                if (typeof key === 'string' && key.includes(searchValue)) {
+                  const newKey = key.replace(regex, replaceValue);
+                  if (newKey !== key && !obj.hasOwnProperty(newKey)) {
+                    // Create new object with replaced key
+                    const newObj: any = {};
+                    for (const [k, v] of Object.entries(obj)) {
+                      if (k === key) {
+                        newObj[newKey] = v;
+                      } else {
+                        newObj[k] = v;
+                      }
+                    }
+                    
+                    // Replace all properties in current object
+                    Object.keys(obj).forEach(k => delete obj[k]);
+                    Object.assign(obj, newObj);
+                    return true;
+                  }
+                }
+              }
+              
+              // Then check for value replacements
+              for (const [key, value] of Object.entries(obj)) {
+                if (typeof value === 'string' && value.includes(searchValue)) {
+                  const newValue = value.replace(regex, replaceValue);
+                  if (newValue !== value) {
+                    obj[key] = convertToOriginalType(newValue, value);
+                    return true;
+                  }
+                }
+                if (typeof value === 'object' && value !== null) {
+                  if (findAndReplace(value, searchValue, replaceValue)) {
+                    return true;
+                  }
+                }
+              }
+            }
+            
+            return false;
+          };
+          
+          fallbackSuccess = findAndReplace(newData, effectiveSearchTerm, replaceValue);
+        } catch (error) {
+          console.log('Fallback replacement failed:', error);
+        }
+        
+        if (fallbackSuccess) {
+          console.log('=== FALLBACK REPLACEMENT SUCCESS ===');
+          onUpdate(newData);
+          toast.success('Value replaced successfully');
+          handleSearchNext();
+          return;
+        }
+        
+        console.log('=== ALL REPLACEMENT STRATEGIES FAILED ===');
+        toast.error('Could not replace nested value');
+        return;
+      }
+      
+      // Handle regular (non-nested) replacements
       if (tableInfo.type === 'object-array') {
         const currentValue = newData[rowIndex][columnKey];
         // 获取格式化后的显示文本，这与搜索逻辑保持一致
@@ -511,120 +832,172 @@ export function TableSearch({
       let replaceCount = 0;
       const regex = createReplaceRegex(effectiveSearchTerm);
       
-      // Group search results by location to handle multiple matches in the same cell
-      const resultsByLocation = new Map();
+      // Track already processed locations to avoid duplicate replacements
+      const processedLocations = new Set();
       
+      // Process each search result individually to handle nested paths correctly
       searchResults.forEach(result => {
-        const locationKey = `${result.rowIndex}-${result.columnKey}`;
-        if (!resultsByLocation.has(locationKey)) {
-          resultsByLocation.set(locationKey, {
-            rowIndex: result.rowIndex,
-            columnKey: result.columnKey,
-            count: 0
-          });
-        }
-        resultsByLocation.get(locationKey).count++;
-      });
-      
-      // Process each unique location
-      resultsByLocation.forEach((locationInfo, locationKey) => {
-        const rowIndex = locationInfo.rowIndex;
-        const columnKey = locationInfo.columnKey;
-        const matchCount = locationInfo.count;
-        
-        if (tableInfo.type === 'object-array') {
-          const currentValue = newData[rowIndex][columnKey];
-          // 对可替换的数据类型进行替换（包括 string, number, boolean, null）
-          if (isReplaceableValue(currentValue)) {
-            const formattedValue = formatValue(currentValue);
-            const newValue = formattedValue.replace(regex, replaceValue);
-            if (newValue !== formattedValue) {
-              // 尝试将新值转换回原始数据类型
-              const convertedValue = convertToOriginalType(newValue, currentValue);
-              newData[rowIndex][columnKey] = convertedValue;
-              replaceCount += matchCount; // Add the actual number of matches replaced
+        // Handle nested path replacements
+        if (result.path && result.path.length > 0) {
+          // Create unique key for this nested location
+          const locationKey = `nested:${result.path.join('.')}`;
+          if (processedLocations.has(locationKey)) {
+            return; // Skip if already processed
+          }
+          processedLocations.add(locationKey);
+          
+          // Navigate to the nested location using the saved path
+          let targetData = newData;
+          const pathCopy = [...result.path];
+          const lastKey = pathCopy.pop(); // Get the final key/index
+          
+          // Navigate to the parent object/array
+          for (const key of pathCopy) {
+            if (targetData && targetData.hasOwnProperty(key)) {
+              targetData = targetData[key];
+            } else {
+              return; // Skip this result if path navigation fails
             }
           }
-        } else if (tableInfo.type === 'primitive-array') {
-          const currentValue = newData[rowIndex];
-          // 对可替换的数据类型进行替换（包括 string, number, boolean, null）
-          if (isReplaceableValue(currentValue)) {
-            const formattedValue = formatValue(currentValue);
-            const newValue = formattedValue.replace(regex, replaceValue);
-            if (newValue !== formattedValue) {
-              // 尝试将新值转换回原始数据类型
-              const convertedValue = convertToOriginalType(newValue, currentValue);
-              newData[rowIndex] = convertedValue;
-              replaceCount += matchCount; // Add the actual number of matches replaced
-            }
-          }
-        } else if (tableInfo.type === 'single-object') {
-          // Skip computed type column
-          if (columnKey === 'type') {
-            // Skip type column replacements - just continue to next iteration
-          } else if (columnKey === 'key') {
-            // Replace key name
-            const entries = Object.entries(newData);
-            if (entries[rowIndex]) {
-              const [oldKey, value] = entries[rowIndex];
-              if (typeof oldKey === 'string') {
-                const newKey = oldKey.replace(regex, replaceValue);
-                if (newKey !== oldKey && !newData.hasOwnProperty(newKey)) {
-                  // 保持键的顺序：重新构建对象而不是删除后添加
-                  const newObject: any = {};
-                  for (const [key, val] of entries) {
-                    if (key === oldKey) {
-                      newObject[newKey] = value;
-                    } else {
-                      newObject[key] = val;
+          
+          if (targetData && lastKey !== undefined) {
+            // Check if this is a key replacement or value replacement
+            if (result.columnKey === 'key') {
+              // Handle key replacement for nested objects
+              if (typeof targetData === 'object' && !Array.isArray(targetData)) {
+                const currentKey = String(lastKey);
+                if (currentKey.includes(effectiveSearchTerm)) {
+                  const newKey = currentKey.replace(regex, replaceValue);
+                  if (newKey !== currentKey && !targetData.hasOwnProperty(newKey)) {
+                    // Replace the key while preserving the value and order
+                    const currentValue = targetData[lastKey];
+                    const entries = Object.entries(targetData);
+                    const newObject: any = {};
+                    
+                    for (const [key, value] of entries) {
+                      if (key === currentKey) {
+                        newObject[newKey] = currentValue;
+                      } else {
+                        newObject[key] = value;
+                      }
                     }
+                    
+                    // Replace all properties in target object
+                    Object.keys(targetData).forEach(key => delete targetData[key]);
+                    Object.assign(targetData, newObject);
+                    replaceCount++;
                   }
-                  // 替换整个对象以保持键的顺序
-                  Object.keys(newData).forEach(key => delete newData[key]);
-                  Object.assign(newData, newObject);
-                  replaceCount += matchCount; // Add the actual number of matches replaced
                 }
               }
-            }
-          } else if (columnKey === 'value') {
-            // Replace value
-            const entries = Object.entries(newData);
-            if (entries[rowIndex]) {
-              const [key] = entries[rowIndex];
-              const currentValue = newData[key];
-              // 对可替换的数据类型进行替换（包括 string, number, boolean, null）
+            } else {
+              // Handle value replacement for nested paths
+              const currentValue = targetData[lastKey];
+              
               if (isReplaceableValue(currentValue)) {
                 const formattedValue = formatValue(currentValue);
                 const newValue = formattedValue.replace(regex, replaceValue);
                 if (newValue !== formattedValue) {
-                  // 尝试将新值转换回原始数据类型
                   const convertedValue = convertToOriginalType(newValue, currentValue);
-                  newData[key] = convertedValue;
-                  replaceCount += matchCount; // Add the actual number of matches replaced
+                  targetData[lastKey] = convertedValue;
+                  replaceCount++;
                 }
+              }
+            }
+          }
+          return; // Continue to next result
+        }
+        
+        // Handle regular (non-nested) replacements
+        const rowIndex = result.rowIndex;
+        const columnKey = result.columnKey;
+        const locationKey = `regular:${rowIndex}-${columnKey}`;
+        
+        if (processedLocations.has(locationKey)) {
+          return; // Skip if already processed
+        }
+        processedLocations.add(locationKey);
+        
+        if (tableInfo.type === 'object-array') {
+          const currentValue = newData[rowIndex][columnKey];
+          if (isReplaceableValue(currentValue)) {
+            const formattedValue = formatValue(currentValue);
+            const newValue = formattedValue.replace(regex, replaceValue);
+            if (newValue !== formattedValue) {
+              const convertedValue = convertToOriginalType(newValue, currentValue);
+              newData[rowIndex][columnKey] = convertedValue;
+              replaceCount++;
+            }
+          }
+        } else if (tableInfo.type === 'primitive-array') {
+          const currentValue = newData[rowIndex];
+          if (isReplaceableValue(currentValue)) {
+            const formattedValue = formatValue(currentValue);
+            const newValue = formattedValue.replace(regex, replaceValue);
+            if (newValue !== formattedValue) {
+              const convertedValue = convertToOriginalType(newValue, currentValue);
+              newData[rowIndex] = convertedValue;
+              replaceCount++;
+            }
+          }
+        } else if (tableInfo.type === 'single-object') {
+          if (columnKey !== 'type') { // Skip computed type column
+            if (columnKey === 'key') {
+              // Replace key name
+              const entries = Object.entries(newData);
+              if (entries[rowIndex]) {
+                const [oldKey, value] = entries[rowIndex];
+                if (typeof oldKey === 'string') {
+                  const newKey = oldKey.replace(regex, replaceValue);
+                  if (newKey !== oldKey && !newData.hasOwnProperty(newKey)) {
+                    const newObject: any = {};
+                    for (const [key, val] of entries) {
+                      if (key === oldKey) {
+                        newObject[newKey] = value;
+                      } else {
+                        newObject[key] = val;
+                      }
+                    }
+                    Object.keys(newData).forEach(key => delete newData[key]);
+                    Object.assign(newData, newObject);
+                    replaceCount++;
+                  }
+                }
+              }
+            } else if (columnKey === 'value') {
+              // Replace value
+              const entries = Object.entries(newData);
+              if (entries[rowIndex]) {
+                const [key] = entries[rowIndex];
+                const currentValue = newData[key];
+                if (isReplaceableValue(currentValue)) {
+                  const formattedValue = formatValue(currentValue);
+                  const newValue = formattedValue.replace(regex, replaceValue);
+                  if (newValue !== formattedValue) {
+                    const convertedValue = convertToOriginalType(newValue, currentValue);
+                    newData[key] = convertedValue;
+                    replaceCount++;
+                  }
+                }
+              }
+            }
+          }
+        } else if (tableInfo.type === 'primitive') {
+          if (columnKey === 'value') {
+            if (isReplaceableValue(data)) {
+              const formattedValue = formatValue(data);
+              const newValue = formattedValue.replace(regex, replaceValue);
+              if (newValue !== formattedValue) {
+                const convertedValue = convertToOriginalType(newValue, data);
+                onUpdate(convertedValue);
+                replaceCount++;
+                return;
               }
             }
           }
         }
       });
       
-      if (tableInfo.type === 'primitive') {
-        // For primitive type, only replace if the search result is in the 'value' column
-        const valueColumnResults = searchResults.filter(result => result.columnKey === 'value');
-        if (valueColumnResults.length > 0) {
-          // 对可替换的数据类型进行替换（包括 string, number, boolean, null）
-          if (isReplaceableValue(data)) {
-            const formattedValue = formatValue(data);
-            const newValue = formattedValue.replace(regex, replaceValue);
-            if (newValue !== formattedValue) {
-              // 尝试将新值转换回原始数据类型
-              const convertedValue = convertToOriginalType(newValue, data);
-              onUpdate(convertedValue);
-              replaceCount += valueColumnResults.length; // Add the actual number of matches replaced
-            }
-          }
-        }
-      } else {
+      if (tableInfo.type !== 'primitive') {
         onUpdate(newData);
       }
       
@@ -641,80 +1014,6 @@ export function TableSearch({
       toast.error('Failed to replace values');
     }
   }, [effectiveSearchTerm, replaceValue, data, searchResults, tableInfo.type, onUpdate, createReplaceRegex, parentSearchTerm, onSearchChange]);
-  
-  // Text highlighting function
-  const highlightText = useCallback((text: string, searchTermToHighlight: string, rowIndex: number, columnKey: string) => {
-    // Skip highlighting for computed type column
-    if (columnKey === 'type') return text;
-    
-    if (!showSearch || !searchTermToHighlight || !text) return text;
-    
-    const textStr = String(text);
-    let regex: RegExp;
-    
-    try {
-      if (useRegex) {
-        const flags = caseSensitive ? 'g' : 'gi';
-        regex = new RegExp(`(${searchTermToHighlight})`, flags);
-      } else {
-        const escapedTerm = searchTermToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        if (wholeWord) {
-          regex = new RegExp(`(\\b${escapedTerm}\\b)`, caseSensitive ? 'g' : 'gi');
-        } else {
-          regex = new RegExp(`(${escapedTerm})`, caseSensitive ? 'g' : 'gi');
-        }
-      }
-    } catch (error) {
-      // If regex is invalid, fall back to simple highlighting
-      const escapedTerm = searchTermToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      regex = new RegExp(`(${escapedTerm})`, 'gi');
-    }
-    
-    const parts = textStr.split(regex);
-    
-    // Check if this is the current search result
-    const isCurrentResult = currentSearchIndex >= 0 && 
-      searchResults[currentSearchIndex] && 
-      searchResults[currentSearchIndex].rowIndex === rowIndex && 
-      searchResults[currentSearchIndex].columnKey === columnKey;
-    
-    return parts.map((part, index) => {
-      // Check if this part matches the search term based on current search mode
-      let isMatch = false;
-      try {
-        if (useRegex) {
-          const testRegex = new RegExp(searchTermToHighlight, caseSensitive ? '' : 'i');
-          isMatch = testRegex.test(part);
-        } else {
-          if (wholeWord) {
-            const wordRegex = new RegExp(`^${searchTermToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, caseSensitive ? '' : 'i');
-            isMatch = wordRegex.test(part);
-          } else {
-            isMatch = caseSensitive ? part === searchTermToHighlight : part.toLowerCase() === searchTermToHighlight.toLowerCase();
-          }
-        }
-      } catch (error) {
-        isMatch = caseSensitive ? part === searchTermToHighlight : part.toLowerCase() === searchTermToHighlight.toLowerCase();
-      }
-      
-      if (isMatch) {
-        return (
-          <mark 
-            key={index} 
-            className={cn(
-              "px-0.5 rounded-sm font-medium",
-              isCurrentResult 
-                ? "bg-orange-300 dark:bg-orange-600 text-gray-900 dark:text-gray-100 ring-2 ring-orange-500" 
-                : "bg-yellow-300 dark:bg-yellow-600 text-gray-900 dark:text-gray-100"
-            )}
-          >
-            {part}
-          </mark>
-        );
-      }
-      return part;
-    });
-  }, [currentSearchIndex, searchResults, showSearch, caseSensitive, useRegex, wholeWord]);
   
   const handleSearchTermChange = useCallback((value: string) => {
     setSearchTerm(value);
@@ -900,5 +1199,6 @@ export function TableSearch({
   );
 }
 
-// Export the highlight text function for use in parent components
+// Export the component and re-export highlight function from utils
+export { highlightText } from './utils/searchUtils';
 export { TableSearch as default };

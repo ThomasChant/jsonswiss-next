@@ -603,9 +603,8 @@ export function EnhancedTableView({
             // Ensure we always get a proper string representation
             const formattedValue = formatValue(value);
             
-            if (showSearch && effectiveSearchTerm) {
+            if (effectiveSearchTerm) {
               return highlightText(String(formattedValue), effectiveSearchTerm, rowIndex, column, {
-                showSearch,
                 caseSensitive,
                 useRegex,
                 wholeWord,
