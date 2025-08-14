@@ -82,6 +82,9 @@ interface SearchResult {
   columnKey: string;
   text: string;
   path?: string[];
+  isNested?: boolean;
+  parentRowIndex?: number;
+  parentColumnKey?: string;
 }
 
 interface TableSearchProps {
@@ -143,223 +146,135 @@ export function TableSearch({
   // Use parent search term for nested tables, own search term for root tables
   const effectiveSearchTerm = parentSearchTerm || searchTerm;
   
-  // Recursive function to search nested data structures
-  const searchNestedData = useCallback((data: any, searchTerm: string, path: string[] = []): SearchResult[] => {
+  
+  // Helper function to recursively count all text matches in any data structure
+  // This counts each occurrence of the search term as a separate search result
+  const countAllMatches = useCallback((data: any, currentPath: string[] = []): SearchResult[] => {
     const results: SearchResult[] = [];
     
-    if (!data || !searchTerm) return results;
-    
-    // Helper function to check if a value matches search term
-    const matchesSearch = (value: any): boolean => {
-      if (value == null) return false;
-      const valueStr = String(value);
-      
+    // Helper to count actual occurrences of search term in text
+    const countMatchesInText = (text: string): number => {
       try {
         if (useRegex) {
           const flags = caseSensitive ? 'g' : 'gi';
-          const regex = new RegExp(searchTerm, flags);
-          return regex.test(valueStr);
+          const regex = new RegExp(effectiveSearchTerm, flags);
+          const matches = text.match(regex);
+          return matches ? matches.length : 0;
         } else {
-          const searchStr = caseSensitive ? searchTerm : searchTerm.toLowerCase();
-          const targetStr = caseSensitive ? valueStr : valueStr.toLowerCase();
+          const searchStr = caseSensitive ? effectiveSearchTerm : effectiveSearchTerm.toLowerCase();
+          const targetStr = caseSensitive ? text : text.toLowerCase();
           
           if (wholeWord) {
             const wordRegex = new RegExp(`\\b${searchStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, caseSensitive ? 'g' : 'gi');
-            return wordRegex.test(valueStr);
+            const matches = text.match(wordRegex);
+            return matches ? matches.length : 0;
           } else {
-            return targetStr.includes(searchStr);
+            // Count overlapping occurrences
+            let count = 0;
+            let position = 0;
+            while (true) {
+              const index = targetStr.indexOf(searchStr, position);
+              if (index === -1) break;
+              count++;
+              position = index + 1; // Allow overlapping matches
+            }
+            return count;
           }
         }
       } catch (error) {
-        // If regex is invalid, fall back to simple string matching
-        const searchStr = caseSensitive ? searchTerm : searchTerm.toLowerCase();
-        const targetStr = caseSensitive ? valueStr : valueStr.toLowerCase();
-        return targetStr.includes(searchStr);
+        const searchStr = caseSensitive ? effectiveSearchTerm : effectiveSearchTerm.toLowerCase();
+        const targetStr = caseSensitive ? text : text.toLowerCase();
+        let count = 0;
+        let position = 0;
+        while (true) {
+          const index = targetStr.indexOf(searchStr, position);
+          if (index === -1) break;
+          count++;
+          position = index + 1;
+        }
+        return count;
       }
     };
     
-    // Helper function to recursively search in nested structures
-    const searchInValue = (value: any, currentPath: string[]): void => {
+    // Helper to add multiple results based on match count
+    const addMatchResults = (text: string, type: 'key' | 'value', path: string[]) => {
+      const matchCount = countMatchesInText(text);
+      for (let i = 0; i < matchCount; i++) {
+        results.push({
+          rowIndex: results.length,
+          columnKey: type,
+          text: text,
+          path: path
+        });
+      }
+    };
+    
+    // Recursive function to search all values
+    const searchRecursively = (value: any, path: string[]): void => {
+      if (value === null || value === undefined) return;
+      
       if (Array.isArray(value)) {
         value.forEach((item, index) => {
-          const itemPath = [...currentPath, index.toString()];
-          if (matchesSearch(item)) {
-            results.push({
-              rowIndex: index,
-              columnKey: 'value',
-              text: String(item),
-              path: itemPath
-            });
+          const itemPath = [...path, index.toString()];
+          
+          // Check the item itself if it's primitive
+          if (typeof item !== 'object' || item === null) {
+            const itemText = formatValue(item);
+            if (itemText) {
+              addMatchResults(String(itemText), 'value', itemPath);
+            }
           }
-          // Recursively search nested structures
+          
+          // Recursively search nested items
           if (item && typeof item === 'object') {
-            searchInValue(item, itemPath);
+            searchRecursively(item, itemPath);
           }
         });
       } else if (value && typeof value === 'object') {
         Object.entries(value).forEach(([key, val]) => {
-          const keyPath = [...currentPath, key];
-          // Search in key names
-          if (matchesSearch(key)) {
-            results.push({
-              rowIndex: 0,
-              columnKey: 'key',
-              text: key,
-              path: keyPath
-            });
+          const keyPath = [...path, key];
+          
+          // Check the key itself
+          addMatchResults(key, 'key', keyPath);
+          
+          // Check the value if it's primitive
+          if (typeof val !== 'object' || val === null) {
+            const valText = formatValue(val);
+            if (valText) {
+              addMatchResults(String(valText), 'value', keyPath);
+            }
           }
-          // Search in values
-          if (matchesSearch(val)) {
-            results.push({
-              rowIndex: 0,
-              columnKey: 'value',
-              text: String(val),
-              path: keyPath
-            });
-          }
-          // Recursively search nested structures
+          
+          // Recursively search nested values
           if (val && typeof val === 'object') {
-            searchInValue(val, keyPath);
+            searchRecursively(val, keyPath);
           }
         });
+      } else {
+        // Primitive value
+        const valueText = formatValue(value);
+        if (valueText) {
+          addMatchResults(String(valueText), 'value', path);
+        }
       }
     };
     
-    // Start the recursive search
-    searchInValue(data, path);
-    
+    searchRecursively(data, currentPath);
     return results;
-  }, [caseSensitive, useRegex, wholeWord]);
-  
-  // Calculate search results with nested search support
+  }, [effectiveSearchTerm, caseSensitive, useRegex, wholeWord]);
+
+  // Calculate search results by comprehensively searching all visible data
   const searchResultsData = useMemo(() => {
     if (!effectiveSearchTerm || effectiveSearchTerm.trim().length === 0) {
       setCurrentSearchIndex(-1);
       return [];
     }
     
+    // Use the comprehensive search to find all matches
+    const allMatches = countAllMatches(data, path);
     
-    const results: SearchResult[] = [];
-    
-    // Search in current level data
-    tableInfo.rows.forEach((row, index) => {
-      tableInfo.columns.forEach((column) => {
-        // Skip computed type column in search
-        if (column.key === 'type') {
-          return;
-        }
-        
-        let cellValue: any;
-        
-        // Get the appropriate cell value based on table type and column
-        if (tableInfo.type === 'single-object' || tableInfo.type === 'primitive') {
-          // For single-object and primitive types, the data contains computed fields like 'type'
-          cellValue = row.data[column.key];
-        } else if (tableInfo.type === 'object-array') {
-          cellValue = row.data[column.key];
-        } else if (column.key === 'value') {
-          cellValue = row.data;
-        } else {
-          cellValue = row.data[column.key];
-        }
-        
-        const cellText = formatValue(cellValue);
-        if (cellText) {
-          const valueStr = String(cellText);
-          let matchCount = 0;
-          
-          
-          try {
-            if (useRegex) {
-              const flags = caseSensitive ? 'g' : 'gi';
-              const regex = new RegExp(effectiveSearchTerm, flags);
-              const matches = valueStr.match(regex);
-              matchCount = matches ? matches.length : 0;
-            } else {
-              const searchStr = caseSensitive ? effectiveSearchTerm : effectiveSearchTerm.toLowerCase();
-              const targetStr = caseSensitive ? valueStr : valueStr.toLowerCase();
-              
-              if (wholeWord) {
-                const wordRegex = new RegExp(`\\b${searchStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, caseSensitive ? 'g' : 'gi');
-                const matches = valueStr.match(wordRegex);
-                matchCount = matches ? matches.length : 0;
-              } else {
-                // Count occurrences of the search term
-                let startIndex = 0;
-                while (true) {
-                  const foundIndex = targetStr.indexOf(searchStr, startIndex);
-                  if (foundIndex === -1) break;
-                  matchCount++;
-                  startIndex = foundIndex + 1;
-                }
-              }
-            }
-          } catch (error) {
-            // If regex is invalid, fall back to simple string matching
-            const searchStr = caseSensitive ? effectiveSearchTerm : effectiveSearchTerm.toLowerCase();
-            const targetStr = caseSensitive ? valueStr : valueStr.toLowerCase();
-            let startIndex = 0;
-            while (true) {
-              const foundIndex = targetStr.indexOf(searchStr, startIndex);
-              if (foundIndex === -1) break;
-              matchCount++;
-              startIndex = foundIndex + 1;
-            }
-          }
-          
-          // Add a search result for each match found in this cell
-          for (let i = 0; i < matchCount; i++) {
-            results.push({
-              rowIndex: index,
-              columnKey: column.key,
-              text: valueStr
-            });
-          }
-        }
-        
-        // Search nested structures within this cell
-        if (cellValue && typeof cellValue === 'object') {
-          // Build the correct data access path for nested search
-          let dataAccessPath;
-          if (tableInfo.type === 'object-array') {
-            dataAccessPath = [...path, index.toString(), column.key];
-          } else if (tableInfo.type === 'primitive-array') {
-            dataAccessPath = [...path, index.toString()];
-          } else if (tableInfo.type === 'single-object') {
-            // For single object, we need to find the actual key at this row index
-            const entries = Object.entries(data);
-            if (entries[index]) {
-              const [objectKey] = entries[index];
-              dataAccessPath = [...path, objectKey];
-            } else {
-              dataAccessPath = [...path, column.key];
-            }
-          } else {
-            dataAccessPath = [...path, column.key];
-          }
-          
-          console.log('Building nested search path:', {
-            tableType: tableInfo.type,
-            baseDataPath: path,
-            rowIndex: index,
-            columnKey: column.key,
-            finalDataAccessPath: dataAccessPath
-          });
-          
-          const nestedResults = searchNestedData(cellValue, effectiveSearchTerm, dataAccessPath);
-          results.push(...nestedResults.map(result => ({
-            ...result,
-            // Keep the original path from nested search but update display position
-            rowIndex: index, // Keep the parent row index for highlighting
-            columnKey: column.key // Keep the parent column for highlighting
-            // path: result.path is preserved from the nested search
-          })));
-        }
-      });
-    });
-    
-    return results;
-  }, [tableInfo, effectiveSearchTerm, searchNestedData, path, caseSensitive, useRegex, wholeWord]);
+    return allMatches;
+  }, [data, path, effectiveSearchTerm, countAllMatches]);
   
   // Update search results when they change
   useEffect(() => {
@@ -556,7 +471,8 @@ export function TableSearch({
                   console.log('=== NESTED KEY REPLACEMENT SUCCESS ===');
                   onUpdate(newData);
                   toast.success('Key replaced successfully');
-                  handleSearchNext();
+                  // Search results will be recalculated automatically when data updates
+                  setCurrentSearchIndex(-1); // Reset search index to trigger recalculation
                   return;
                 } else if (newKey === currentKey) {
                   console.log('✗ No change needed for key');
@@ -612,7 +528,8 @@ export function TableSearch({
                 
                 onUpdate(newData);
                 toast.success('Value replaced successfully');
-                handleSearchNext();
+                // Search results will be recalculated automatically when data updates
+                setCurrentSearchIndex(-1); // Reset search index to trigger recalculation
                 return;
               } else {
                 console.log('✗ No search match found in value');
@@ -716,7 +633,8 @@ export function TableSearch({
           console.log('=== FALLBACK REPLACEMENT SUCCESS ===');
           onUpdate(newData);
           toast.success('Value replaced successfully');
-          handleSearchNext();
+          // Search results will be recalculated automatically when data updates
+          setCurrentSearchIndex(-1); // Reset search index to trigger recalculation
           return;
         }
         
@@ -817,12 +735,12 @@ export function TableSearch({
       onUpdate(newData);
       toast.success('Value replaced successfully');
       
-      // Move to next search result
-      handleSearchNext();
+      // Search results will be recalculated automatically when data updates
+      setCurrentSearchIndex(-1); // Reset search index to trigger recalculation
     } catch (error) {
       toast.error('Failed to replace value');
     }
-  }, [currentSearchIndex, searchResults, effectiveSearchTerm, replaceValue, data, tableInfo.type, onUpdate, handleSearchNext, createReplaceRegex]);
+  }, [currentSearchIndex, searchResults, effectiveSearchTerm, replaceValue, data, tableInfo.type, onUpdate, createReplaceRegex]);
   
   const handleReplaceAll = useCallback(() => {
     if (!effectiveSearchTerm || !onUpdate) return;
