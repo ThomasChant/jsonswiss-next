@@ -13,7 +13,9 @@ import {
   X,
   MoreHorizontal,
   Download,
-  RefreshCw
+  RefreshCw,
+  Expand,
+  Minimize
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getValueType, formatValue, isComplexValue } from '@/lib/table-utils';
@@ -328,6 +330,68 @@ export function EnhancedTableView({
       return newSet;
     });
   }, []);
+
+
+  // 展开全部 - 递进式展开策略
+  const handleExpandAll = useCallback(() => {
+    // 先展开第一层，然后递进展开更深层
+    const expandRecursively = (currentExpanded: Set<string>, maxDepth = 10) => {
+      if (maxDepth <= 0) return currentExpanded;
+      
+      const newExpanded = new Set(currentExpanded);
+      let foundNewKeys = false;
+      
+      // 基于当前展开状态，查找新的可展开节点
+      processedData.forEach((row, displayIndex) => {
+        if (tableInfo.type === 'single-object') {
+          // 对于单个对象类型，检查每个值
+          if (row.data.value != null && (typeof row.data.value === 'object' || Array.isArray(row.data.value))) {
+            const mainRowKey = `${displayIndex}-value`;
+            if (!newExpanded.has(mainRowKey)) {
+              newExpanded.add(mainRowKey);
+              foundNewKeys = true;
+            }
+            
+            // 如果这个节点已经展开，检查其内部的嵌套节点
+            if (currentExpanded.has(mainRowKey) && Array.isArray(row.data.value)) {
+              row.data.value.forEach((item: any, itemIndex: number) => {
+                if (item && typeof item === 'object') {
+                  Object.entries(item).forEach(([key, value]) => {
+                    if (value != null && (typeof value === 'object' || Array.isArray(value))) {
+                      const nestedRowKey = `${itemIndex}-${key}`;
+                      if (!newExpanded.has(nestedRowKey)) {
+                        newExpanded.add(nestedRowKey);
+                        foundNewKeys = true;
+                      }
+                    }
+                  });
+                }
+              });
+            }
+          }
+        }
+        // 可以在这里添加对其他表格类型的处理
+      });
+      
+      // 如果找到了新的键，继续递归；否则停止
+      if (foundNewKeys) {
+        return expandRecursively(newExpanded, maxDepth - 1);
+      } else {
+        return newExpanded;
+      }
+    };
+    
+    // 从当前展开状态开始递进展开
+    const finalExpanded = expandRecursively(expandedRows);
+    
+    
+    setExpandedRows(finalExpanded);
+  }, [processedData, tableInfo.type, expandedRows]);
+
+  // 折叠全部
+  const handleCollapseAll = useCallback(() => {
+    setExpandedRows(new Set());
+  }, []);
   
   const handleStartEdit = useCallback((rowIndex: number, column: string, currentValue: any) => {
     setEditingCell({ row: rowIndex, column });
@@ -626,7 +690,7 @@ export function EnhancedTableView({
         </Button>
       </div>
     );
-  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, showSearch, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults]);
+  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults]);
   
   if (!data) {
     return (
@@ -677,6 +741,28 @@ export function EnhancedTableView({
               onSearchStateChange={handleSearchOptionsUpdate}
               density={density}
             />
+            
+            {/* Expand/Collapse All Buttons */}
+            <div className="flex items-center gap-1 border border-gray-300 dark:border-gray-600 rounded">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExpandAll}
+                className="h-8 px-2 text-xs border-0 rounded-l rounded-r-none"
+                title="展开全部嵌套节点"
+              >
+                <Expand size={14} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCollapseAll}
+                className="h-8 px-2 text-xs border-0 rounded-r rounded-l-none border-l border-gray-300 dark:border-gray-600"
+                title="折叠全部嵌套节点"
+              >
+                <Minimize size={14} />
+              </Button>
+            </div>
             
             {/* Filter status indicator */}
             {filters.length > 0 && (
