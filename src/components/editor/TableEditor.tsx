@@ -51,6 +51,8 @@ interface TableEditorProps {
   path?: string[];
   parentData?: any;
   hideToolbar?: boolean;
+  // 新增：强制展开模式支持
+  forcedExpandAll?: boolean;
 }
 
 interface TableColumn {
@@ -65,7 +67,7 @@ interface TableRow {
   isNew?: boolean;
 }
 
-export function TableEditor({ className = '', path = [], parentData, hideToolbar = false }: TableEditorProps) {
+export function TableEditor({ className = '', path = [], parentData, hideToolbar = false, forcedExpandAll = false }: TableEditorProps) {
   const { jsonData, setJsonData, addToHistory, getNodeAtPath } = useJsonStore();
   
   // Get the data to display - either from props (nested) or store (root)
@@ -370,6 +372,7 @@ export function TableEditor({ className = '', path = [], parentData, hideToolbar
           isEditing={editingCell?.rowId === rowId && editingCell?.column === columnKey}
           onStartEdit={() => startEdit(rowId, columnKey)}
           onStopEdit={() => setEditingCell(null)}
+          forcedExpandAll={forcedExpandAll}
         />
       );
     }
@@ -412,6 +415,8 @@ export function TableEditor({ className = '', path = [], parentData, hideToolbar
         path={path}
         className={className}
         hideToolbar={hideToolbar}
+        // 透传强制展开状态
+        forcedExpandAll={forcedExpandAll}
       />
     );
   }

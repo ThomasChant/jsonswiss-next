@@ -20,6 +20,8 @@ interface ArrayTableProps {
   allowSorting?: boolean;
   density?: 'comfortable' | 'regular' | 'compact';
   showToolBar?: boolean;
+  // 新增：强制展开模式支持
+  forcedExpandAll?: boolean;
 }
 
 interface ArrayTableColumn {
@@ -40,7 +42,9 @@ export function ArrayTable({
   allowFiltering = true,
   allowSorting = true,
   density = 'compact',
-  showToolBar=true
+  showToolBar=true,
+  // 新增：强制展开模式支持
+  forcedExpandAll = false
 }: ArrayTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [editingCell, setEditingCell] = useState<{row: number, column: string} | null>(null);
@@ -226,7 +230,7 @@ export function ArrayTable({
     }
 
     if (isComplexValue(value)) {
-      const isExpanded = expandedRows.has(rowIndex);
+      const isExpanded = forcedExpandAll || expandedRows.has(rowIndex);
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -271,6 +275,8 @@ export function ArrayTable({
                   allowFiltering={false}
                   allowEditing={true}
                   showToolBar={false}
+                  // 透传强制展开
+                  forcedExpandAll={forcedExpandAll}
                 />
               ) : (
                 <SingleObjectTable
@@ -288,6 +294,8 @@ export function ArrayTable({
                   }}
                   className="text-xs"
                   density={density}
+                  // 透传强制展开
+                  forcedExpandAll={forcedExpandAll}
                 />
               )}
             </div>

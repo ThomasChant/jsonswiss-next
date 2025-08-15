@@ -38,6 +38,8 @@ export interface ExpandableCellProps {
   onExport?: () => void;
   hasActiveFilters?: boolean;
   density?: 'comfortable' | 'regular' | 'compact';
+  // 新增：强制展开模式支持
+  forcedExpandAll?: boolean;
 }
 
 export function ExpandableCell({
@@ -54,7 +56,9 @@ export function ExpandableCell({
   onFilterToggle,
   onExport,
   hasActiveFilters = false,
-  density = 'regular'
+  density = 'regular',
+  // 新增：强制展开模式支持
+  forcedExpandAll = false
 }: ExpandableCellProps) {
   const { tableExpandedNodes, toggleTableNodeExpansion, updateNodeAtPath } = useJsonStore();
   const [editValue, setEditValue] = useState('');
@@ -65,7 +69,8 @@ export function ExpandableCell({
   const dropdownZIndex = Math.max(20, 50 - nestingLevel); // Start at z-50, decrease with nesting
   
   const pathKey = path.join('.');
-  const isExpanded = tableExpandedNodes.has(pathKey);
+  // 修改：支持强制展开模式
+  const isExpanded = forcedExpandAll || tableExpandedNodes.has(pathKey);
   const canExpand = shouldShowAsNestedTable(value);
   
   const handleToggleExpansion = useCallback(() => {

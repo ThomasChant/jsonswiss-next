@@ -69,6 +69,11 @@ interface EnhancedTableViewProps {
   showSearch?: boolean;
   searchTerm?: string;
   isMainView?: boolean; // 区分主视图和嵌套视图
+  // 新增：级联展开/折叠的信号 tick（父级触发，子级监听）
+  expandTick?: number;
+  collapseTick?: number;
+  // 新增：强制展开模式（由父组件覆盖本地状态）
+  forcedExpandAll?: boolean;
 }
 
 export function EnhancedTableView({
@@ -80,7 +85,12 @@ export function EnhancedTableView({
   density = 'compact',
   showSearch = true,
   searchTerm: parentSearchTerm,
-  isMainView = false
+  isMainView = false,
+  // 新增：接收父级传入的 tick 信号
+  expandTick,
+  collapseTick,
+  // 新增：接收父级传入的强制展开状态
+  forcedExpandAll: forcedExpandAllProp,
 }: EnhancedTableViewProps) {
   // State management
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
@@ -110,6 +120,35 @@ export function EnhancedTableView({
   
   // Refs
   const tableRef = useRef<HTMLTableElement>(null);
+
+  // 新增：本地 tick 计数与强制展开状态
+  const [localExpandTick, setLocalExpandTick] = useState(0);
+  const [localCollapseTick, setLocalCollapseTick] = useState(0);
+  // 当启用强制展开时，所有可展开节点都会视为展开
+  const [forcedExpandAll, setForcedExpandAll] = useState(false);
+  // 如果父级传入，则使用父级强制展开状态覆盖本地
+  const effectiveForcedExpandAll = forcedExpandAllProp ?? forcedExpandAll;
+  const effectiveExpandTick = expandTick ?? localExpandTick;
+  const effectiveCollapseTick = collapseTick ?? localCollapseTick;
+  const prevExpandTickRef = useRef<number | undefined>(undefined);
+  const prevCollapseTickRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    // 父级触发的展开广播
+    if (expandTick !== undefined && expandTick !== prevExpandTickRef.current) {
+      prevExpandTickRef.current = expandTick;
+      setForcedExpandAll(true);
+    }
+  }, [expandTick]);
+
+  useEffect(() => {
+    // 父级触发的折叠广播
+    if (collapseTick !== undefined && collapseTick !== prevCollapseTickRef.current) {
+      prevCollapseTickRef.current = collapseTick;
+      setForcedExpandAll(false);
+      setExpandedRows(new Set());
+    }
+  }, [collapseTick]);
   
   // Determine table type and structure
   const tableInfo = useMemo(() => {
@@ -599,7 +638,7 @@ export function EnhancedTableView({
     
     // Check if value is complex (object or array) and handle it appropriately
     if (value != null && (typeof value === 'object' || Array.isArray(value))) {
-      const isExpanded = expandedRows.has(rowKey);
+      const isExpanded = effectiveForcedExpandAll || expandedRows.has(rowKey);
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -644,6 +683,11 @@ export function EnhancedTableView({
                 showSearch={false}
                 searchTerm={effectiveSearchTerm}
                 isMainView={false}
+                // 透传级联信号
+                expandTick={effectiveExpandTick}
+                collapseTick={effectiveCollapseTick}
+                // 透传：强制展开状态
+                forcedExpandAll={effectiveForcedExpandAll}
               />
             </div>
           )}
@@ -690,7 +734,7 @@ export function EnhancedTableView({
         </Button>
       </div>
     );
-  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults]);
+  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults, effectiveForcedExpandAll]);
   
   if (!data) {
     return (
@@ -747,7 +791,12 @@ export function EnhancedTableView({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleExpandAll}
+                onClick={() => {
+                  // 本地广播 + 强制展开
+                  setLocalExpandTick((t) => t + 1);
+                  setForcedExpandAll(true);
+                  handleExpandAll();
+                }}
                 className="h-8 px-2 text-xs border-0 rounded-l rounded-r-none"
                 title="展开全部嵌套节点"
               >
@@ -756,7 +805,11 @@ export function EnhancedTableView({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleCollapseAll}
+                onClick={() => {
+                  setLocalCollapseTick((t) => t + 1);
+                  setForcedExpandAll(false);
+                  handleCollapseAll();
+                }}
                 className="h-8 px-2 text-xs border-0 rounded-r rounded-l-none border-l border-gray-300 dark:border-gray-600"
                 title="折叠全部嵌套节点"
               >

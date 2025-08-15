@@ -48,6 +48,8 @@ export interface SingleObjectTableProps {
   className?: string;
   hideToolbar?: boolean;
   density?: 'comfortable' | 'regular' | 'compact';
+  // 新增：强制展开模式支持
+  forcedExpandAll?: boolean;
 }
 
 interface ObjectRow {
@@ -62,7 +64,9 @@ export function SingleObjectTable({
   onUpdate,
   className = '',
   hideToolbar = false,
-  density = 'regular'
+  density = 'regular',
+  // 新增：强制展开模式支持
+  forcedExpandAll = false
 }: SingleObjectTableProps) {
   const { updateNodeAtPath, deleteNodeAtPath, addToHistory } = useJsonStore();
   
@@ -433,6 +437,8 @@ export function SingleObjectTable({
                       onUpdate={onUpdate}
                       onStartEdit={() => handleStartValueEdit(row.key, row.value)}
                       density={density}
+                      // 透传强制展开
+                      forcedExpandAll={forcedExpandAll}
                     />
                   )}
                 </td>

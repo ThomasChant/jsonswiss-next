@@ -7,7 +7,7 @@ import { EnhancedTableView } from '@/components/table/EnhancedTableView';
 import { Button } from '@/components/ui/button';
 import { getValueType } from '@/lib/table-utils';
 import { useJsonStore } from '@/store/jsonStore';
-import { Database, Home, Trash2, Upload } from 'lucide-react';
+import { Database, Home, Trash2, Upload, Expand, Minimize } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 const faqItems = [
@@ -37,6 +37,9 @@ export default function JsonTableEditorPage() {
   const { selectedPath, jsonData, setJsonData, setSelectedPath, getNodeAtPath, updateNodeAtPath } = useJsonStore();
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [density, setDensity] = useState<'comfortable' | 'regular' | 'compact'>('compact');
+  // 页面级：展开/折叠 tick
+  const [expandTick, setExpandTick] = useState(0);
+  const [collapseTick, setCollapseTick] = useState(0);
 
   // Get current selected node data
   const selectedNodeData = useMemo(() => {
@@ -153,6 +156,8 @@ export default function JsonTableEditorPage() {
           density={density}
           className="w-full"
           isMainView={true}
+          expandTick={expandTick}
+          collapseTick={collapseTick}
         />
       </div>
     );
@@ -222,6 +227,28 @@ export default function JsonTableEditorPage() {
                   Back to Root
                 </Button>
               )}
+
+              {/* Page-level Expand/Collapse All */}
+              <div className="flex items-center gap-1 border border-gray-300 dark:border-gray-600 rounded">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpandTick(t => t + 1)}
+                  className="h-8 px-2 text-xs border-0 rounded-l rounded-r-none"
+                  title="Expand All"
+                >
+                  <Expand size={14} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCollapseTick(t => t + 1)}
+                  className="h-8 px-2 text-xs border-0 rounded-r rounded-l-none border-l border-gray-300 dark:border-gray-600"
+                  title="Collapse All"
+                >
+                  <Minimize size={14} />
+                </Button>
+              </div>
               
               <Button
                 variant="outline"
@@ -238,7 +265,7 @@ export default function JsonTableEditorPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleClearData}
-                  className="text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-xs text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
                 >
                   <Trash2 size={14} />
                   Clear Data
@@ -248,7 +275,7 @@ export default function JsonTableEditorPage() {
           </div>
 
           {/* Main content area */}
-          <div className="flex-1 p-4 overflow-hidden min-h-0">
+          <div className="flex-1 p-4 overflow-auto min-h-0">
             <div className="h-full">
               {renderTableContent()}
             </div>
