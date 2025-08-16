@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
         destination: '/', // 如果没有changelog页面，重定向到首页
         permanent: true,
       },
+      {
+        source: '/changelog',
+        destination: '/', // 如果没有changelog页面，重定向到首页
+        permanent: true,
+      },
     ];
   },
 };
