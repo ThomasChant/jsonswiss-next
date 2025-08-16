@@ -13,7 +13,6 @@ import {
   X,
   MoreHorizontal,
   Download,
-  RefreshCw,
   Expand,
   Minimize
 } from 'lucide-react';
@@ -951,13 +950,6 @@ export function EnhancedTableView({
                               ))}
                             </DropdownMenuSubContent>
                           </DropdownMenuSub>
-                          
-                          <DropdownMenuSeparator />
-                          
-                          <DropdownMenuItem onClick={() => window.location.reload()} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                            <RefreshCw size={14} className="mr-2" />
-                            Refresh
-                          </DropdownMenuItem>
                           
                           {filters.length > 0 && (
                             <>
