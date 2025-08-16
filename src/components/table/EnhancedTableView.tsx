@@ -547,15 +547,55 @@ export function EnhancedTableView({
   }, [data, tableInfo.type, onUpdate]);
   
   const handleExportData = useCallback((format: ExportFormat) => {
-    const dataToExport = processedData.map(row => row.data);
+    let dataToExport: any[];
+    
+    if (tableInfo.type === 'single-object') {
+      // 对于单个对象类型，重构为键值对对象
+      const exportObject: Record<string, any> = {};
+      processedData.forEach(row => {
+        const { key, value } = row.data;
+        exportObject[key] = value;
+      });
+      dataToExport = [exportObject];
+    } else if (tableInfo.type === 'object-array') {
+      // 对于对象数组，直接使用原始数据
+      dataToExport = data;
+    } else if (tableInfo.type === 'primitive-array') {
+      // 对于原始值数组，直接使用原始数据
+      dataToExport = data;
+    } else {
+      // 对于原始值，包装为对象
+      dataToExport = [{ value: data }];
+    }
+    
     exportData(dataToExport, format);
-  }, [processedData]);
+  }, [processedData, tableInfo.type, data]);
 
   // 获取可用的导出选项
   const exportOptions = useMemo(() => {
-    const dataToExport = processedData.map(row => row.data);
+    let dataToExport: any[];
+    
+    if (tableInfo.type === 'single-object') {
+      // 对于单个对象类型，重构为键值对对象
+      const exportObject: Record<string, any> = {};
+      processedData.forEach(row => {
+        const { key, value } = row.data;
+        exportObject[key] = value;
+      });
+      dataToExport = [exportObject];
+    } else if (tableInfo.type === 'object-array') {
+      // 对于对象数组，直接使用原始数据
+      dataToExport = data;
+    } else if (tableInfo.type === 'primitive-array') {
+      // 对于原始值数组，直接使用原始数据
+      dataToExport = data;
+    } else {
+      // 对于原始值，包装为对象
+      dataToExport = [{ value: data }];
+    }
+    
     return getExportOptions(dataToExport);
-  }, [processedData]);
+  }, [processedData, tableInfo.type, data]);
   
 
   // Callback to handle search options updates from the search component

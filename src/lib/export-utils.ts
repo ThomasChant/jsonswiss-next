@@ -71,16 +71,71 @@ function escapeCsvField(value: any): string {
 }
 
 /**
- * Convert object array to CSV format
+ * Flatten nested objects for better CSV representation
  */
-function convertToCsv(data: any[]): string {
+function flattenObjectForCsv(obj: any, prefix: string = '', separator: string = '.'): any {
+  const flattened: any = {};
+  
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = prefix ? `${prefix}${separator}${key}` : key;
+      const value = obj[key];
+      
+      if (value === null || value === undefined) {
+        flattened[newKey] = value;
+      } else if (Array.isArray(value)) {
+        // Handle arrays - convert to readable format
+        if (value.length === 0) {
+          flattened[newKey] = '[]';
+        } else if (value.every(item => typeof item !== 'object' || item === null)) {
+          // Array of primitives - join with commas
+          flattened[newKey] = value.join(', ');
+        } else {
+          // Array of objects - flatten each object with index
+          value.forEach((item, index) => {
+            if (typeof item === 'object' && item !== null) {
+              const subFlattened = flattenObjectForCsv(item, `${newKey}[${index}]`, separator);
+              Object.assign(flattened, subFlattened);
+            } else {
+              flattened[`${newKey}[${index}]`] = item;
+            }
+          });
+        }
+      } else if (typeof value === 'object') {
+        // Nested object - flatten recursively
+        const subFlattened = flattenObjectForCsv(value, newKey, separator);
+        Object.assign(flattened, subFlattened);
+      } else {
+        // Primitive value
+        flattened[newKey] = value;
+      }
+    }
+  }
+  
+  return flattened;
+}
+
+/**
+ * Convert object array to CSV format with optional flattening
+ */
+function convertToCsv(data: any[], flatten: boolean = true): string {
   if (!Array.isArray(data) || data.length === 0) {
     return '';
   }
 
+  // Process data with optional flattening
+  const processedData = flatten 
+    ? data.map(item => {
+        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+          return flattenObjectForCsv(item);
+        }
+        return item;
+      })
+    : data;
+
   // Get all unique column headers
   const headers = new Set<string>();
-  data.forEach(item => {
+  processedData.forEach(item => {
     if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
       Object.keys(item).forEach(key => headers.add(key));
     }
@@ -91,7 +146,7 @@ function convertToCsv(data: any[]): string {
   // Handle case where data contains non-object items
   if (headerArray.length === 0) {
     // If no object properties found, treat each item as a single value
-    const csvContent = ['Value', ...data.map(item => escapeCsvField(item))].join('\n');
+    const csvContent = ['Value', ...processedData.map(item => escapeCsvField(item))].join('\n');
     return csvContent;
   }
 
@@ -102,11 +157,11 @@ function convertToCsv(data: any[]): string {
   csvRows.push(headerArray.map(header => escapeCsvField(header)).join(','));
   
   // Add data rows
-  data.forEach(item => {
+  processedData.forEach(item => {
     if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
       const row = headerArray.map(header => {
         const value = item[header];
-        // Handle complex objects by converting to JSON string
+        // Handle complex objects by converting to JSON string (for non-flattened nested objects)
         if (typeof value === 'object' && value !== null) {
           return escapeCsvField(JSON.stringify(value));
         }
@@ -124,16 +179,16 @@ function convertToCsv(data: any[]): string {
 }
 
 /**
- * Export data as CSV file
+ * Export data as CSV file with optional flattening
  */
-export function exportToCsv(data: any[], filename?: string): void {
+export function exportToCsv(data: any[], filename?: string, flatten: boolean = true): void {
   try {
     if (!Array.isArray(data) || data.length === 0) {
       toast.error('No data to export');
       return;
     }
 
-    const csvContent = convertToCsv(data);
+    const csvContent = convertToCsv(data, flatten);
     const fileName = filename || generateFilename('table_data', 'csv');
     
     downloadFile(csvContent, fileName, 'text/csv;charset=utf-8;');
@@ -186,15 +241,15 @@ export function exportToExcel(data: any[], filename?: string): void {
 }
 
 /**
- * Export data with automatic format detection
+ * Export data with automatic format detection and optional flattening
  */
-export function exportData(data: any[], format: ExportFormat, filename?: string): void {
+export function exportData(data: any[], format: ExportFormat, filename?: string, flatten: boolean = true): void {
   switch (format) {
     case 'json':
       exportToJson(data, filename);
       break;
     case 'csv':
-      exportToCsv(data, filename);
+      exportToCsv(data, filename, flatten);
       break;
     case 'excel':
       exportToExcel(data, filename);
