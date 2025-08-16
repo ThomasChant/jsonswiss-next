@@ -109,6 +109,10 @@ export function EnhancedTableView({
   const [showAddRowDialog, setShowAddRowDialog] = useState(false);
   const [newRowData, setNewRowData] = useState<Record<string, any>>({});
   
+  // JSON编辑对话框状态
+  const [showJsonEditDialog, setShowJsonEditDialog] = useState(false);
+  const [jsonEditValue, setJsonEditValue] = useState('');
+  
   // Filter dialog state
   const [filterColumn, setFilterColumn] = useState('');
   const [filterOperator, setFilterOperator] = useState<TableFilter['operator']>('contains');
@@ -991,6 +995,19 @@ export function EnhancedTableView({
                             </DropdownMenuSubContent>
                           </DropdownMenuSub>
                           
+                          {/* Edit Table Data */}
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              // 打开JSON编辑对话框
+                              setJsonEditValue(JSON.stringify(data, null, 2));
+                              setShowJsonEditDialog(true);
+                            }}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                          >
+                            <Edit3 size={14} className="mr-2" />
+                            Edit Table Data
+                          </DropdownMenuItem>
+                          
                           {filters.length > 0 && (
                             <>
                               <DropdownMenuSeparator />
@@ -1199,7 +1216,52 @@ export function EnhancedTableView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
+      {/* JSON编辑对话框 */}
+      <Dialog open={showJsonEditDialog} onOpenChange={setShowJsonEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">Edit Table Data as JSON</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            <Textarea
+              value={jsonEditValue}
+              onChange={(e) => setJsonEditValue(e.target.value)}
+              className="w-full h-96 font-mono text-sm resize-none bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+              placeholder="Enter JSON data..."
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setShowJsonEditDialog(false);
+                setJsonEditValue('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                try {
+                  const parsedData = JSON.parse(jsonEditValue);
+                  if (onUpdate) {
+                    onUpdate(parsedData);
+                    toast.success('Table data updated successfully');
+                  }
+                  setShowJsonEditDialog(false);
+                  setJsonEditValue('');
+                } catch (error) {
+                  toast.error('Invalid JSON format. Please check your syntax.');
+                }
+              }}
+              disabled={!jsonEditValue.trim()}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
