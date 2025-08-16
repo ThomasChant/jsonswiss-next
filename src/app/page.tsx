@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HeaderServer } from "@/components/layout/HeaderServer";
 import { Footer } from "@/components/layout/Footer";
 import { FeatureCards } from "@/components/home/FeatureCards";
@@ -7,6 +8,26 @@ import {
   Shield, 
   Sparkles
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "JSON Swiss - Professional JSON Editor, Validator & Converter | Online JSON Tools",
+  description: "Professional JSON toolkit with formatting, validation, conversion, and code generation. Features AI-powered repair, tree/table views, search, and support for 12+ programming languages. Free online JSON editor.",
+  alternates: {
+    canonical: "https://jsonswiss.com",
+  },
+  openGraph: {
+    title: "JSON Swiss - Professional JSON Editor, Validator & Converter",
+    description: "Professional JSON toolkit with formatting, validation, conversion, and code generation. Features AI-powered repair, tree/table views, search, and support for 12+ programming languages.",
+    url: "https://jsonswiss.com",
+    siteName: "JSON Swiss",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JSON Swiss - Professional JSON Editor, Validator & Converter",
+    description: "Professional JSON toolkit with formatting, validation, conversion, and code generation. Features AI-powered repair, tree/table views, search, and support for 12+ programming languages.",
+  },
+};
 
 export default function Home() {
   return (
