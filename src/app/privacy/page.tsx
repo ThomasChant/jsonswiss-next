@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                 </p>
                 <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4">
                   <p className="text-slate-700 dark:text-slate-300">
-                    Email: privacy@jsonswiss.com<br />
+                    Email: support@jsonswiss.com<br />
                     Website: <a href="https://jsonswiss.com/contact" className="text-blue-600 dark:text-blue-400 hover:underline">jsonswiss.com/contact</a>
                   </p>
                 </div>

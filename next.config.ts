@@ -20,6 +20,56 @@ const nextConfig: NextConfig = {
     // Optimize webpack compilation
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/terms.html',
+        destination: '/terms',
+        permanent: true, // 301重定向
+      },
+      {
+        source: '/privacy.html', 
+        destination: '/privacy',
+        permanent: true,
+      },
+      {
+        source: '/generator.html',
+        destination: '/schema/generator',
+        permanent: true,
+      },
+      {
+        source: '/generator',
+        destination: '/schema/generator',
+        permanent: true,
+      },
+      {
+        source: '/schema-generator.html',
+        destination: '/schema/generator', 
+        permanent: true,
+      },
+      {
+        source: '/schema-generator',
+        destination: '/schema/generator', 
+        permanent: true,
+      },
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/docs.html',
+        destination: '/', // 或其他合适的页面
+        permanent: true,
+      },
+      {
+        source: '/changelog.html',
+        destination: '/', // 如果没有changelog页面，重定向到首页
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
