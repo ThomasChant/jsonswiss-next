@@ -74,6 +74,86 @@ export const userSamples: TableEditorSample[] = [
         joinDate: '2022-11-08'
       }
     ]
+  },
+  {
+    id: 'employee_directory',
+    title: 'Employee Directory (50 Records)',
+    description: 'Large employee dataset with nested personal and professional information',
+    category: 'arrays',
+    complexity: 'complex',
+    data: [
+      ...Array.from({ length: 50 }, (_, i) => {
+        const employeeId = i + 1;
+        const firstNames = ['Alice', 'Bob', 'Carol', 'David', 'Emma', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack', 'Kate', 'Liam', 'Mia', 'Noah', 'Olivia', 'Paul', 'Quinn', 'Ruby', 'Sam', 'Tina'];
+        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+        const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Operations', 'Design', 'Product', 'Legal', 'Support'];
+        const positions = ['Manager', 'Senior', 'Junior', 'Lead', 'Director', 'Specialist', 'Coordinator', 'Analyst', 'Developer', 'Designer'];
+        const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'];
+        const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'FL', 'OH', 'GA', 'NC'];
+        const skills = ['JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'AWS', 'Docker', 'Git', 'TypeScript', 'MongoDB', 'GraphQL', 'Vue.js', 'Angular', 'Java', 'C++'];
+        
+        const firstName = firstNames[i % firstNames.length];
+        const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length];
+        const department = departments[i % departments.length];
+        const position = positions[i % positions.length];
+        const city = cities[i % cities.length];
+        const state = states[i % states.length];
+        
+        return {
+          id: employeeId,
+          employeeCode: `EMP${String(employeeId).padStart(4, '0')}`,
+          firstName,
+          lastName,
+          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@company.com`,
+          department,
+          position: `${position} ${department === 'Engineering' ? 'Engineer' : department === 'Marketing' ? 'Marketer' : department === 'Sales' ? 'Representative' : 'Specialist'}`,
+          salary: 45000 + (i * 1000) + Math.floor(Math.random() * 20000),
+          isActive: Math.random() > 0.1, // 90% active
+          joinDate: new Date(2020 + Math.floor(i / 12), i % 12, Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+          // 嵌套的个人信息
+          personalInfo: {
+            age: 25 + Math.floor(i / 2),
+            phone: `+1-555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            emergencyContact: {
+              name: `${firstNames[(i + 5) % firstNames.length]} ${lastNames[(i + 3) % lastNames.length]}`,
+              relationship: ['Spouse', 'Parent', 'Sibling', 'Friend'][i % 4],
+              phone: `+1-555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`
+            }
+          },
+          // 嵌套的地址信息
+          address: {
+            street: `${Math.floor(Math.random() * 9999) + 1} ${['Main', 'Oak', 'Pine', 'Elm', 'Cedar', 'Maple'][i % 6]} ${['St', 'Ave', 'Blvd', 'Dr', 'Ln'][i % 5]}`,
+            city,
+            state,
+            zipCode: String(Math.floor(Math.random() * 90000) + 10000),
+            country: 'USA'
+          },
+          // 嵌套的工作信息
+          workInfo: {
+            manager: i > 0 ? `${firstNames[(i - 1) % firstNames.length]} ${lastNames[(i - 1) % lastNames.length]}` : null,
+            team: `${department} Team ${Math.floor(i / 5) + 1}`,
+            skills: skills.slice(i % 3, (i % 3) + 3 + Math.floor(i / 10)),
+            performance: {
+              rating: 3.0 + Math.random() * 2, // 3.0 to 5.0
+              lastReview: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+              goals: Math.floor(Math.random() * 5) + 3 // 3 to 7 goals
+            }
+          },
+          // 嵌套的福利信息
+          benefits: {
+            healthInsurance: Math.random() > 0.2,
+            dentalInsurance: Math.random() > 0.3,
+            retirement401k: {
+              enrolled: Math.random() > 0.25,
+              contribution: Math.random() > 0.25 ? Math.floor(Math.random() * 15) + 5 : 0, // 5-20%
+              companyMatch: Math.random() > 0.25 ? Math.floor(Math.random() * 6) + 3 : 0 // 3-8%
+            },
+            vacationDays: 15 + Math.floor(i / 5), // 15-25 days based on seniority
+            sickDays: 10
+          }
+        };
+      })
+    ]
   }
 ];
 

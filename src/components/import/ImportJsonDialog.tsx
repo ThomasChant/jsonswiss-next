@@ -18,6 +18,7 @@ import { toast } from '@/lib/toast';
 import { fetchJsonFromUrl, isValidUrl, normalizeUrl } from '@/lib/url-import';
 import { SAMPLE_JSON, SAMPLE_MINIFIED_JSON, compareSamples } from '@/sample-data';
 import type { ComparisonSamplePair } from '@/sample-data';
+import { getSampleById } from '@/sample-data/table-editor-samples';
 import { Upload, Link, FileText, Database, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 export type ImportSource = 'paste' | 'file' | 'url' | 'sample';
@@ -63,7 +64,8 @@ const SAMPLE_CATEGORIES = {
     label: 'Complex Examples', 
     items: [
       { key: 'company_data', name: 'Company Data', data: SAMPLE_JSON },
-      { key: 'minified_json', name: 'Minified JSON', data: SAMPLE_MINIFIED_JSON }
+      { key: 'minified_json', name: 'Minified JSON', data: SAMPLE_MINIFIED_JSON },
+      { key: 'employee_directory', name: 'Employee Directory (50 Records)', data: getSampleById('employee_directory')?.data || [] }
     ]
   }
 };
