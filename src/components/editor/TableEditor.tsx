@@ -469,7 +469,10 @@ export function TableEditor({ className = '', path = [], parentData, hideToolbar
         hideToolbar ? "rounded-lg" : "rounded-b-lg border-t-0"
       )}>
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
+          <thead 
+            className="bg-slate-50 dark:bg-slate-800/50 sticky top-0"
+            style={{ zIndex: 10 }}
+          >
             <tr>
               {columns.map((column) => (
                 <th key={column.key} className="text-left">

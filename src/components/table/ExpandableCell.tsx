@@ -65,8 +65,8 @@ export function ExpandableCell({
   const { copy } = useClipboard({ successMessage: 'Value copied to clipboard' });
   
   // Calculate nesting level for z-index (dropdown should be above table content but below parent dropdowns)
-  const nestingLevel = path.length;
-  const dropdownZIndex = Math.max(20, 50 - nestingLevel); // Start at z-50, decrease with nesting
+  const pathNestingLevel = path.length;
+  const dropdownZIndex = Math.max(20, 50 - pathNestingLevel); // Start at z-50, decrease with nesting
   
   const pathKey = path.join('.');
   // 修改：支持强制展开模式
@@ -385,10 +385,13 @@ export function ExpandableCell({
       
       {/* Nested table for expanded complex values */}
       {isExpanded && canExpand && (
-        <div className={cn(
-          "nested-table",
-          density === 'compact' ? "nested-table--compact mt-1.5 ml-1 pl-2" : "mt-2 ml-1 pl-2"
-        )}>
+        <div 
+          className={cn(
+            "nested-table relative",
+            density === 'compact' ? "nested-table--compact mt-1.5 ml-1 pl-2" : "mt-2 ml-1 pl-2"
+          )}
+          style={{ zIndex: Math.max(9 - path.length, 0) }}
+        >
           <React.Suspense fallback={<div className="text-sm text-slate-500">Loading nested table...</div>}>
             <TableEditor
               className="h-full"

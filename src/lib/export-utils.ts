@@ -12,11 +12,38 @@ function generateFilename(baseName: string, extension: string): string {
 }
 
 /**
- * Create and trigger a file download
+ * Create and trigger a file download for text content
  */
 function downloadFile(content: string, filename: string, mimeType: string): void {
   try {
     const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
+    
+    toast.success(`File downloaded: ${filename}`);
+  } catch (error) {
+    console.error('Download failed:', error);
+    toast.error('Failed to download file');
+  }
+}
+
+/**
+ * Create and trigger a file download for binary content
+ */
+function downloadBinaryFile(arrayBuffer: ArrayBuffer, filename: string, mimeType: string): void {
+  try {
+    const blob = new Blob([arrayBuffer], { type: mimeType });
     const url = URL.createObjectURL(blob);
     
     const link = document.createElement('a');
@@ -71,71 +98,16 @@ function escapeCsvField(value: any): string {
 }
 
 /**
- * Flatten nested objects for better CSV representation
+ * Convert object array to CSV format
  */
-function flattenObjectForCsv(obj: any, prefix: string = '', separator: string = '.'): any {
-  const flattened: any = {};
-  
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const newKey = prefix ? `${prefix}${separator}${key}` : key;
-      const value = obj[key];
-      
-      if (value === null || value === undefined) {
-        flattened[newKey] = value;
-      } else if (Array.isArray(value)) {
-        // Handle arrays - convert to readable format
-        if (value.length === 0) {
-          flattened[newKey] = '[]';
-        } else if (value.every(item => typeof item !== 'object' || item === null)) {
-          // Array of primitives - join with commas
-          flattened[newKey] = value.join(', ');
-        } else {
-          // Array of objects - flatten each object with index
-          value.forEach((item, index) => {
-            if (typeof item === 'object' && item !== null) {
-              const subFlattened = flattenObjectForCsv(item, `${newKey}[${index}]`, separator);
-              Object.assign(flattened, subFlattened);
-            } else {
-              flattened[`${newKey}[${index}]`] = item;
-            }
-          });
-        }
-      } else if (typeof value === 'object') {
-        // Nested object - flatten recursively
-        const subFlattened = flattenObjectForCsv(value, newKey, separator);
-        Object.assign(flattened, subFlattened);
-      } else {
-        // Primitive value
-        flattened[newKey] = value;
-      }
-    }
-  }
-  
-  return flattened;
-}
-
-/**
- * Convert object array to CSV format with optional flattening
- */
-function convertToCsv(data: any[], flatten: boolean = true): string {
+function convertToCsv(data: any[]): string {
   if (!Array.isArray(data) || data.length === 0) {
     return '';
   }
 
-  // Process data with optional flattening
-  const processedData = flatten 
-    ? data.map(item => {
-        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-          return flattenObjectForCsv(item);
-        }
-        return item;
-      })
-    : data;
-
   // Get all unique column headers
   const headers = new Set<string>();
-  processedData.forEach(item => {
+  data.forEach(item => {
     if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
       Object.keys(item).forEach(key => headers.add(key));
     }
@@ -146,7 +118,7 @@ function convertToCsv(data: any[], flatten: boolean = true): string {
   // Handle case where data contains non-object items
   if (headerArray.length === 0) {
     // If no object properties found, treat each item as a single value
-    const csvContent = ['Value', ...processedData.map(item => escapeCsvField(item))].join('\n');
+    const csvContent = ['Value', ...data.map(item => escapeCsvField(item))].join('\n');
     return csvContent;
   }
 
@@ -157,11 +129,11 @@ function convertToCsv(data: any[], flatten: boolean = true): string {
   csvRows.push(headerArray.map(header => escapeCsvField(header)).join(','));
   
   // Add data rows
-  processedData.forEach(item => {
+  data.forEach(item => {
     if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
       const row = headerArray.map(header => {
         const value = item[header];
-        // Handle complex objects by converting to JSON string (for non-flattened nested objects)
+        // Handle complex objects by converting to JSON string
         if (typeof value === 'object' && value !== null) {
           return escapeCsvField(JSON.stringify(value));
         }
@@ -179,16 +151,16 @@ function convertToCsv(data: any[], flatten: boolean = true): string {
 }
 
 /**
- * Export data as CSV file with optional flattening
+ * Export data as CSV file
  */
-export function exportToCsv(data: any[], filename?: string, flatten: boolean = true): void {
+export function exportToCsv(data: any[], filename?: string): void {
   try {
     if (!Array.isArray(data) || data.length === 0) {
       toast.error('No data to export');
       return;
     }
 
-    const csvContent = convertToCsv(data, flatten);
+    const csvContent = convertToCsv(data);
     const fileName = filename || generateFilename('table_data', 'csv');
     
     downloadFile(csvContent, fileName, 'text/csv;charset=utf-8;');
@@ -208,32 +180,14 @@ export function exportToExcel(data: any[], filename?: string): void {
       return;
     }
 
-    const excelBuffer = jsonToExcel(data, {
+    const fileName = filename || generateFilename('table_data', 'xlsx');
+    const arrayBuffer = jsonToExcel(data, {
       sheetName: 'Data',
       includeHeaders: true,
-      bookType: 'xlsx',
-      flattenData: true
+      bookType: 'xlsx'
     });
     
-    const fileName = filename || generateFilename('table_data', 'xlsx');
-    
-    // Create blob and download
-    const blob = new Blob([excelBuffer], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-    });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    URL.revokeObjectURL(url);
-    
-    toast.success(`Excel file downloaded: ${fileName}`);
+    downloadBinaryFile(arrayBuffer, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   } catch (error) {
     console.error('Excel export failed:', error);
     toast.error('Failed to export Excel file');
@@ -241,15 +195,15 @@ export function exportToExcel(data: any[], filename?: string): void {
 }
 
 /**
- * Export data with automatic format detection and optional flattening
+ * Export data with automatic format detection
  */
-export function exportData(data: any[], format: ExportFormat, filename?: string, flatten: boolean = true): void {
+export function exportData(data: any[], format: ExportFormat, filename?: string): void {
   switch (format) {
     case 'json':
       exportToJson(data, filename);
       break;
     case 'csv':
-      exportToCsv(data, filename, flatten);
+      exportToCsv(data, filename);
       break;
     case 'excel':
       exportToExcel(data, filename);
@@ -278,18 +232,17 @@ export function getExportOptions(data: any[]): Array<{ format: ExportFormat; lab
     );
     
     if (hasObjectStructure || data.every(item => typeof item !== 'object')) {
-      options.push(
-        {
-          format: 'csv' as ExportFormat,
-          label: 'CSV',
-          description: 'Export as CSV file for spreadsheet applications'
-        },
-        {
-          format: 'excel' as ExportFormat,
-          label: 'Excel',
-          description: 'Export as Excel XLSX file with formatting support'
-        }
-      );
+      options.push({
+        format: 'csv' as ExportFormat,
+        label: 'CSV',
+        description: 'Export as CSV file for spreadsheet applications'
+      });
+      
+      options.push({
+        format: 'excel' as ExportFormat,
+        label: 'Excel',
+        description: 'Export as Excel file (.xlsx) with rich formatting'
+      });
     }
   }
 

@@ -280,26 +280,43 @@ export const useJsonStore = create<JsonState>()(
       
       expandAllTableNodes: () => {
         const state = get();
+        
+        // Check if there's data to expand
+        if (!state.jsonData || (typeof state.jsonData !== 'object')) {
+          toast.warning('No JSON data available to expand');
+          return;
+        }
+        
         const allNodes = new Set<string>();
         let nodeCount = 0;
+        let maxDepth = 0;
+        let wasLimited = false;
         
-        const collectNodes = (obj: any, path: string[] = []) => {
-          if (nodeCount >= MAX_EXPAND_NODES) return;
+        const collectNodes = (obj: any, path: string[] = [], depth: number = 0) => {
+          if (depth > MAX_EXPAND_DEPTH) {
+            maxDepth = Math.max(maxDepth, depth);
+            wasLimited = true;
+            return;
+          }
+          
+          if (nodeCount >= MAX_EXPAND_NODES) {
+            wasLimited = true;
+            return;
+          }
           
           if (typeof obj === 'object' && obj !== null) {
             const currentPath = path.length === 0 ? '' : '.' + path.join('.');
-            if (currentPath) {
-              allNodes.add(currentPath);
-              nodeCount++;
-            }
+            // Always add the path, including empty path for root
+            allNodes.add(currentPath);
+            nodeCount++;
             
             if (Array.isArray(obj)) {
               obj.forEach((item, index) => {
-                collectNodes(item, [...path, index.toString()]);
+                collectNodes(item, [...path, index.toString()], depth + 1);
               });
             } else {
               Object.entries(obj).forEach(([key, value]) => {
-                collectNodes(value, [...path, key]);
+                collectNodes(value, [...path, key], depth + 1);
               });
             }
           }
@@ -308,7 +325,19 @@ export const useJsonStore = create<JsonState>()(
         collectNodes(state.jsonData);
         set({ tableExpandedNodes: allNodes });
         
-        if (nodeCount > 0) {
+        if (nodeCount === 0) {
+          toast.info('No expandable nodes found');
+          return;
+        }
+        
+        if (wasLimited) {
+          if (nodeCount >= MAX_EXPAND_NODES) {
+            toast.info(`Expanded ${nodeCount} table nodes (limit reached). Some nodes remain collapsed for performance.`);
+          }
+          if (maxDepth > MAX_EXPAND_DEPTH) {
+            toast.info(`Maximum expansion depth (${MAX_EXPAND_DEPTH}) reached. Deeply nested nodes remain collapsed.`);
+          }
+        } else {
           toast.success(`Expanded all ${nodeCount} table nodes`);
         }
       },

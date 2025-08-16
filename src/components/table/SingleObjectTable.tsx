@@ -314,7 +314,7 @@ export function SingleObjectTable({
         hideToolbar ? "rounded-lg" : "rounded-b-lg rounded-t-0",
         density === 'compact' && "table-container--compact"
       )}>
-        <table className="table-auto text-sm" style={{ width: 'max-content', minWidth: 'max-content' }}>
+        <table className="w-full table-auto text-sm" style={{ minWidth: '100%' }}>
           <thead className={`bg-slate-50 dark:bg-slate-800 sticky top-0 border-b border-slate-200 dark:border-slate-700`} style={{ zIndex: headerZIndex }}>
             <tr>
               {columns.map((column) => (

@@ -702,7 +702,10 @@ export function EnhancedTableView({
             </Button>
           </div>
           {isExpanded && (
-            <div className="ml-2 border-gray-200 dark:border-gray-700">
+            <div 
+              className="ml-2 border-gray-200 dark:border-gray-700 relative"
+              style={{ zIndex: Math.max(9 - path.length, 0) }}
+            >
               <EnhancedTableView
                 data={value}
                 path={[...path, rowIndex.toString(), column]}
@@ -901,7 +904,10 @@ export function EnhancedTableView({
         "scrollbar-table"
       )} style={maxHeight ? { maxHeight } : {}}>
         <table ref={tableRef} className="w-full bg-white dark:bg-gray-900" style={{ minWidth: 'max-content' }}>
-          <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+          <thead 
+            className="bg-gray-50 dark:bg-gray-800 sticky top-0"
+            style={{ zIndex: 10 }}
+          >
             <tr>
               {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
               {tableInfo.type !== 'single-object' && (
