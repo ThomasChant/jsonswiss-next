@@ -35,6 +35,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -44,6 +47,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from '@/lib/toast';
+import { exportData, getExportOptions, ExportFormat } from '@/lib/export-utils';
 import { TableSearch } from './TableSearch';
 import { highlightText } from './utils/searchUtils';
 
@@ -543,15 +547,15 @@ export function EnhancedTableView({
     }
   }, [data, tableInfo.type, onUpdate]);
   
-  const handleExportData = useCallback(() => {
-    const exportData = processedData.map(row => row.data);
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'table-data.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportData = useCallback((format: ExportFormat) => {
+    const dataToExport = processedData.map(row => row.data);
+    exportData(dataToExport, format);
+  }, [processedData]);
+
+  // 获取可用的导出选项
+  const exportOptions = useMemo(() => {
+    const dataToExport = processedData.map(row => row.data);
+    return getExportOptions(dataToExport);
   }, [processedData]);
   
 
@@ -864,55 +868,13 @@ export function EnhancedTableView({
         <table ref={tableRef} className="w-full bg-white dark:bg-gray-900" style={{ minWidth: 'max-content' }}>
           <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
             <tr>
-              {/* Actions column - replaces # for arrays or is first column for other types */}
-              {/* 对象类型表格节点不显示表级操作菜单 */}
+              {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
               {tableInfo.type !== 'single-object' && (
                 <th className={cn(
                   "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap",
-                  density === 'compact' ? "px-0 py-1" : "px-1 py-2"
+                  density === 'compact' ? "px-2 py-1" : "px-1 py-2"
                 )}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" className="h-6" title="Table Actions">
-                        <MoreHorizontal size={12} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      <DropdownMenuItem onClick={handleOpenFilterDialog} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <Filter size={14} className="mr-2" />
-                        Add Filter
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuItem onClick={handleExportData} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <Download size={14} className="mr-2" />
-                        Export Data
-                      </DropdownMenuItem>
-                      
-                      {onUpdate && (tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
-                        <DropdownMenuItem onClick={handleAddRow} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                          <Plus size={14} className="mr-2" />
-                          Add Row
-                        </DropdownMenuItem>
-                      )}
-                      
-                      <DropdownMenuSeparator />
-                      
-                      <DropdownMenuItem onClick={() => window.location.reload()} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <RefreshCw size={14} className="mr-2" />
-                        Refresh
-                      </DropdownMenuItem>
-                      
-                      {filters.length > 0 && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={handleClearAllFilters} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                            <X size={14} className="mr-2" />
-                            Clear All Filters
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  #
                 </th>
               )}
               
@@ -950,9 +912,66 @@ export function EnhancedTableView({
               {onUpdate && (
                 <th className={cn(
                   "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-20 whitespace-nowrap",
-                  density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                  density === 'compact' ? "px-3 py-1" : "px-3 py-2"
                 )}>
-                  Actions
+                  <div className="flex items-center gap-2">
+                    <span>Actions</span>
+                    {/* 对象节点表格和数组表格显示表级操作菜单 */}
+                    {(tableInfo.type === 'single-object' || tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" className="h-6 w-6 p-0" title="Table Actions">
+                            <MoreHorizontal size={12} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                          <DropdownMenuItem onClick={handleOpenFilterDialog} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <Filter size={14} className="mr-2" />
+                            Add Filter
+                          </DropdownMenuItem>
+                          
+                          {/* Export submenu */}
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                              <Download size={14} className="mr-2" />
+                              Export Data
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                              {exportOptions.map((option) => (
+                                <DropdownMenuItem 
+                                  key={option.format}
+                                  onClick={() => handleExportData(option.format)}
+                                  className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{option.label}</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{option.description}</span>
+                                  </div>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                          
+                          <DropdownMenuSeparator />
+                          
+                          <DropdownMenuItem onClick={() => window.location.reload()} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <RefreshCw size={14} className="mr-2" />
+                            Refresh
+                          </DropdownMenuItem>
+                          
+                          {filters.length > 0 && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={handleClearAllFilters} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <X size={14} className="mr-2" />
+                                Clear All Filters
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </th>
               )}
             </tr>

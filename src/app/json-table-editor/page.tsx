@@ -227,28 +227,6 @@ export default function JsonTableEditorPage() {
                   Back to Root
                 </Button>
               )}
-
-              {/* Page-level Expand/Collapse All */}
-              <div className="flex items-center gap-1 border border-gray-300 dark:border-gray-600 rounded">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setExpandTick(t => t + 1)}
-                  className="h-8 px-2 text-xs border-0 rounded-l rounded-r-none"
-                  title="Expand All"
-                >
-                  <Expand size={14} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCollapseTick(t => t + 1)}
-                  className="h-8 px-2 text-xs border-0 rounded-r rounded-l-none border-l border-gray-300 dark:border-gray-600"
-                  title="Collapse All"
-                >
-                  <Minimize size={14} />
-                </Button>
-              </div>
               
               <Button
                 variant="outline"

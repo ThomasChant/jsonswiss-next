@@ -1,6 +1,7 @@
 import { toast } from '@/lib/toast';
+import { jsonToExcel } from '@/lib/converters';
 
-export type ExportFormat = 'json' | 'csv';
+export type ExportFormat = 'json' | 'csv' | 'excel';
 
 /**
  * Generate a timestamped filename
@@ -143,6 +144,48 @@ export function exportToCsv(data: any[], filename?: string): void {
 }
 
 /**
+ * Export data as Excel file
+ */
+export function exportToExcel(data: any[], filename?: string): void {
+  try {
+    if (!Array.isArray(data) || data.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    const excelBuffer = jsonToExcel(data, {
+      sheetName: 'Data',
+      includeHeaders: true,
+      bookType: 'xlsx',
+      flattenData: true
+    });
+    
+    const fileName = filename || generateFilename('table_data', 'xlsx');
+    
+    // Create blob and download
+    const blob = new Blob([excelBuffer], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    
+    toast.success(`Excel file downloaded: ${fileName}`);
+  } catch (error) {
+    console.error('Excel export failed:', error);
+    toast.error('Failed to export Excel file');
+  }
+}
+
+/**
  * Export data with automatic format detection
  */
 export function exportData(data: any[], format: ExportFormat, filename?: string): void {
@@ -152,6 +195,9 @@ export function exportData(data: any[], format: ExportFormat, filename?: string)
       break;
     case 'csv':
       exportToCsv(data, filename);
+      break;
+    case 'excel':
+      exportToExcel(data, filename);
       break;
     default:
       toast.error('Unsupported export format');
@@ -170,18 +216,25 @@ export function getExportOptions(data: any[]): Array<{ format: ExportFormat; lab
     }
   ];
 
-  // CSV is suitable for tabular data (arrays of objects)
+  // CSV and Excel are suitable for tabular data (arrays of objects)
   if (Array.isArray(data) && data.length > 0) {
     const hasObjectStructure = data.some(item => 
       typeof item === 'object' && item !== null && !Array.isArray(item)
     );
     
     if (hasObjectStructure || data.every(item => typeof item !== 'object')) {
-      options.push({
-        format: 'csv' as ExportFormat,
-        label: 'CSV',
-        description: 'Export as CSV file for spreadsheet applications'
-      });
+      options.push(
+        {
+          format: 'csv' as ExportFormat,
+          label: 'CSV',
+          description: 'Export as CSV file for spreadsheet applications'
+        },
+        {
+          format: 'excel' as ExportFormat,
+          label: 'Excel',
+          description: 'Export as Excel XLSX file with formatting support'
+        }
+      );
     }
   }
 
