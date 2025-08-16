@@ -700,14 +700,6 @@ export function EnhancedTableView({
                 {Array.isArray(value) ? `Array (${value.length})` : `Object (${Object.keys(value).length})`}
               </span>
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStartEdit(rowIndex, column, value)}
-              className="h-6 px-2"
-            >
-              <Edit3 size={12} />
-            </Button>
           </div>
           {isExpanded && (
             <div className="ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
