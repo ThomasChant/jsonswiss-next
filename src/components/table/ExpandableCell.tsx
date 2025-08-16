@@ -387,7 +387,7 @@ export function ExpandableCell({
       {isExpanded && canExpand && (
         <div className={cn(
           "nested-table",
-          density === 'compact' ? "nested-table--compact mt-1.5 ml-3 pl-3" : "mt-2 ml-4 pl-4"
+          density === 'compact' ? "nested-table--compact mt-1.5 ml-1 pl-2" : "mt-2 ml-1 pl-2"
         )}>
           <React.Suspense fallback={<div className="text-sm text-slate-500">Loading nested table...</div>}>
             <TableEditor

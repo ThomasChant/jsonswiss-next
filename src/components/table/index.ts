@@ -7,6 +7,7 @@ export { ExpandableCell } from './ExpandableCell';
 export { KeyRenameDialog } from './KeyRenameDialog';
 export { PrimitiveValueDisplay } from './PrimitiveValueDisplay';
 export { EnhancedTableView } from './EnhancedTableView';
+export { SingleObjectTable } from './SingleObjectTable';
 
 // Re-export types that are commonly used with the components
 export type { TableToolbarProps } from './TableToolbar';

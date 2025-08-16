@@ -702,7 +702,7 @@ export function EnhancedTableView({
             </Button>
           </div>
           {isExpanded && (
-            <div className="ml-4 border-gray-200 dark:border-gray-700">
+            <div className="ml-2 border-gray-200 dark:border-gray-700">
               <EnhancedTableView
                 data={value}
                 path={[...path, rowIndex.toString(), column]}
