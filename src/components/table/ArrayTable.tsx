@@ -407,7 +407,7 @@ export function ArrayTable({
         "table-container",
         density === 'compact' && "table-container--compact"
       )} style={maxHeight ? { maxHeight } : {}}>
-        <table className="w-full table-auto bg-white dark:bg-gray-900" style={{ minWidth: '100%' }}>
+        <table className="table-auto bg-white dark:bg-gray-900" style={{ width: 'max-content', minWidth: 'max-content' }}>
           <thead className="bg-gray-50 dark:bg-gray-800" style={{ zIndex: headerZIndex }}>
             <tr>
               {showRowNumbers && (

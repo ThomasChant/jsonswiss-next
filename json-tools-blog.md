@@ -53,22 +53,42 @@ JSON Formatter & Validator是一个专注于JSON格式化和验证的在线工�
 
 这个工具特别适合需要快速验证和格式化JSON的场景，其专业性和稳定性让它成为很多开发者的首选。
 
-## 3. Visual Studio Code + JSON扩展 - 编辑器中的JSON专家
+## 3. JSON Generator - 智能JSON数据生成器
 
-**扩展推荐**: JSON Tools, Prettier, JSON Schema
+**网址**: [json-generator.com](https://www.json-generator.com)
 
-VS Code配合相关扩展，成为了我编辑JSON文件的首选工具。
+JSON Generator是一个强大的在线JSON数据生成工具，能够根据自定义模板快速生成大量的测试数据。
 
 ### 主要优点：
 
-- **智能提示**：基于JSON Schema提供代码补全和错误提示
-- **格式化支持**：Prettier扩展可以自动格式化JSON文件
-- **语法验证**：实时检查JSON语法错误，并提供修复建议
-- **大文件支持**：即使是几MB的大型JSON文件也能流畅处理
-- **多光标编辑**：可以同时编辑多个位置，提高编辑效率
-- **Git集成**：可以轻松查看JSON文件的版本差异
+- **模板引擎**：使用类似Handlebars的语法定义数据结构模板
+- **丰富的数据类型**：支持生成姓名、邮箱、地址、日期、随机文本等各种类型的数据
+- **批量生成**：可以生成大量的测试数据，支持数组和嵌套对象
+- **自定义函数**：内置多种数据生成函数，如{{name()}}、{{email()}}、{{date()}}等
+- **实时预览**：实时显示生成的JSON数据预览
+- **导出功能**：支持导出为JSON文件或直接复制到剪贴板
+- **免费使用**：基础功能完全免费，无需注册
 
-VS Code的强大之处在于它的可扩展性，通过安装合适的扩展，可以打造出专业的JSON编辑环境。
+```javascript
+// 示例模板
+[
+  '{{repeat(5, 10)}}',
+  {
+    _id: '{{objectId()}}',
+    name: '{{firstName()}} {{surname()}}',
+    email: '{{email()}}',
+    age: '{{integer(18, 65)}}',
+    company: '{{company().toUpperCase()}}',
+    address: {
+      street: '{{street()}}',
+      city: '{{city()}}',
+      country: '{{country()}}'
+    }
+  }
+]
+```
+
+JSON Generator特别适合需要生成测试数据的开发者，无论是API测试、数据库填充还是前端组件开发，都能快速生成符合需求的JSON数据。
 
 ## 4. jq - 命令行JSON处理神器
 
@@ -118,7 +138,7 @@ jq在处理服务器日志分析、API数据提取等场景中表现出色，是
 
 - **JSONSwiss**：功能最全面，适合复杂数据处理和团队协作
 - **JSON Formatter & Validator**：专业的格式化和验证工具
-- **VS Code**：本地编辑和开发的最佳选择
+- **JSON Generator**：智能测试数据生成，API开发和测试的利器
 - **jq**：命令行自动化处理的利器
 - **JSON Editor Online**：快速在线编辑的便捷工具
 

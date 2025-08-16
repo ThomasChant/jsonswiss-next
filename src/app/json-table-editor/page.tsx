@@ -148,13 +148,13 @@ export default function JsonTableEditorPage() {
 
     // Use the enhanced table view for all data types
     return (
-      <div className="space-y-4">
+      <div className="h-full min-h-0 flex flex-col">
         <EnhancedTableView
           data={selectedNodeData}
           path={selectedPath}
           onUpdate={handleDataUpdate}
           density={density}
-          className="w-full"
+          className="w-full h-full"
           isMainView={true}
           expandTick={expandTick}
           collapseTick={collapseTick}

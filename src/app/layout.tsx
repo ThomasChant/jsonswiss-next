@@ -69,18 +69,22 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WNYVYMNW"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-N1WNYVYMNW');
-            `,
-          }}
-        />
+        {/* Google tag (gtag.js) - 仅在生产环境加载 */}
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WNYVYMNW"></script>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-N1WNYVYMNW');
+                `,
+              }}
+            />
+          </>
+        )}
       </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen`}
@@ -104,7 +108,8 @@ export default function RootLayout({
               },
             }}
           />
-          <Analytics />
+          {/* Vercel Analytics - 仅在生产环境加载 */}
+          {process.env.NODE_ENV === 'production' && <Analytics />}
         </ThemeProvider>
       </body>
     </html>
