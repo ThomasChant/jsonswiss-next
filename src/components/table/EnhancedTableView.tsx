@@ -702,7 +702,7 @@ export function EnhancedTableView({
             </Button>
           </div>
           {isExpanded && (
-            <div className="ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+            <div className="ml-4 border-gray-200 dark:border-gray-700">
               <EnhancedTableView
                 data={value}
                 path={[...path, rowIndex.toString(), column]}
@@ -1017,7 +1017,7 @@ export function EnhancedTableView({
               )}
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700 border-b border-gray-200 dark:border-gray-700">
             {processedData.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                 {/* Row number column - 对象类型表格节点不显示此列 */}

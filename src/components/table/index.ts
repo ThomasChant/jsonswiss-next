@@ -4,9 +4,7 @@ export { FilterDialog } from './FilterDialog';
 export { FilterChips } from './FilterChips';
 export { SortableHeader } from './SortableHeader';
 export { ExpandableCell } from './ExpandableCell';
-export { SingleObjectTable } from './SingleObjectTable';
 export { KeyRenameDialog } from './KeyRenameDialog';
-export { ArrayTable } from './ArrayTable';
 export { PrimitiveValueDisplay } from './PrimitiveValueDisplay';
 export { EnhancedTableView } from './EnhancedTableView';
 
@@ -16,7 +14,6 @@ export type { FilterDialogProps } from './FilterDialog';
 export type { FilterChipsProps } from './FilterChips';
 export type { SortableHeaderProps } from './SortableHeader';
 export type { ExpandableCellProps } from './ExpandableCell';
-export type { SingleObjectTableProps } from './SingleObjectTable';
 export type { KeyRenameDialogProps } from './KeyRenameDialog';
 
 // Re-export utility types
