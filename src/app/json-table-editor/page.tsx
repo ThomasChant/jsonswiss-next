@@ -87,8 +87,11 @@ export default function JsonTableEditorPage() {
   // Handle data updates
   const handleDataUpdate = useCallback((newValue: any) => {
     if (selectedPath.length === 0) {
+      // 根节点更新，直接设置整个数据
       setJsonData(newValue);
     } else {
+      // 子节点更新，需要更新整个JSON数据结构
+      // EnhancedTableView传递的newValue已经是修改后的selectedNodeData
       updateNodeAtPath(selectedPath, newValue);
     }
   }, [selectedPath, setJsonData, updateNodeAtPath]);
