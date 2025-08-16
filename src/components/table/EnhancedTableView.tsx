@@ -906,7 +906,7 @@ export function EnhancedTableView({
               {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
               {tableInfo.type !== 'single-object' && (
                 <th className={cn(
-                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap",
+                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
                   density === 'compact' ? "px-2 py-1" : "px-1 py-2"
                 )}>
                   #
@@ -918,7 +918,7 @@ export function EnhancedTableView({
                 <th
                   key={column.key}
                   className={cn(
-                    "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider whitespace-nowrap",
+                    "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
                     density === 'compact' ? "px-2 py-1" : "px-3 py-2"
                   )}
                 >
@@ -946,7 +946,7 @@ export function EnhancedTableView({
               {/* Actions column - 为所有可编辑类型显示Actions列 */}
               {onUpdate && (
                 <th className={cn(
-                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-20 whitespace-nowrap",
+                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-20 whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
                   density === 'compact' ? "px-3 py-1" : "px-3 py-2"
                 )}>
                   <div className="flex items-center gap-2">
@@ -1023,7 +1023,7 @@ export function EnhancedTableView({
                 {/* Row number column - 对象类型表格节点不显示此列 */}
                 {tableInfo.type !== 'single-object' && (
                   <td className={cn(
-                    "text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap",
+                    "text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
                     density === 'compact' ? "px-2 py-1" : "px-3 py-2"
                   )}>
                     {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') 
@@ -1036,7 +1036,7 @@ export function EnhancedTableView({
                 {/* Data cells */}
                 {tableInfo.columns.map((column) => (
                   <td key={column.key} className={cn(
-                    "whitespace-nowrap",
+                    "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
                     density === 'compact' ? "px-2 py-1" : "px-3 py-2"
                   )}>
                     {tableInfo.type === 'single-object'
@@ -1055,7 +1055,7 @@ export function EnhancedTableView({
                 {/* Actions - 为所有可编辑类型显示Actions列 */}
                 {onUpdate && (
                   <td className={cn(
-                    "whitespace-nowrap",
+                    "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
                     density === 'compact' ? "px-2 py-1" : "px-3 py-2"
                   )}>
                     <div className="flex items-center gap-1">
