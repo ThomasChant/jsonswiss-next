@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect, useContext, createContext } from 'react';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -49,6 +49,108 @@ import { toast } from '@/lib/toast';
 import { exportData, getExportOptions, ExportFormat } from '@/lib/export-utils';
 import { TableSearch } from './TableSearch';
 import { highlightText } from './utils/searchUtils';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
+
+// 创建上下文用于传递拖拽属性
+const SortableItemContext = createContext<{
+  attributes: any;
+  listeners: any;
+} | null>(null);
+
+// 可拖拽列头组件
+function DraggableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    cursor: isDragging ? 'grabbing' : 'grab',
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
+
+// 可拖拽行组件
+function DraggableRow({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id,
+    disabled: false,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <SortableItemContext.Provider value={{ attributes, listeners }}>
+      <tr ref={setNodeRef} style={style} className={className}>
+        {children}
+      </tr>
+    </SortableItemContext.Provider>
+  );
+}
+
+// 拖拽句柄组件，仅此区域可以触发拖拽
+function DragHandle() {
+  const ctx = useContext(SortableItemContext);
+  if (!ctx) return null;
+  
+  const { listeners, attributes } = ctx;
+  
+  return (
+    <div 
+      {...listeners} 
+      {...attributes}
+      className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 flex items-center justify-center p-1"
+      style={{ touchAction: 'none' }}
+    >
+      <GripVertical size={14} />
+    </div>
+  );
+}
 
 interface TableFilter {
   id: string;
@@ -100,6 +202,17 @@ export function EnhancedTableView({
   const [filters, setFilters] = useState<TableFilter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // 避免误触：需要至少移动一定距离才触发拖拽
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  
   // Use parent search term for nested tables, own search term for root tables
   const effectiveSearchTerm = parentSearchTerm || searchTerm;
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -127,6 +240,10 @@ export function EnhancedTableView({
   
   // Refs
   const tableRef = useRef<HTMLTableElement>(null);
+
+  // 拖拽状态管理
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [columnsOrder, setColumnsOrder] = useState<string[]>([]);
 
   // 新增：本地 tick 计数与强制展开状态
   const [localExpandTick, setLocalExpandTick] = useState(0);
@@ -306,11 +423,82 @@ export function EnhancedTableView({
     
     return result;
   }, [tableInfo, filters, sortState]);
-  
-  
-  
-  
-  
+
+  // 初始化列顺序
+  useEffect(() => {
+    if (tableInfo.columns.length > 0) {
+      setColumnsOrder(tableInfo.columns.map(c => c.key));
+    }
+  }, [tableInfo.columns]);
+
+  // 根据列顺序计算排序后的列
+  const orderedColumns = useMemo(() => {
+    if (!columnsOrder || columnsOrder.length === 0) return tableInfo.columns;
+    const byKey = new Map(tableInfo.columns.map((c) => [c.key, c] as const));
+    return columnsOrder.filter((k) => byKey.has(k)).map((k) => byKey.get(k)!);
+  }, [columnsOrder, tableInfo.columns]);
+
+  // 拖拽事件处理
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over || active.id === over.id) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // 处理列排序
+    if (activeId.startsWith('col-') && overId.startsWith('col-')) {
+      const activeKey = activeId.replace('col-', '');
+      const overKey = overId.replace('col-', '');
+      
+      setColumnsOrder((prev) => {
+        const oldIndex = prev.indexOf(activeKey);
+        const newIndex = prev.indexOf(overKey);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+      
+      toast.success('列顺序已更新');
+      return;
+    }
+
+    // 处理行排序（仅当 data 为数组时）
+    if (activeId.startsWith('row-') && overId.startsWith('row-') && onUpdate && Array.isArray(data)) {
+      const activeRowIndex = parseInt(activeId.replace('row-', ''));
+      const overRowIndex = parseInt(overId.replace('row-', ''));
+      
+      // 在 processedData 中找到当前显示的行索引
+      const oldIndex = processedData.findIndex((r) => r.index === activeRowIndex);
+      const newIndex = processedData.findIndex((r) => r.index === overRowIndex);
+      
+      // 确保找到了有效的索引
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        // 重要：当数据是经过过滤和排序的时候，我们需要基于原始索引进行排序
+        // 检查是否有过滤或排序应用
+        const hasFilters = filters.length > 0;
+        const hasSorting = sortState.column !== null;
+        
+        if (hasFilters || hasSorting) {
+          // 如果有过滤或排序，我们需要操作原始数据中的正确索引
+          // 直接使用 row.index (这是原始数据中的真实索引)
+          const newData = arrayMove([...data], activeRowIndex, overRowIndex);
+          onUpdate(newData);
+        } else {
+          // 如果没有过滤和排序，processedData 顺序就是原始数据顺序
+          const newData = arrayMove([...data], oldIndex, newIndex);
+          onUpdate(newData);
+        }
+        
+        toast.success('行顺序已更新');
+      }
+    }
+  }, [processedData, data, onUpdate, filters, sortState]);
+
   // Event handlers
   const handleSort = useCallback((column: string) => {
     setSortState(prev => {
@@ -903,230 +1091,277 @@ export function EnhancedTableView({
         "flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 min-h-0",
         "scrollbar-table"
       )} style={maxHeight ? { maxHeight } : {}}>
-        <table ref={tableRef} className="w-full bg-white dark:bg-gray-900" style={{ minWidth: 'max-content' }}>
-          <thead 
-            className="bg-gray-50 dark:bg-gray-800 sticky top-0"
-            style={{ zIndex: 10 }}
-          >
-            <tr>
-              {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
-              {tableInfo.type !== 'single-object' && (
-                <th className={cn(
-                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
-                  density === 'compact' ? "px-2 py-1" : "px-1 py-2"
-                )}>
-                  #
-                </th>
-              )}
-              
-              {/* Data columns */}
-              {tableInfo.columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={cn(
-                    "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
-                    density === 'compact' ? "px-2 py-1" : "px-3 py-2"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{column.label}</span>
-                    {column.sortable && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleSort(column.key)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <ArrowUpDown size={12} />
-                      </Button>
-                    )}
-                    {sortState.column === column.key && sortState.direction && (
-                      <span className="text-blue-600 dark:text-blue-400 text-xs">
-                        {sortState.direction === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-              ))}
-              
-              {/* Actions column - 为所有可编辑类型显示Actions列 */}
-              {onUpdate && (
-                <th className={cn(
-                  "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-20 whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
-                  density === 'compact' ? "px-3 py-1" : "px-3 py-2"
-                )}>
-                  <div className="flex items-center gap-2">
-                    <span>Actions</span>
-                    {/* 对象节点表格和数组表格显示表级操作菜单 */}
-                    {(tableInfo.type === 'single-object' || tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" className="h-6 w-6 p-0" title="Table Actions">
-                            <MoreHorizontal size={12} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
-                          <DropdownMenuItem onClick={handleOpenFilterDialog} className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                            <Filter size={14} className="mr-2" />
-                            Add Filter
-                          </DropdownMenuItem>
-                          
-                          {/* Export submenu */}
-                          <DropdownMenuSub>
-                            <DropdownMenuSubTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                              <Download size={14} className="mr-2" />
-                              Export Data
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
-                              {exportOptions.map((option) => (
-                                <DropdownMenuItem 
-                                  key={option.format}
-                                  onClick={() => handleExportData(option.format)}
-                                  className="hover:bg-gray-100 dark:hover:bg-gray-800"
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{option.label}</span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">{option.description}</span>
-                                  </div>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuSubContent>
-                          </DropdownMenuSub>
-                          
-                          {/* Edit Table Data */}
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              // 打开JSON编辑对话框
-                              setJsonEditValue(JSON.stringify(data, null, 2));
-                              setShowJsonEditDialog(true);
-                            }}
-                            className="hover:bg-gray-100 dark:hover:bg-gray-800"
-                          >
-                            <Edit3 size={14} className="mr-2" />
-                            Edit Table Data
-                          </DropdownMenuItem>
-                          
-                          {filters.length > 0 && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={handleClearAllFilters} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                <X size={14} className="mr-2" />
-                                Clear All Filters
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700 border-b border-gray-200 dark:border-gray-700">
-            {processedData.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                {/* Row number column - 对象类型表格节点不显示此列 */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <table ref={tableRef} className="w-full bg-white dark:bg-gray-900" style={{ minWidth: 'max-content' }}>
+            <thead 
+              className="bg-gray-50 dark:bg-gray-800 sticky top-0"
+              style={{ zIndex: 10 }}
+            >
+              <tr>
+                {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
                 {tableInfo.type !== 'single-object' && (
-                  <td className={cn(
-                    "text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
-                    density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                  <th className={cn(
+                    "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
+                    density === 'compact' ? "px-2 py-1" : "px-1 py-2"
                   )}>
-                    {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') 
-                      ? row.index + 1 
-                      : ''
-                    }
-                  </td>
+                    #
+                  </th>
                 )}
-                
-                {/* Data cells */}
-                {tableInfo.columns.map((column) => (
-                  <td key={column.key} className={cn(
-                    "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
-                    density === 'compact' ? "px-2 py-1" : "px-3 py-2"
-                  )}>
-                    {tableInfo.type === 'single-object'
-                      ? renderCellContent(row.data[column.key], index, column.key)
-                      : tableInfo.type === 'primitive'
-                        ? renderCellContent(row.data[column.key], index, column.key)
-                        : tableInfo.type === 'object-array'
-                          ? renderCellContent(row.data[column.key], row.index, column.key)
-                          : column.key === 'value'
-                            ? renderCellContent(row.data, row.index, 'value')
-                            : null
-                    }
-                  </td>
+                {/* Data columns with SortableContext */}
+                <SortableContext
+                  items={(columnsOrder.length ? columnsOrder : tableInfo.columns.map((c) => c.key)).map((k) => `col-${k}`)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                {orderedColumns.map((column) => (
+                  <th
+                    key={column.key}
+                    id={`col-${column.key}`}
+                    className={cn(
+                      "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
+                      density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                    )}
+                  >
+                    <DraggableColumn id={`col-${column.key}`}>
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{column.label}</span>
+                        {column.sortable && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSort(column.key)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <ArrowUpDown size={12} />
+                          </Button>
+                        )}
+                        {sortState.column === column.key && sortState.direction && (
+                          <span className="text-blue-600 dark:text-blue-400 text-xs">
+                            {sortState.direction === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </DraggableColumn>
+                  </th>
                 ))}
-                
-                {/* Actions - 为所有可编辑类型显示Actions列 */}
+                </SortableContext>
+                {/* Actions column - 为所有可编辑类型显示Actions列 */}
                 {onUpdate && (
-                  <td className={cn(
-                    "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
-                    density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                  <th className={cn(
+                    "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-20 whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
+                    density === 'compact' ? "px-3 py-1" : "px-3 py-2"
                   )}>
-                    <div className="flex items-center gap-1">
-                      {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDuplicateRow(row.index)}
-                            className="h-6 w-6 p-0"
-                            title="Duplicate row"
-                          >
-                            <Copy size={12} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteRow(row.index)}
-                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                            title="Delete row"
-                          >
-                            <Trash2 size={12} />
-                          </Button>
-                        </>
-                      )}
-                      {tableInfo.type === 'single-object' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDuplicateRow(index)}
-                            className="h-6 w-6 p-0"
-                            title="Clone property"
-                          >
-                            <Copy size={12} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteRow(index)}
-                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                            title="Delete property"
-                          >
-                            <Trash2 size={12} />
-                          </Button>
-                        </>
-                      )}
-                      {tableInfo.type === 'primitive' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleStartEdit(index, 'value', row.data.value)}
-                          className="h-6 w-6 p-0"
-                          title="Edit value"
-                        >
-                          <Edit3 size={12} />
-                        </Button>
+                    <div className="flex items-center gap-2">
+                      <span>Actions</span>
+                      {/* 对象节点表格和数组表格显示表级操作菜单 */}
+                      {(tableInfo.type === 'single-object' || tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" className="h-6 w-6 p-0" title="Table Actions">
+                              <MoreHorizontal size={12} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                            <DropdownMenuItem onClick={handleOpenFilterDialog} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                              <Filter size={14} className="mr-2" />
+                              Add Filter
+                            </DropdownMenuItem>
+                            
+                            {/* Export submenu */}
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <Download size={14} className="mr-2" />
+                                Export Data
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                                {exportOptions.map((option) => (
+                                  <DropdownMenuItem 
+                                    key={option.format}
+                                    onClick={() => handleExportData(option.format)}
+                                    className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{option.label}</span>
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">{option.description}</span>
+                                    </div>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            
+                            {/* Edit Table Data */}
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                // 打开JSON编辑对话框
+                                setJsonEditValue(JSON.stringify(data, null, 2));
+                                setShowJsonEditDialog(true);
+                              }}
+                              className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                            >
+                              <Edit3 size={14} className="mr-2" />
+                              Edit Table Data
+                            </DropdownMenuItem>
+                            
+                            {filters.length > 0 && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleClearAllFilters} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                  <X size={14} className="mr-2" />
+                                  Clear All Filters
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
-                  </td>
+                  </th>
                 )}
               </tr>
-            ))}
+            </thead>
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700 border-b border-gray-200 dark:border-gray-700">
+              <SortableContext
+                items={processedData.map((r) => `row-${r.index}`)}
+                strategy={verticalListSortingStrategy}
+              >
+              {processedData.map((row, index) => {
+                // 获取当前行的唯一 id
+                const rowId = `row-${row.index}`;
+                
+                return (
+                  <DraggableRow key={rowId} id={rowId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    {/* Row number column - 对象类型表格节点不显示此列 */}
+                    {tableInfo.type !== 'single-object' && (
+                      <td className={cn(
+                        "text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
+                        density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                      )}>
+                        <div className="flex items-center gap-1">
+                          {/* 拖拽句柄 - 仅数组类型显示 */}
+                          {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && onUpdate && (
+                            <DragHandle />
+                          )}
+                          <span>
+                            {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') 
+                              ? row.index + 1 
+                              : ''
+                            }
+                          </span>
+                        </div>
+                      </td>
+                    )}
+                    {/* Data cells */}
+                    {orderedColumns.map((column) => (
+                      <td key={column.key} className={cn(
+                        "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
+                        density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                      )}>
+                        {tableInfo.type === 'single-object'
+                          ? renderCellContent(row.data[column.key], index, column.key)
+                          : tableInfo.type === 'primitive'
+                            ? renderCellContent(row.data[column.key], index, column.key)
+                            : tableInfo.type === 'object-array'
+                              ? renderCellContent(row.data[column.key], row.index, column.key)
+                              : column.key === 'value'
+                                ? renderCellContent(row.data, row.index, 'value')
+                                : null
+                        }
+                      </td>
+                    ))}
+                    {/* Actions - 为所有可编辑类型显示Actions列 */}
+                    {onUpdate && (
+                      <td className={cn(
+                        "whitespace-nowrap border-r border-gray-200 dark:border-gray-700",
+                        density === 'compact' ? "px-2 py-1" : "px-3 py-2"
+                      )}>
+                        <div className="flex items-center gap-1">
+                          {(tableInfo.type === 'object-array' || tableInfo.type === 'primitive-array') && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDuplicateRow(row.index)}
+                                className="h-6 w-6 p-0"
+                                title="Duplicate row"
+                              >
+                                <Copy size={12} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteRow(row.index)}
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                title="Delete row"
+                              >
+                                <Trash2 size={12} />
+                              </Button>
+                            </>
+                          )}
+                        {tableInfo.type === 'single-object' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDuplicateRow(index)}
+                              className="h-6 w-6 p-0"
+                              title="Clone property"
+                            >
+                              <Copy size={12} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteRow(index)}
+                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                              title="Delete property"
+                            >
+                              <Trash2 size={12} />
+                            </Button>
+                          </>
+                        )}
+                        {tableInfo.type === 'primitive' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleStartEdit(index, 'value', row.data.value)}
+                            className="h-6 w-6 p-0"
+                            title="Edit value"
+                          >
+                            <Edit3 size={12} />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+              </DraggableRow>
+            );
+          })}
+            </SortableContext>
           </tbody>
         </table>
+        
+        {/* DragOverlay 提供拖拽时的视觉反馈 */}
+        <DragOverlay>
+          {activeId ? (
+            <div className="bg-white dark:bg-gray-800 p-2 border border-gray-300 dark:border-gray-600 rounded shadow-lg">
+              {activeId.startsWith('col-') ? (
+                <div className="text-sm font-medium">
+                  {tableInfo.columns.find(c => `col-${c.key}` === activeId)?.label || activeId}
+                </div>
+              ) : (
+                <div className="text-sm">
+                  拖拽行 #{activeId.replace('row-', '')}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
       </div>
       
       {/* Filter Dialog */}
