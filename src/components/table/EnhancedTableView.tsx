@@ -463,7 +463,7 @@ export function EnhancedTableView({
         return arrayMove(prev, oldIndex, newIndex);
       });
       
-      toast.success('列顺序已更新');
+      toast.success('Column order updated');
       return;
     }
 
@@ -494,7 +494,7 @@ export function EnhancedTableView({
           onUpdate(newData);
         }
         
-        toast.success('行顺序已更新');
+        toast.success('Row order updated');
       }
     }
   }, [processedData, data, onUpdate, filters, sortState]);
@@ -1355,7 +1355,7 @@ export function EnhancedTableView({
                 </div>
               ) : (
                 <div className="text-sm">
-                  拖拽行 #{activeId.replace('row-', '')}
+                  Dragging row #{activeId.replace('row-', '')}
                 </div>
               )}
             </div>
