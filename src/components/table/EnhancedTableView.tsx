@@ -1254,7 +1254,7 @@ export function EnhancedTableView({
                       <div className="flex items-center gap-2">
                         <GripVertical className="w-3.5 h-3.5 text-slate-400" />
                         <span>{column.label}</span>
-                        {column.sortable && (
+                        {column.sortable && !(onUpdate && tableInfo.type === 'object-array') && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1278,6 +1278,23 @@ export function EnhancedTableView({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                              {/* 排序相关操作移入下拉菜单 */}
+                              {column.sortable && (
+                                <>
+                                  <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'asc' })}>
+                                    Sort Ascending
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'desc' })}>
+                                    Sort Descending
+                                  </DropdownMenuItem>
+                                  {sortState.column === column.key && (
+                                    <DropdownMenuItem onClick={() => setSortState({ column: null, direction: null })}>
+                                      Clear Sorting
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
                               <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'before')}>
                                 Insert Column Before
                               </DropdownMenuItem>
