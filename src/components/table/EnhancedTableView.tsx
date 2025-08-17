@@ -244,7 +244,15 @@ export function EnhancedTableView({
   // 拖拽状态管理
   const [activeId, setActiveId] = useState<string | null>(null);
   const [columnsOrder, setColumnsOrder] = useState<string[]>([]);
-
+  // 新增：列操作相关状态
+  const [showAddColumnDialog, setShowAddColumnDialog] = useState(false);
+  const [pendingColumnAnchor, setPendingColumnAnchor] = useState<{ key: string; position: 'before' | 'after' } | null>(null);
+  const [newColumnKey, setNewColumnKey] = useState('');
+  const [newColumnDefaultValue, setNewColumnDefaultValue] = useState(''); // 新增：插入列的默认值（可选）
+  // 新增：删除列确认对话框状态
+  const [showDeleteColumnDialog, setShowDeleteColumnDialog] = useState(false);
+  const [pendingDeleteColumnKey, setPendingDeleteColumnKey] = useState<string | null>(null);
+  
   // 新增：本地 tick 计数与强制展开状态
   const [localExpandTick, setLocalExpandTick] = useState(0);
   const [localCollapseTick, setLocalCollapseTick] = useState(0);
@@ -424,11 +432,25 @@ export function EnhancedTableView({
     return result;
   }, [tableInfo, filters, sortState]);
 
-  // 初始化列顺序
+  // 初始化/同步列顺序：仅在未初始化时设置；当出现新列时追加；当列被移除时过滤
   useEffect(() => {
-    if (tableInfo.columns.length > 0) {
-      setColumnsOrder(tableInfo.columns.map(c => c.key));
-    }
+    if (tableInfo.columns.length === 0) return;
+    setColumnsOrder((prev) => {
+      if (!prev || prev.length === 0) {
+        return tableInfo.columns.map((c) => c.key);
+      }
+      const tableKeys = tableInfo.columns.map((c) => c.key);
+      const tableKeySet = new Set(tableKeys);
+      // 过滤掉已不存在的列（例如外部更新或删除列）
+      let next = prev.filter((k) => tableKeySet.has(k));
+      // 追加新增的列键到末尾，避免覆盖用户自定义顺序
+      const prevSet = new Set(next);
+      const newKeys = tableKeys.filter((k) => !prevSet.has(k));
+      if (newKeys.length > 0) {
+        next = [...next, ...newKeys];
+      }
+      return next;
+    });
   }, [tableInfo.columns]);
 
   // 根据列顺序计算排序后的列
@@ -737,6 +759,108 @@ export function EnhancedTableView({
       toast.success(`Cloned property "${key}" as "${newKey}"`);
     }
   }, [data, tableInfo.type, onUpdate]);
+
+  // 删除列
+  const handleDeleteColumn = useCallback((columnKey: string) => {
+    if (!onUpdate) return;
+    if (tableInfo.type === 'object-array') {
+      const newData = data.map((row: any) => {
+        if (row && typeof row === 'object' && !Array.isArray(row)) {
+          const { [columnKey]: _, ...rest } = row;
+          return rest;
+        }
+        return row;
+      });
+      onUpdate(newData);
+      setColumnsOrder((prev) => prev.filter((k) => k !== columnKey));
+      // 新增：清理该列相关的过滤条件
+      setFilters((prev) => prev.filter((f) => f.column !== columnKey));
+      // 新增：若当前排序列为被删除列，重置排序状态
+      setSortState((prev) => (prev.column === columnKey ? { column: null, direction: null } : prev));
+      toast.success(`Deleted column "${columnKey}"`);
+    } else if (tableInfo.type === 'single-object') {
+      toast.error('Column operations are not supported for single-object view');
+    } else if (tableInfo.type === 'primitive-array' || tableInfo.type === 'primitive') {
+      toast.error('No columns to delete in primitive view');
+    }
+  }, [onUpdate, data, tableInfo.type]);
+
+  // 新增：打开删除列确认对话框
+  const openDeleteColumnDialog = useCallback((columnKey: string) => {
+    setPendingDeleteColumnKey(columnKey);
+    setShowDeleteColumnDialog(true);
+  }, []);
+
+  // 新增：确认删除列
+  const handleConfirmDeleteColumn = useCallback(() => {
+    if (!pendingDeleteColumnKey) return;
+    handleDeleteColumn(pendingDeleteColumnKey);
+    setShowDeleteColumnDialog(false);
+    setPendingDeleteColumnKey(null);
+  }, [pendingDeleteColumnKey, handleDeleteColumn]);
+  
+  // 插入列（在指定列前/后）
+  const openInsertColumnDialog = useCallback((anchorKey: string, position: 'before' | 'after') => {
+    setPendingColumnAnchor({ key: anchorKey, position });
+    setNewColumnKey('');
+    setNewColumnDefaultValue(''); // 新增：重置默认值
+    setShowAddColumnDialog(true);
+  }, []);
+
+  const handleConfirmInsertColumn = useCallback(() => {
+    if (!onUpdate || !pendingColumnAnchor || !newColumnKey.trim()) return;
+    const columnKey = newColumnKey.trim();
+
+    // 新增：重复列名校验
+    const existingKeys = new Set<string>([
+      ...tableInfo.columns.map((c) => c.key),
+      ...columnsOrder,
+    ]);
+    if (existingKeys.has(columnKey)) {
+      toast.error(`Column "${columnKey}" already exists`);
+      return;
+    }
+
+    // 新增：解析默认值（非必填），优先按 JSON 解析，失败时作为字符串；空字符串视为 null
+    let defaultValue: any = null;
+    const raw = newColumnDefaultValue.trim();
+    if (raw !== '') {
+      try {
+        defaultValue = JSON.parse(raw);
+      } catch {
+        defaultValue = newColumnDefaultValue; // 保留原始字符串
+      }
+    }
+
+    if (tableInfo.type === 'object-array') {
+      // 1) 更新数据：为每一行插入新键（默认值 defaultValue）
+      const newData = data.map((row: any) => ({ ...row, [columnKey]: defaultValue }));
+      onUpdate(newData);
+
+      // 2) 更新列顺序：按 before/after 在 columnsOrder 中插入
+      setColumnsOrder((prev) => {
+        const order = prev.length ? [...prev] : tableInfo.columns.map((c) => c.key);
+        const anchorIndex = order.indexOf(pendingColumnAnchor.key);
+        if (anchorIndex === -1) {
+          // 如果锚点列不在当前顺序里，则把新列放到末尾
+          return [...order, columnKey];
+        }
+        const insertIndex = pendingColumnAnchor.position === 'before' ? anchorIndex : anchorIndex + 1;
+        const next = [...order];
+        next.splice(insertIndex, 0, columnKey);
+        return next;
+      });
+
+      toast.success(`Inserted column "${columnKey}" ${pendingColumnAnchor.position} ${pendingColumnAnchor.key}`);
+    } else {
+      toast.error('Insert column only supported for array of objects');
+    }
+
+    setShowAddColumnDialog(false);
+    setPendingColumnAnchor(null);
+    setNewColumnKey('');
+    setNewColumnDefaultValue('');
+  }, [onUpdate, pendingColumnAnchor, newColumnKey, newColumnDefaultValue, data, tableInfo.type, tableInfo.columns, columnsOrder]);
   
   const handleExportData = useCallback((format: ExportFormat) => {
     let dataToExport: any[];
@@ -1145,6 +1269,28 @@ export function EnhancedTableView({
                             {sortState.direction === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
+                        {/* 新增：列操作菜单 */}
+                        {onUpdate && tableInfo.type === 'object-array' && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Column Actions">
+                                <MoreHorizontal size={12} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                              <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'before')}>
+                                Insert Column Before
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'after')}>
+                                Insert Column After
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => openDeleteColumnDialog(column.key)}>
+                                 Delete Column
+                               </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </DraggableColumn>
                   </th>
@@ -1364,6 +1510,69 @@ export function EnhancedTableView({
       </DndContext>
       </div>
       
+      {/* 新增：添加列对话框 */}
+      <Dialog open={showAddColumnDialog} onOpenChange={setShowAddColumnDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Column</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Column Key</label>
+            <Input 
+              value={newColumnKey}
+              onChange={(e) => setNewColumnKey(e.target.value)}
+              placeholder="Enter column key"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleConfirmInsertColumn();
+                }
+              }}
+            />
+
+            {/* 新增：默认值输入（可选） */}
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Default Value (optional)</label>
+            <Input 
+              value={newColumnDefaultValue}
+              onChange={(e) => setNewColumnDefaultValue(e.target.value)}
+              placeholder='e.g. 0, "text", true, null, {}, []'
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleConfirmInsertColumn();
+                }
+              }}
+            />
+
+            {pendingColumnAnchor && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">Will insert {pendingColumnAnchor.position} "{pendingColumnAnchor.key}"</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddColumnDialog(false)}>Cancel</Button>
+            <Button onClick={handleConfirmInsertColumn} disabled={!newColumnKey.trim()}>Add</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 新增：删除列确认对话框 */}
+      <Dialog open={showDeleteColumnDialog} onOpenChange={setShowDeleteColumnDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-700 dark:text-red-400">Delete Column</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Are you sure you want to delete column <span className="font-semibold">{pendingDeleteColumnKey}</span>? This will remove it from all rows and clear any filters on this column. This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteColumnDialog(false)}>Cancel</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={handleConfirmDeleteColumn}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Filter Dialog */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
         <DialogContent className="sm:max-w-md">
