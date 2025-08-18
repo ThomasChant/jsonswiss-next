@@ -169,8 +169,8 @@ export default function JsonTableEditorPage() {
   return (
     <>
       <ToolPageLayoutServer
-        title="JSON Table Editor"
-        description="Interactive table-based JSON editor and viewer with sidebar navigation and real-time synchronization"
+        title=""
+        description=""
         faqItems={faqItems}
         showSidebar={true}
         sidebarPosition="left"
