@@ -184,7 +184,14 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
     try {
       const parsed = JSON.parse(sidebarEditorContent);
       const formatted = JSON.stringify(parsed, null, 2);
-      setSidebarEditorContent(formatted);
+      
+      // 直接更新编辑器的值
+      if (editorRef.current) {
+        editorRef.current.setValue(formatted);
+      } else {
+        setSidebarEditorContent(formatted);
+      }
+      
       toast.success("JSON formatted successfully");
     } catch (error) {
       toast.error("Cannot format invalid JSON");
