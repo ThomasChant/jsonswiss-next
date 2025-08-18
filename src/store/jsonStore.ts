@@ -77,7 +77,7 @@ export const useJsonStore = create<JsonState>()(
       expandedNodes: new Set<string>(),
       tableExpandedNodes: new Set<string>(),
       viewMode: 'table',
-      sidebarMode: 'navigation',
+      sidebarMode: 'editor',
       sidebarEditorContent: '',
       history: [],
       historyIndex: -1,

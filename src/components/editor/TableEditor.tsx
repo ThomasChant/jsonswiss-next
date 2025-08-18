@@ -573,14 +573,14 @@ export function TableEditor({ className = '', path = [], parentData, hideToolbar
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => startEdit(row.id, columns[0]?.key)}>
+                        <DropdownMenuItem className="py-2" onClick={() => startEdit(row.id, columns[0]?.key)}>
                           <Edit3 className="w-4 h-4 mr-2" />
                           Edit Row
                         </DropdownMenuItem>
                         {isArrayData && (
                           <DropdownMenuItem 
                             onClick={() => deleteRow(row.id)}
-                            className="text-red-600 dark:text-red-400"
+                            className="py-2 text-red-600 dark:text-red-400"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete Row

@@ -1290,20 +1290,20 @@ export function EnhancedTableView({
                                 <MoreHorizontal size={12} />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                            <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
                               {/* 排序相关操作移入下拉菜单 */}
                               {column.sortable && (
                                 <>
-                                  <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'asc' })}>
+                                  <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setSortState({ column: column.key, direction: 'asc' })}>
                                     <SortAsc size={14} className="mr-2" />
                                     Sort Ascending
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'desc' })}>
+                                  <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setSortState({ column: column.key, direction: 'desc' })}>
                                     <SortDesc size={14} className="mr-2" />
                                     Sort Descending
                                   </DropdownMenuItem>
                                   {sortState.column === column.key && (
-                                    <DropdownMenuItem onClick={() => setSortState({ column: null, direction: null })}>
+                                    <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setSortState({ column: null, direction: null })}>
                                       <RotateCcw size={14} className="mr-2" />
                                       Clear Sorting
                                     </DropdownMenuItem>
@@ -1311,21 +1311,21 @@ export function EnhancedTableView({
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem onClick={() => handleOpenFilterDialog(column.key)}>
+                              <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => handleOpenFilterDialog(column.key)}>
                                 <Filter size={14} className="mr-2" />
                                 Filter Column
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'before')}>
+                              <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => openInsertColumnDialog(column.key, 'before')}>
                                 <ArrowLeft size={14} className="mr-2" />
                                 Insert Column Before
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'after')}>
+                              <DropdownMenuItem className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => openInsertColumnDialog(column.key, 'after')}>
                                 <ArrowRight size={14} className="mr-2" />
                                 Insert Column After
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => openDeleteColumnDialog(column.key)}>
+                              <DropdownMenuItem className="py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => openDeleteColumnDialog(column.key)}>
                                 <Trash2 size={14} className="mr-2" />
                                 Delete Column
                               </DropdownMenuItem>
@@ -1354,14 +1354,14 @@ export function EnhancedTableView({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
-                            <DropdownMenuItem onClick={() => handleOpenFilterDialog()} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <DropdownMenuItem onClick={() => handleOpenFilterDialog()} className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                               <Filter size={14} className="mr-2" />
                               Add Filter
                             </DropdownMenuItem>
                             
                             {/* Export submenu */}
                             <DropdownMenuSub>
-                              <DropdownMenuSubTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                              <DropdownMenuSubTrigger className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
                                 <Download size={14} className="mr-2" />
                                 Export Data
                               </DropdownMenuSubTrigger>
@@ -1370,7 +1370,7 @@ export function EnhancedTableView({
                                   <DropdownMenuItem 
                                     key={option.format}
                                     onClick={() => handleExportData(option.format)}
-                                    className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                                   >
                                     <div className="flex flex-col">
                                       <span className="font-medium">{option.label}</span>
@@ -1388,7 +1388,7 @@ export function EnhancedTableView({
                                 setJsonEditValue(JSON.stringify(data, null, 2));
                                 setShowJsonEditDialog(true);
                               }}
-                              className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                              className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                             >
                               <Edit3 size={14} className="mr-2" />
                               Edit Table Data
@@ -1397,7 +1397,7 @@ export function EnhancedTableView({
                             {filters.length > 0 && (
                               <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleClearAllFilters} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <DropdownMenuItem onClick={handleClearAllFilters} className="py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                                   <X size={14} className="mr-2" />
                                   Clear All Filters
                                 </DropdownMenuItem>

@@ -322,11 +322,11 @@ export function ExpandableCell({
             "w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg",
             density === 'compact' && "dropdown-menu--compact"
           )} style={{ zIndex: dropdownZIndex }}>
-            <DropdownMenuItem onClick={handleEdit}>
+            <DropdownMenuItem className="py-2" onClick={handleEdit}>
               <Edit3 className="w-4 h-4 mr-2" />
               Edit Value
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCopyValue}>
+            <DropdownMenuItem className="py-2" onClick={handleCopyValue}>
               <Copy className="w-4 h-4 mr-2" />
               Copy Value
             </DropdownMenuItem>
@@ -334,7 +334,7 @@ export function ExpandableCell({
             {canExpand && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleToggleExpansion}>
+                <DropdownMenuItem className="py-2" onClick={handleToggleExpansion}>
                   {isExpanded ? (
                     <>
                       <ChevronDown className="w-4 h-4 mr-2" />
@@ -353,13 +353,13 @@ export function ExpandableCell({
                   <>
                     <DropdownMenuSeparator />
                     {canAddItems && (
-                      <DropdownMenuItem onClick={handleAddItem}>
+                      <DropdownMenuItem className="py-2" onClick={handleAddItem}>
                         <Plus className="w-4 h-4 mr-2" />
                         {getAddButtonText()}
                       </DropdownMenuItem>
                     )}
                     {canFilter && (
-                      <DropdownMenuItem onClick={handleFilterToggle}>
+                      <DropdownMenuItem className="py-2" onClick={handleFilterToggle}>
                         <Filter className="w-4 h-4 mr-2" />
                         Filter Table
                         {hasActiveFilters && (
@@ -370,7 +370,7 @@ export function ExpandableCell({
                       </DropdownMenuItem>
                     )}
                     {canExport && (
-                      <DropdownMenuItem onClick={handleExport}>
+                      <DropdownMenuItem className="py-2" onClick={handleExport}>
                         <Download className="w-4 h-4 mr-2" />
                         Export Data
                       </DropdownMenuItem>

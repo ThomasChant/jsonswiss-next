@@ -457,17 +457,17 @@ export function SingleObjectTable({
                         </Button>
                       </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg" style={{ zIndex: dropdownZIndex }}>
-                      <DropdownMenuItem onClick={() => handleStartKeyEdit(row.key)}>
+                      <DropdownMenuItem className="py-2" onClick={() => handleStartKeyEdit(row.key)}>
                         <Edit3 className="w-4 h-4 mr-2" />
                         Rename Key
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleStartValueEdit(row.key, row.value)}>
+                      <DropdownMenuItem className="py-2" onClick={() => handleStartValueEdit(row.key, row.value)}>
                         <Edit3 className="w-4 h-4 mr-2" />
                         Edit Value
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleDeleteProperty(row.key)}
-                        className="text-red-600 dark:text-red-400"
+                        className="py-2 text-red-600 dark:text-red-400"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Property

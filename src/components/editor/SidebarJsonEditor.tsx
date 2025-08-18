@@ -335,12 +335,7 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
               <CheckCircle2 className="w-3 h-3" />
               <span className="font-medium">Valid</span>
             </div>
-          ) : sidebarEditorContent.trim() ? (
-            <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded text-xs border border-yellow-200 dark:border-yellow-800">
-              <FileText className="w-3 h-3" />
-              <span className="font-medium">Text</span>
-            </div>
-          ) : null}
+          )  : null}
         </div>
 
         {/* Error Details - Compact */}
