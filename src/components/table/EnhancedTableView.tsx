@@ -14,7 +14,13 @@ import {
   MoreHorizontal,
   Download,
   Expand,
-  Minimize
+  Minimize,
+  SortAsc,
+  SortDesc,
+  RotateCcw,
+  Columns,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getValueType, formatValue, isComplexValue } from '@/lib/table-utils';
@@ -228,6 +234,7 @@ export function EnhancedTableView({
   
   // Filter dialog state
   const [filterColumn, setFilterColumn] = useState('');
+  const [isColumnFilterMode, setIsColumnFilterMode] = useState(false); // 是否为列级筛选模式
   const [filterOperator, setFilterOperator] = useState<TableFilter['operator']>('contains');
   const [filterValue, setFilterValue] = useState('');
   
@@ -567,10 +574,16 @@ export function EnhancedTableView({
     // Note: Search term is now managed by TableSearch component
   }, []);
   
-  const handleOpenFilterDialog = useCallback(() => {
-    // Initialize with first column if not set
-    if (!filterColumn && tableInfo.columns.length > 0) {
-      setFilterColumn(tableInfo.columns[0].key);
+  const handleOpenFilterDialog = useCallback((colKey?: string) => {
+    // 如果传入了列键，使用传入的列键；否则使用当前筛选列或第一列
+    if (colKey) {
+      setFilterColumn(colKey);
+      setIsColumnFilterMode(true); // 设置为列级筛选模式
+    } else {
+      setIsColumnFilterMode(false); // 设置为表级筛选模式
+      if (!filterColumn && tableInfo.columns.length > 0) {
+        setFilterColumn(tableInfo.columns[0].key);
+      }
     }
     setShowFilterDialog(true);
   }, [filterColumn, tableInfo.columns]);
@@ -1282,29 +1295,40 @@ export function EnhancedTableView({
                               {column.sortable && (
                                 <>
                                   <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'asc' })}>
+                                    <SortAsc size={14} className="mr-2" />
                                     Sort Ascending
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => setSortState({ column: column.key, direction: 'desc' })}>
+                                    <SortDesc size={14} className="mr-2" />
                                     Sort Descending
                                   </DropdownMenuItem>
                                   {sortState.column === column.key && (
                                     <DropdownMenuItem onClick={() => setSortState({ column: null, direction: null })}>
+                                      <RotateCcw size={14} className="mr-2" />
                                       Clear Sorting
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuSeparator />
                                 </>
                               )}
+                              <DropdownMenuItem onClick={() => handleOpenFilterDialog(column.key)}>
+                                <Filter size={14} className="mr-2" />
+                                Filter Column
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'before')}>
+                                <ArrowLeft size={14} className="mr-2" />
                                 Insert Column Before
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => openInsertColumnDialog(column.key, 'after')}>
+                                <ArrowRight size={14} className="mr-2" />
                                 Insert Column After
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => openDeleteColumnDialog(column.key)}>
-                                 Delete Column
-                               </DropdownMenuItem>
+                                <Trash2 size={14} className="mr-2" />
+                                Delete Column
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -1330,7 +1354,7 @@ export function EnhancedTableView({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
-                            <DropdownMenuItem onClick={handleOpenFilterDialog} className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <DropdownMenuItem onClick={() => handleOpenFilterDialog()} className="hover:bg-gray-100 dark:hover:bg-gray-800">
                               <Filter size={14} className="mr-2" />
                               Add Filter
                             </DropdownMenuItem>
@@ -1601,16 +1625,22 @@ export function EnhancedTableView({
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Column
               </label>
-              <Select value={filterColumn} onValueChange={setFilterColumn}>
+              <Select value={filterColumn} onValueChange={setFilterColumn} disabled={isColumnFilterMode}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select column to filter" />
+                  <SelectValue placeholder={isColumnFilterMode ? "Column locked" : "Select column to filter"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {tableInfo.columns.map(col => (
-                    <SelectItem key={col.key} value={col.key}>
-                      {col.label}
+                  {isColumnFilterMode ? (
+                    <SelectItem key={filterColumn} value={filterColumn}>
+                      {tableInfo.columns.find(col => col.key === filterColumn)?.label || filterColumn}
                     </SelectItem>
-                  ))}
+                  ) : (
+                    tableInfo.columns.map(col => (
+                      <SelectItem key={col.key} value={col.key}>
+                        {col.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -1662,6 +1692,7 @@ export function EnhancedTableView({
                 setFilterColumn('');
                 setFilterOperator('contains');
                 setFilterValue('');
+                setIsColumnFilterMode(false); // 重置列级筛选模式
               }}
             >
               Cancel
