@@ -1165,7 +1165,7 @@ export function EnhancedTableView({
                   handleExpandAll();
                 }}
                 className="h-8 px-2 text-xs border-0 rounded-l rounded-r-none"
-                title="展开全部嵌套节点"
+                title="expand all nodes"
               >
                 <Expand size={14} />
               </Button>
@@ -1178,7 +1178,7 @@ export function EnhancedTableView({
                   handleCollapseAll();
                 }}
                 className="h-8 px-2 text-xs border-0 rounded-r rounded-l-none border-l border-gray-300 dark:border-gray-600"
-                title="折叠全部嵌套节点"
+                title="collapse all nodes"
               >
                 <Minimize size={14} />
               </Button>
@@ -1241,7 +1241,7 @@ export function EnhancedTableView({
             >
               <tr>
                 {/* Row number column - 数组表格显示行号列，但不包含操作菜单 */}
-                {tableInfo.type !== 'single-object' && (
+                {tableInfo.type !== 'single-object' && tableInfo.type !== 'primitive' && (
                   <th className={cn(
                     "text-left text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider w-12 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
                     density === 'compact' ? "px-2 py-1" : "px-1 py-2"
@@ -1423,7 +1423,7 @@ export function EnhancedTableView({
                 return (
                   <DraggableRow key={rowId} id={rowId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     {/* Row number column - 对象类型表格节点不显示此列 */}
-                    {tableInfo.type !== 'single-object' && (
+                    {tableInfo.type !== 'single-object' && tableInfo.type !== 'primitive' && (
                       <td className={cn(
                         "text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap border-l border-r border-gray-200 dark:border-gray-700",
                         density === 'compact' ? "px-2 py-1" : "px-3 py-2"
