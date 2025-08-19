@@ -291,7 +291,7 @@ export function EnhancedTableView({
   
   // Determine table type and structure
   const tableInfo = useMemo(() => {
-    if (!data) return { type: 'empty', columns: [], rows: [] };
+    if (data === null || data ===undefined) return { type: 'empty', columns: [], rows: [] };
     
     if (Array.isArray(data)) {
       if (data.length === 0) {
@@ -1103,7 +1103,7 @@ export function EnhancedTableView({
     );
   }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults, effectiveForcedExpandAll]);
   
-  if (!data) {
+  if (data === null || data === undefined) {
     return (
       <div className="flex items-center justify-center py-8 text-gray-500 dark:text-gray-400">
         <p className="text-sm">No data to display</p>
