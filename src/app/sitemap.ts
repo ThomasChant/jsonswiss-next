@@ -308,5 +308,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/changelog`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
   ]
 }
