@@ -23,8 +23,14 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getValueType, formatValue, isComplexValue } from '@/lib/table-utils';
+import { getValueType, formatValue, isComplexValue, FilterOperator, FilterConfig, matchesFilter, getOperatorsForType, getOperatorLabel, inferColumnType, DataType } from '@/lib/table-utils';
 import { Button } from '@/components/ui/button';
+import { BooleanFilter, BooleanFilterValue, booleanFilterToConfigs, matchesBooleanFilter } from './BooleanFilter';
+import { NumberFilter, NumberFilterValue, numberFilterToConfigs, matchesNumberFilter } from './NumberFilter';
+import { StringFilter, StringFilterValue, stringFilterToConfigs, matchesStringFilter } from './StringFilter';
+import { DateFilter, DateFilterValue, dateFilterToConfigs, matchesDateFilter } from './DateFilter';
+// Note: useTableFilters, FilterDialog, and FilterChips are not used in current implementation
+// They will be integrated in the next optimization phase
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -161,7 +167,7 @@ function DragHandle() {
 interface TableFilter {
   id: string;
   column: string;
-  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt' | 'gte' | 'lte';
+  operator: FilterOperator;
   value: string;
 }
 
@@ -235,8 +241,53 @@ export function EnhancedTableView({
   // Filter dialog state
   const [filterColumn, setFilterColumn] = useState('');
   const [isColumnFilterMode, setIsColumnFilterMode] = useState(false); // 是否为列级筛选模式
-  const [filterOperator, setFilterOperator] = useState<TableFilter['operator']>('contains');
+  const [filterOperator, setFilterOperator] = useState<FilterOperator>('contains');
   const [filterValue, setFilterValue] = useState('');
+  const [booleanFilterValue, setBooleanFilterValue] = useState<BooleanFilterValue>({
+    includeTrue: true,
+    includeFalse: true,
+    includeUndefined: true,
+    includeTruthy: false,
+    includeFalsy: false
+  });
+  const [numberFilterValue, setNumberFilterValue] = useState<NumberFilterValue>({
+    enableRange: false,
+    includeMin: true,
+    includeMax: true,
+    enableMultiValue: false,
+    values: [],
+    includeNull: false,
+    includeUndefined: false
+  });
+  const [stringFilterValue, setStringFilterValue] = useState<StringFilterValue>({
+    enableFuzzy: false,
+    fuzzyValue: '',
+    caseSensitive: false,
+    enableExact: false,
+    exactValue: '',
+    enableMultiValue: false,
+    values: [],
+    includeNull: false,
+    includeUndefined: false,
+    includeEmpty: false,
+    enableRegex: false,
+    regexValue: '',
+    regexFlags: ''
+  });
+
+  const [dateFilterValue, setDateFilterValue] = useState<DateFilterValue>({
+    enableRange: false,
+    includeStart: true,
+    includeEnd: true,
+    enableExact: false,
+    enableMultiValue: false,
+    values: [],
+    enableRelative: false,
+    relativeType: 'days',
+    relativeDirection: 'before',
+    includeNull: false,
+    includeUndefined: false
+  });
   
   // Search state - for highlighting
   const [searchResults, setSearchResults] = useState<Array<{rowIndex: number, columnKey: string, text: string, path?: string[]}>>([]);
@@ -380,29 +431,7 @@ export function EnhancedTableView({
           ? row.data[filter.column]
           : row.data[filter.column] || row.data;
         
-        const stringValue = String(value).toLowerCase();
-        const filterValue = filter.value.toLowerCase();
-        
-        switch (filter.operator) {
-          case 'equals':
-            return stringValue === filterValue;
-          case 'contains':
-            return stringValue.includes(filterValue);
-          case 'startsWith':
-            return stringValue.startsWith(filterValue);
-          case 'endsWith':
-            return stringValue.endsWith(filterValue);
-          case 'gt':
-            return Number(value) > Number(filter.value);
-          case 'lt':
-            return Number(value) < Number(filter.value);
-          case 'gte':
-            return Number(value) >= Number(filter.value);
-          case 'lte':
-            return Number(value) <= Number(filter.value);
-          default:
-            return true;
-        }
+        return matchesFilter(value, { column: filter.column, operator: filter.operator, value: filter.value });
       });
     });
     
@@ -1645,43 +1674,286 @@ export function EnhancedTableView({
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Operator
-              </label>
-              <Select value={filterOperator} onValueChange={(value) => setFilterOperator(value as TableFilter['operator'])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contains">Contains</SelectItem>
-                  <SelectItem value="equals">Equals</SelectItem>
-                  <SelectItem value="startsWith">Starts with</SelectItem>
-                  <SelectItem value="endsWith">Ends with</SelectItem>
-                  <SelectItem value="gt">Greater than</SelectItem>
-                  <SelectItem value="gte">Greater than or equal</SelectItem>
-                  <SelectItem value="lt">Less than</SelectItem>
-                  <SelectItem value="lte">Less than or equal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Value
-              </label>
-              <Input 
-                value={filterValue}
-                onChange={(e) => setFilterValue(e.target.value)}
-                placeholder="Enter filter value..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddFilter();
+            {(() => {
+              // 获取当前选中列的数据类型
+              const selectedColumn = tableInfo.columns.find(col => col.key === filterColumn);
+              let columnType: DataType = 'string';
+              
+              if (selectedColumn && processedData.length > 0) {
+                const columnValues = processedData.map(row => {
+                  if (tableInfo.type === 'object-array') {
+                    return row.data?.[selectedColumn.key];
+                  } else if (tableInfo.type === 'primitive-array') {
+                    return row.data;
+                  } else {
+                    return row.data?.[selectedColumn.key];
                   }
-                }}
-              />
-            </div>
+                });
+                columnType = inferColumnType(columnValues);
+              }
+              
+              if (columnType === 'boolean') {
+                return (
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Boolean Filter Options
+                    </label>
+                    <BooleanFilter 
+                      value={booleanFilterValue}
+                      onChange={setBooleanFilterValue}
+                      onApply={() => {
+                        // 将布尔筛选转换为标准筛选配置并添加
+                        const configs = booleanFilterToConfigs(filterColumn, booleanFilterValue);
+                        configs.forEach(config => {
+                          const newFilter: TableFilter = {
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            column: filterColumn,
+                            operator: config.operator,
+                            value: config.value
+                          };
+                          setFilters(prev => [...prev, newFilter]);
+                        });
+                        setShowFilterDialog(false);
+                        // 重置表单
+                        setFilterColumn('');
+                        setBooleanFilterValue({
+                          includeTrue: true,
+                          includeFalse: true,
+                          includeUndefined: true,
+                          includeTruthy: false,
+                          includeFalsy: false
+                        });
+                      }}
+                      onClear={() => {
+                        setBooleanFilterValue({
+                          includeTrue: false,
+                          includeFalse: false,
+                          includeUndefined: false,
+                          includeTruthy: false,
+                          includeFalsy: false
+                        });
+                      }}
+                      columnName={filterColumn}
+                    />
+                  </div>
+                );
+              }
+              
+              if (columnType === 'number') {
+                return (
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Number Filter Options
+                    </label>
+                    <NumberFilter 
+                      value={numberFilterValue}
+                      onChange={setNumberFilterValue}
+                      onApply={() => {
+                        // 将数值筛选转换为标准筛选配置并添加
+                        const configs = numberFilterToConfigs(filterColumn, numberFilterValue);
+                        configs.forEach(config => {
+                          const newFilter: TableFilter = {
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            column: filterColumn,
+                            operator: config.operator,
+                            value: config.value
+                          };
+                          setFilters(prev => [...prev, newFilter]);
+                        });
+                        setShowFilterDialog(false);
+                        // 重置表单
+                        setFilterColumn('');
+                        setNumberFilterValue({
+                          enableRange: false,
+                          includeMin: true,
+                          includeMax: true,
+                          enableMultiValue: false,
+                          values: [],
+                          includeNull: false,
+                          includeUndefined: false
+                        });
+                      }}
+                      onClear={() => {
+                        setNumberFilterValue({
+                          enableRange: false,
+                          includeMin: true,
+                          includeMax: true,
+                          enableMultiValue: false,
+                          values: [],
+                          includeNull: false,
+                          includeUndefined: false
+                        });
+                      }}
+                      columnName={filterColumn}
+                    />
+                  </div>
+                );
+              }
+              
+              if (columnType === 'string') {
+                return (
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      String Filter Options
+                    </label>
+                    <StringFilter 
+                      value={stringFilterValue}
+                      onChange={setStringFilterValue}
+                      onApply={() => {
+                        // 将字符串筛选转换为标准筛选配置并添加
+                        const configs = stringFilterToConfigs(filterColumn, stringFilterValue);
+                        configs.forEach(config => {
+                          const newFilter: TableFilter = {
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            column: filterColumn,
+                            operator: config.operator,
+                            value: config.value
+                          };
+                          setFilters(prev => [...prev, newFilter]);
+                        });
+                        setShowFilterDialog(false);
+                        // 重置表单
+                        setFilterColumn('');
+                        setStringFilterValue({
+                          enableFuzzy: false,
+                          fuzzyValue: '',
+                          caseSensitive: false,
+                          enableExact: false,
+                          exactValue: '',
+                          enableMultiValue: false,
+                          values: [],
+                          includeNull: false,
+                          includeUndefined: false,
+                          includeEmpty: false,
+                          enableRegex: false,
+                          regexValue: '',
+                          regexFlags: ''
+                        });
+                      }}
+                      onClear={() => {
+                        setStringFilterValue({
+                          enableFuzzy: false,
+                          fuzzyValue: '',
+                          caseSensitive: false,
+                          enableExact: false,
+                          exactValue: '',
+                          enableMultiValue: false,
+                          values: [],
+                          includeNull: false,
+                          includeUndefined: false,
+                          includeEmpty: false,
+                          enableRegex: false,
+                          regexValue: '',
+                          regexFlags: ''
+                        });
+                      }}
+                      columnName={filterColumn}
+                    />
+                  </div>
+                );
+              }
+               
+               if (columnType === 'date') {
+                 return (
+                   <div className="space-y-4">
+                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                       Date Filter Options
+                     </label>
+                     <DateFilter 
+                       value={dateFilterValue}
+                       onChange={setDateFilterValue}
+                       onApply={() => {
+                         // 将日期筛选转换为标准筛选配置并添加
+                         const configs = dateFilterToConfigs(filterColumn, dateFilterValue);
+                         configs.forEach(config => {
+                           const newFilter: TableFilter = {
+                             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                             column: filterColumn,
+                             operator: config.operator,
+                             value: config.value
+                           };
+                           setFilters(prev => [...prev, newFilter]);
+                         });
+                         setShowFilterDialog(false);
+                         // 重置表单
+                         setFilterColumn('');
+                         setDateFilterValue({
+                           enableRange: false,
+                           includeStart: true,
+                           includeEnd: true,
+                           enableExact: false,
+                           enableMultiValue: false,
+                           values: [],
+                           enableRelative: false,
+                           relativeType: 'days',
+                           relativeDirection: 'before',
+                           includeNull: false,
+                           includeUndefined: false
+                         });
+                       }}
+                       onClear={() => {
+                         setDateFilterValue({
+                           enableRange: false,
+                           includeStart: true,
+                           includeEnd: true,
+                           enableExact: false,
+                           enableMultiValue: false,
+                           values: [],
+                           enableRelative: false,
+                           relativeType: 'days',
+                           relativeDirection: 'before',
+                           includeNull: false,
+                           includeUndefined: false
+                         });
+                       }}
+                       columnName={filterColumn}
+                     />
+                   </div>
+                 );
+               }
+               
+               // 对于非布尔类型，显示传统的操作符和值输入界面
+              const availableOperators = getOperatorsForType(columnType);
+              
+              return (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Operator
+                    </label>
+                    <Select value={filterOperator} onValueChange={(value) => setFilterOperator(value as FilterOperator)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableOperators.map(op => (
+                          <SelectItem key={op} value={op}>
+                            {getOperatorLabel(op)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Value
+                    </label>
+                    <Input 
+                      value={filterValue}
+                      onChange={(e) => setFilterValue(e.target.value)}
+                      placeholder="Enter filter value..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddFilter();
+                        }
+                      }}
+                    />
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <DialogFooter>
             <Button 

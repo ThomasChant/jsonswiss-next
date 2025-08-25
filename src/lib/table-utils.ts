@@ -7,10 +7,19 @@ export type FilterOperator =
   | 'ends_with'
   | 'greater_than'
   | 'less_than'
+  | 'greater_than_or_equal'
+  | 'less_than_or_equal'
   | 'is_empty'
-  | 'is_not_empty';
+  | 'is_not_empty'
+  | 'is_null'
+  | 'is_undefined'
+  | 'is_true'
+  | 'is_false'
+  | 'is_truthy'
+  | 'is_falsy'
+  | 'regex';
 
-export type DataType = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null' | 'undefined';
+export type DataType = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null' | 'undefined' | 'date';
 
 export type TableType = 'object-array' | 'primitive-array' | 'single-object';
 
@@ -137,6 +146,44 @@ export function matchesFilter(value: any, filter: FilterConfig): boolean {
       }
       return valueStr.localeCompare(filterStr) < 0;
     
+    case 'greater_than_or_equal':
+      if (typeof value === 'number' && !isNaN(Number(filterValue))) {
+        return value >= Number(filterValue);
+      }
+      return valueStr.localeCompare(filterStr) >= 0;
+    
+    case 'less_than_or_equal':
+      if (typeof value === 'number' && !isNaN(Number(filterValue))) {
+        return value <= Number(filterValue);
+      }
+      return valueStr.localeCompare(filterStr) <= 0;
+    
+    case 'is_null':
+      return value === null;
+    
+    case 'is_undefined':
+      return value === undefined;
+    
+    case 'is_true':
+      return value === true;
+    
+    case 'is_false':
+      return value === false;
+    
+    case 'is_truthy':
+      return Boolean(value);
+    
+    case 'is_falsy':
+      return !Boolean(value);
+    
+    case 'regex':
+      try {
+        const regex = new RegExp(filterValue);
+        return regex.test(valueStr);
+      } catch {
+        return false;
+      }
+    
     default:
       return true;
   }
@@ -155,8 +202,17 @@ export function getOperatorDisplay(operator: FilterOperator): string {
     ends_with: '$',
     greater_than: '>',
     less_than: '<',
+    greater_than_or_equal: '≥',
+    less_than_or_equal: '≤',
     is_empty: '∅',
-    is_not_empty: '≠∅'
+    is_not_empty: '≠∅',
+    is_null: 'null',
+    is_undefined: '?',
+    is_true: '✓',
+    is_false: '✗',
+    is_truthy: '⊤',
+    is_falsy: '⊥',
+    regex: '.*'
   };
   
   return operatorMap[operator] || operator;
@@ -175,8 +231,17 @@ export function getOperatorLabel(operator: FilterOperator): string {
     ends_with: 'Ends with',
     greater_than: 'Greater than',
     less_than: 'Less than',
+    greater_than_or_equal: 'Greater than or equal',
+    less_than_or_equal: 'Less than or equal',
     is_empty: 'Is empty',
-    is_not_empty: 'Is not empty'
+    is_not_empty: 'Is not empty',
+    is_null: 'Is null',
+    is_undefined: 'Is undefined',
+    is_true: 'Is true',
+    is_false: 'Is false',
+    is_truthy: 'Is truthy',
+    is_falsy: 'Is falsy',
+    regex: 'Regex match'
   };
   
   return operatorLabels[operator] || operator;
@@ -222,20 +287,18 @@ export function getOperatorsForType(dataType: DataType): FilterOperator[] {
   
   switch (dataType) {
     case 'string':
-      return [...baseOperators, 'contains', 'not_contains', 'starts_with', 'ends_with'];
-    
+      return ['equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'ends_with', 'is_empty', 'is_not_empty', 'is_null', 'is_undefined', 'regex'];
     case 'number':
-      return [...baseOperators, 'greater_than', 'less_than'];
-    
+      return ['equals', 'not_equals', 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'is_null', 'is_undefined'];
     case 'boolean':
-      return ['equals', 'not_equals'];
-    
+      return ['equals', 'not_equals', 'is_true', 'is_false', 'is_undefined', 'is_truthy', 'is_falsy', 'is_null'];
+    case 'date':
+      return ['equals', 'not_equals', 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'is_null', 'is_undefined'];
     case 'object':
     case 'array':
-      return ['equals', 'not_equals', 'is_empty', 'is_not_empty'];
-    
+      return ['equals', 'not_equals', 'is_empty', 'is_not_empty', 'is_null', 'is_undefined'];
     default:
-      return baseOperators;
+      return ['equals', 'not_equals', 'is_null', 'is_undefined'];
   }
 }
 
