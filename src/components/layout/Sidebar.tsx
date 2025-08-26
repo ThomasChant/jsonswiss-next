@@ -31,6 +31,7 @@ import { AddChildDialog } from './AddChildDialog';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { SidebarJsonEditor } from '@/components/editor/SidebarJsonEditor';
 import { useClipboard } from '@/hooks/useClipboard';
+import { SidebarNavigationEmptyState } from '@/components/ui/EmptyState';
 
 interface TreeNodeProps {
   data: any;
@@ -640,8 +641,33 @@ export function Sidebar({ onNodeSelect }: SidebarProps = {}) {
               <SidebarJsonEditor className="h-full" />
             </div>
           ) : (
-            <div className="sidebar-navigation-container flex items-center justify-center text-sm text-muted-foreground">
-              <p>No JSON data loaded</p>
+            <div className="sidebar-navigation-container">
+              <SidebarNavigationEmptyState 
+                onImport={() => {
+                  // 触发导入功能
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = '.json';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        try {
+                          const content = e.target?.result as string;
+                          const parsed = JSON.parse(content);
+                          setJsonData(parsed, `Imported from ${file.name}`);
+                          toast.success(`Successfully imported ${file.name}`);
+                        } catch (error) {
+                          toast.error('Invalid JSON file');
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  };
+                  input.click();
+                }}
+              />
             </div>
           )}
         </div>
