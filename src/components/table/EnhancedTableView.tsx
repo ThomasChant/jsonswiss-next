@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 import { getValueType, formatValue, isComplexValue, FilterOperator, FilterConfig, matchesFilter, getOperatorsForType, getOperatorLabel, inferColumnType, DataType } from '@/lib/table-utils';
 import { Button } from '@/components/ui/button';
+import { useClipboard } from '@/hooks/useClipboard';
 import { BooleanFilter, BooleanFilterValue, booleanFilterToConfigs, matchesBooleanFilter } from './BooleanFilter';
 import { NumberFilter, NumberFilterValue, numberFilterToConfigs, matchesNumberFilter } from './NumberFilter';
 import { StringFilter, StringFilterValue, stringFilterToConfigs, matchesStringFilter } from './StringFilter';
@@ -213,6 +214,12 @@ export function EnhancedTableView({
   const [sortState, setSortState] = useState<SortState>({ column: null, direction: null });
   const [filters, setFilters] = useState<TableFilter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Clipboard functionality
+  const { copy, copied, isLoading: copying } = useClipboard({
+    successMessage: 'JSON data copied to clipboard',
+    errorMessage: 'Failed to copy JSON data'
+  });
   
   // Drag and drop sensors
   const sensors = useSensors(
@@ -691,6 +698,15 @@ export function EnhancedTableView({
     setExpandedRows(new Set());
   }, []);
   
+  const handleCopyJson = useCallback(async () => {
+    try {
+      const jsonString = JSON.stringify(data, null, 2);
+      await copy(jsonString);
+    } catch (error) {
+      console.error('Failed to copy JSON:', error);
+    }
+  }, [data, copy]);
+
   const handleStartEdit = useCallback((rowIndex: number, column: string, currentValue: any) => {
     setEditingCell({ row: rowIndex, column });
     // Format JSON values with proper indentation for better editing experience
@@ -1387,6 +1403,21 @@ export function EnhancedTableView({
                               <Filter size={14} className="mr-2" />
                               Add Filter
                             </DropdownMenuItem>
+                            
+                            {/* Copy JSON */}
+                            <DropdownMenuItem 
+                              onClick={handleCopyJson}
+                              disabled={copying || !data}
+                              className="py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            >
+                              <Copy className={cn(
+                                "w-3.5 h-3.5 mr-2",
+                                copied && "text-green-600 dark:text-green-400"
+                              )} />
+                              {copying ? 'Copying...' : copied ? 'Copied!' : 'Copy JSON'}
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
                             
                             {/* Export submenu */}
                             <DropdownMenuSub>
