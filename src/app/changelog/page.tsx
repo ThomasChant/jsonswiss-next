@@ -23,6 +23,36 @@ export const metadata: Metadata = {
 // Changelog entries - based on actual Git commit history
 const changelogEntries = [
   {
+    version: "v2.3.0",
+    date: "2025-09-01",
+    type: "feature",
+    title: "Date Type Support and UI Enhancements",
+    description: "Added comprehensive date type support with visual styling and improved table functionality with clipboard operations.",
+    changes: [
+      "Added color styling and label support for date data types in table headers",
+      "Implemented copy JSON data to clipboard functionality for table operations",
+      "Added empty state component and improved JSON editor import functionality",
+      "Enhanced changelog page with complete feature documentation",
+      "Fixed TypeScript type errors for complete DataType union coverage"
+    ],
+    author: "Development Team",
+    commit: "6ca13ab"
+  },
+  {
+    version: "v2.2.1",
+    date: "2025-08-28",
+    type: "feature",
+    title: "Table Copy Functionality",
+    description: "Enhanced table operations with clipboard integration for better data management.",
+    changes: [
+      "Added copy JSON data to clipboard functionality for table components",
+      "Improved user experience with instant data copying capabilities",
+      "Enhanced table interaction patterns for better productivity"
+    ],
+    author: "Development Team",
+    commit: "a29f16b"
+  },
+  {
     version: "v2.2.0",
     date: "2025-08-25",
     type: "feature",
