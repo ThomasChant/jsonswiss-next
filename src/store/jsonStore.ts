@@ -228,7 +228,9 @@ export const useJsonStore = create<JsonState>()(
           }
           set({ 
             sidebarMode: mode,
-            sidebarEditorContent: formattedContent
+            sidebarEditorContent: formattedContent,
+            // 切换到编辑器时，主表格视图回到根节点（展示整个 JSON）
+            selectedPath: [],
           });
         } else if (mode === 'navigation' && state.sidebarMode === 'editor') {
           // Switching from editor to navigation: parse editor content if valid
