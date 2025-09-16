@@ -24,7 +24,7 @@ import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { useClipboard } from "@/hooks/useClipboard";
 
 export default function ValidatorPage() {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const { copy } = useClipboard();
   const [inputJson, setInputJson] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -157,7 +157,7 @@ export default function ValidatorPage() {
                     language="json"
                     value={inputJson}
                     onChange={(value) => handleInputChange(value || '')}
-                    theme={theme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,

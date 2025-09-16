@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface FeatureCard {
   id: string;
@@ -156,6 +157,20 @@ const schemaFeatures: FeatureCard[] = [
   }
 ];
 
+const colorStyles: Record<string, { background: string; icon: string }> = {
+  blue: { background: "bg-blue-100 dark:bg-blue-900/30", icon: "text-blue-600 dark:text-blue-300" },
+  green: { background: "bg-green-100 dark:bg-green-900/30", icon: "text-green-600 dark:text-green-300" },
+  purple: { background: "bg-purple-100 dark:bg-purple-900/30", icon: "text-purple-600 dark:text-purple-300" },
+  orange: { background: "bg-orange-100 dark:bg-orange-900/30", icon: "text-orange-600 dark:text-orange-300" },
+  cyan: { background: "bg-cyan-100 dark:bg-cyan-900/30", icon: "text-cyan-600 dark:text-cyan-300" },
+  red: { background: "bg-red-100 dark:bg-red-900/30", icon: "text-red-600 dark:text-red-300" },
+  emerald: { background: "bg-emerald-100 dark:bg-emerald-900/30", icon: "text-emerald-600 dark:text-emerald-300" },
+  indigo: { background: "bg-indigo-100 dark:bg-indigo-900/30", icon: "text-indigo-600 dark:text-indigo-300" },
+  amber: { background: "bg-amber-100 dark:bg-amber-900/30", icon: "text-amber-600 dark:text-amber-300" },
+  yellow: { background: "bg-yellow-100 dark:bg-yellow-900/30", icon: "text-yellow-600 dark:text-yellow-300" },
+  default: { background: "bg-gray-100 dark:bg-slate-800/80", icon: "text-gray-600 dark:text-slate-300" },
+};
+
 export function FeatureCards() {
   const [activeCategory, setActiveCategory] = useState('all');
   
@@ -199,7 +214,7 @@ export function FeatureCards() {
     <div className="space-y-8">
       {/* Category Tabs */}
       <div className="flex flex-wrap justify-center gap-2 mb-8">
-        {[
+        {[ 
           { id: 'all', label: 'All', count: allTools.length },
           { id: 'core', label: 'Core Tools', count: coreFeatures.length },
           { id: 'schema', label: 'JSON Schema', count: schemaFeatures.length },
@@ -209,11 +224,12 @@ export function FeatureCards() {
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            className={cn(
+              "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
               activeCategory === category.id
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+                ? "bg-blue-600 text-white shadow-md dark:bg-blue-500 dark:text-white dark:shadow-blue-900/30"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            )}
           >
             {category.label}
           </button>
@@ -224,50 +240,31 @@ export function FeatureCards() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3">
         {filteredTools.map((tool) => {
           const IconComponent = tool.icon;
+          const styles = colorStyles[tool.color] ?? colorStyles.default;
           return (
             <Link
               key={tool.id}
               href={tool.href}
-              className="group bg-white rounded-lg border border-gray-200 p-4 text-center hover:shadow-lg transition-all duration-200 hover:border-blue-300"
+              className={cn(
+                "group rounded-lg border p-4 text-center transition-all duration-200",
+                "bg-white border-gray-200 hover:shadow-lg hover:border-blue-300",
+                "dark:bg-slate-900 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-slate-800"
+              )}
             >
-              <div className={`w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center ${
-                tool.color === 'blue' ? 'bg-blue-100' :
-                tool.color === 'green' ? 'bg-green-100' :
-                tool.color === 'purple' ? 'bg-purple-100' :
-                tool.color === 'orange' ? 'bg-orange-100' :
-                tool.color === 'cyan' ? 'bg-cyan-100' :
-                tool.color === 'red' ? 'bg-red-100' :
-                tool.color === 'emerald' ? 'bg-emerald-100' :
-                tool.color === 'indigo' ? 'bg-indigo-100' :
-                tool.color === 'amber' ? 'bg-amber-100' :
-                tool.color === 'yellow' ? 'bg-yellow-100' :
-                'bg-gray-100'
-              }`}>
-                <IconComponent className={`w-8 h-8 ${
-                  tool.color === 'blue' ? 'text-blue-600' :
-                  tool.color === 'green' ? 'text-green-600' :
-                  tool.color === 'purple' ? 'text-purple-600' :
-                  tool.color === 'orange' ? 'text-orange-600' :
-                  tool.color === 'cyan' ? 'text-cyan-600' :
-                  tool.color === 'red' ? 'text-red-600' :
-                  tool.color === 'emerald' ? 'text-emerald-600' :
-                  tool.color === 'indigo' ? 'text-indigo-600' :
-                  tool.color === 'amber' ? 'text-amber-600' :
-                  tool.color === 'yellow' ? 'text-yellow-600' :
-                  'text-gray-600'
-                }`} />
+              <div className={cn("w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center", styles.background)}>
+                <IconComponent className={cn("w-8 h-8", styles.icon)} />
               </div>
-              
-              <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors text-sm">
+
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors text-sm">
                 {tool.title}
               </h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
+              <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
                 {tool.description}
               </p>
-              
+
               {tool.badge && (
                 <div className="mt-3">
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                  <span className="inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full font-medium">
                     {tool.badge}
                   </span>
                 </div>
