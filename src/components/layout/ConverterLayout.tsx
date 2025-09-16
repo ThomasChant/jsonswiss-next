@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { useTheme } from "next-themes";
 import { Editor } from "@monaco-editor/react";
 import {
   Download,
@@ -108,6 +109,8 @@ export function ConverterLayout({
   extraActions,
   stats
 }: ConverterLayoutProps) {
+  const { resolvedTheme } = useTheme();
+
 
   const defaultEmptyState = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -191,7 +194,7 @@ export function ConverterLayout({
                       defaultLanguage={inputLanguage}
                       value={inputData}
                       onChange={onInputChange}
-                      theme="vs"
+                      theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
                       options={{
                         minimap: { enabled: false },
                         fontSize: 14,
@@ -288,7 +291,7 @@ export function ConverterLayout({
                       height="100%"
                       defaultLanguage={outputLanguage}
                       value={outputData}
-                      theme="vs"
+                      theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
                       options={{
                         minimap: { enabled: false },
                         fontSize: 14,

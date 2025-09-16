@@ -1,9 +1,6 @@
 import Link from "next/link";
-import { 
-  Sun, 
-  Moon, 
-  Settings, 
-  ChevronDown, 
+import {
+  ChevronDown,
   Edit3,
   ArrowRightLeft,
   Code2,
@@ -30,13 +27,14 @@ import {
   FileArchive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { 
-  editorMenuItems, 
+import {
+  editorMenuItems,
   converterMenuSections, 
   generatorMenuSections, 
   schemaMenuItems 
 } from "@/data/navigation";
 import { DropdownMenu } from "@/components/ui/DropdownMenuServer";
+import { ThemeToggle } from "./ThemeToggle";
 
 // 图标映射
 const iconMap: Record<string, any> = {
@@ -223,18 +221,10 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
 
            
           </div>
-           {/* Additional Actions */}
-           <div className="flex items-center space-x-2 border-slate-200 dark:border-slate-700 pl-4">
-              {/* Theme Toggle - Invisible but with placeholder */}
-              <div className="p-2 rounded-lg invisible">
-                <div className="w-5 h-5" />
-              </div>
-
-              {/* Settings - Invisible but with placeholder */}
-              <div className="p-2 rounded-lg invisible">
-                <div className="w-5 h-5" />
-              </div>
-            </div>
+          {/* Additional Actions */}
+          <div className="flex items-center space-x-2 pl-4 border-l border-slate-200 dark:border-slate-700">
+            <ThemeToggle className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100" />
+          </div>
         </div>
       </div>
     </header>

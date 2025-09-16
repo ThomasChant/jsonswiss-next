@@ -34,7 +34,7 @@ export default function Home() {
     <>
       <StructuredData data={homePageStructuredData} />
       <StructuredData data={organizationStructuredData} />
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
         {/* Header */}
         <HeaderServer />
       
@@ -43,10 +43,10 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-12">
-              <h1 className="text-xl md:text-4xl font-bold text-slate-900 mb-6">
+              <h1 className="text-xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6">
                 Every tool you need to work with JSONs in one place
               </h1>
-              <p className="text-lg text-slate-600 mb-8 max-w-4xl mx-auto leading-relaxed">
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-4xl mx-auto leading-relaxed">
                 Every tool you need to use JSONs, at your fingertips. All are 100% FREE and easy to use! Format, validate, convert, compare and generate JSONs with just a few clicks.
               </p>
             </div>
