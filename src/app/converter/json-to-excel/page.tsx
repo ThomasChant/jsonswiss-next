@@ -72,7 +72,7 @@ export default function JsonToExcelPage() {
     convertJsonToExcel(jsonValue);
   };
 
-  const convertJsonToExcel = (jsonInput: string) => {
+  const convertJsonToExcel = (jsonInput: string, effectiveOptions?: JsonToExcelOptions) => {
     if (!jsonInput.trim()) {
       setDownloadReady(false);
       setExcelBuffer(null);
@@ -87,6 +87,7 @@ export default function JsonToExcelPage() {
     try {
       const parsedData = JSON.parse(jsonInput);
       console.log('Converting JSON to Excel:', parsedData);
+      const opts = effectiveOptions || options;
       
       // 准备预览数据 - 和Excel转换使用相同的展平逻辑
       let previewArray: any[];
@@ -115,7 +116,7 @@ export default function JsonToExcelPage() {
       // 根据flatten选项处理预览数据（和converters.ts中的逻辑一致）
       const processedPreviewData = allPrimitive
         ? previewArray.map(item => ({ value: item })) // 为原始值数组使用一致的列名
-        : options.flattenData 
+        : opts.flattenData 
           ? previewArray.map((item, index) => {
               if (typeof item !== 'object' || item === null) {
                 return { [`value_${index}`]: item };
@@ -139,7 +140,7 @@ export default function JsonToExcelPage() {
             });
 
       // 生成Excel文件
-      const buffer = jsonToExcel(parsedData, options);
+      const buffer = jsonToExcel(parsedData, opts);
       console.log('Excel conversion successful, buffer type:', typeof buffer, 'byteLength:', buffer?.byteLength);
       
       setExcelBuffer(buffer);
@@ -162,7 +163,8 @@ export default function JsonToExcelPage() {
     setOptions(updatedOptions);
     
     if (inputJson.trim()) {
-      convertJsonToExcel(inputJson);
+      // Use the immediately updated options for conversion
+      convertJsonToExcel(inputJson, updatedOptions);
     }
   };
 
@@ -340,6 +342,7 @@ export default function JsonToExcelPage() {
       maxHeight="100%"
       className="h-full"
       isLoading={isConverting}
+      showHeader={options.includeHeaders}
     />
   );
 
