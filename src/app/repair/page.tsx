@@ -1,7 +1,6 @@
 
 "use client";
 
-import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
 import { AIRepairService } from "@/lib/ai-utils";
@@ -63,9 +62,15 @@ export default function RepairPage() {
   };
 
   const handleImport = (json: any) => {
-    const jsonString = JSON.stringify(json, null, 2);
-    setInputJson(jsonString);
-    handleInputChange(jsonString);
+    // Accept either parsed JSON or raw invalid JSON string
+    if (typeof json === 'string') {
+      setInputJson(json);
+      handleInputChange(json);
+    } else {
+      const jsonString = JSON.stringify(json, null, 2);
+      setInputJson(jsonString);
+      handleInputChange(jsonString);
+    }
   };
 
   const handleCopyRepaired = async () => {
@@ -165,6 +170,7 @@ export default function RepairPage() {
         onToggleOutputMaximize={() => {}}
         onToggleSettings={() => setShowSettings(!showSettings)}
         onToggleImportDialog={setImportDialogOpen}
+        allowInvalidJsonImport
         settingsPanel={
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">How JSON Repair Works</h3>
@@ -234,11 +240,7 @@ export default function RepairPage() {
         }
       />
       
-      <ImportJsonDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImport}
-      />
+      {/* Import dialog is provided by ConverterLayout with allowInvalidJsonImport */}
     </>
   );
 }

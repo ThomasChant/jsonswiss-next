@@ -32,7 +32,7 @@ export interface ImportMetadata {
   contentType?: string;
 }
 
-interface ImportJsonDialogProps {
+export interface ImportJsonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport?: (json: any, source: ImportSource, metadata: ImportMetadata) => void;
@@ -40,6 +40,8 @@ interface ImportJsonDialogProps {
   title?: string;
   description?: string;
   showComparisonSamples?: boolean;
+  // When true, allow importing invalid JSON (pass raw content string)
+  allowInvalidJson?: boolean;
 }
 
 type TabId = ImportSource;
@@ -78,6 +80,7 @@ export function ImportJsonDialog({
   title = 'Import JSON Data',
   description = 'Choose how you want to import your JSON data',
   showComparisonSamples = false,
+  allowInvalidJson = false,
 }: ImportJsonDialogProps) {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [pasteContent, setPasteContent] = useState('');
@@ -88,7 +91,8 @@ export function ImportJsonDialog({
   const [selectedComparisonSample, setSelectedComparisonSample] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { importFile, isLoading: fileLoading } = useFileImport({ autoDetectFormat: true });
+  // In repair mode (allowInvalidJson), skip strict JSON validation in the hook
+  const { importFile, isLoading: fileLoading } = useFileImport({ autoDetectFormat: !allowInvalidJson });
   const { setJsonData } = useJsonStore();
 
   // Validate JSON paste content
@@ -123,7 +127,6 @@ export function ImportJsonDialog({
     try {
       const result = await importFile(file);
       if (result) {
-        const parsedJson = JSON.parse(result.content);
         const metadata: ImportMetadata = {
           source: 'file',
           fileName: result.fileName,
@@ -131,14 +134,20 @@ export function ImportJsonDialog({
           contentType: result.fileType,
         };
 
-        setJsonData(parsedJson, `Import file: ${result.fileName}`);
-        onImport?.(parsedJson, 'file', metadata);
+        if (allowInvalidJson) {
+          // Pass raw content string for repair workflows
+          onImport?.(result.content, 'file', metadata);
+        } else {
+          const parsedJson = JSON.parse(result.content);
+          setJsonData(parsedJson, `Import file: ${result.fileName}`);
+          onImport?.(parsedJson, 'file', metadata);
+        }
         onOpenChange(false);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to import file');
     }
-  }, [importFile, setJsonData, onImport, onOpenChange]);
+  }, [importFile, setJsonData, onImport, onOpenChange, allowInvalidJson]);
 
   // Handle drag and drop
   const handleDrop = useCallback(async (e: React.DragEvent) => {
@@ -151,7 +160,6 @@ export function ImportJsonDialog({
     try {
       const result = await importFile(file);
       if (result) {
-        const parsedJson = JSON.parse(result.content);
         const metadata: ImportMetadata = {
           source: 'file',
           fileName: result.fileName,
@@ -159,14 +167,19 @@ export function ImportJsonDialog({
           contentType: result.fileType,
         };
 
-        setJsonData(parsedJson, `Import file: ${result.fileName}`);
-        onImport?.(parsedJson, 'file', metadata);
+        if (allowInvalidJson) {
+          onImport?.(result.content, 'file', metadata);
+        } else {
+          const parsedJson = JSON.parse(result.content);
+          setJsonData(parsedJson, `Import file: ${result.fileName}`);
+          onImport?.(parsedJson, 'file', metadata);
+        }
         onOpenChange(false);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to import file');
     }
-  }, [importFile, setJsonData, onImport, onOpenChange]);
+  }, [importFile, setJsonData, onImport, onOpenChange, allowInvalidJson]);
 
   // Handle URL import
   const handleUrlImport = useCallback(async () => {
@@ -277,6 +290,15 @@ export function ImportJsonDialog({
       return;
     }
 
+    // In repair mode, allow importing raw invalid JSON text
+    if (allowInvalidJson) {
+      const metadata: ImportMetadata = { source: 'paste' };
+      onImport?.(pasteContent, 'paste', metadata);
+      onOpenChange(false);
+      toast.success('Content imported for repair');
+      return;
+    }
+
     if (pasteError) {
       toast.error('Please fix the JSON syntax errors before importing');
       return;
@@ -295,7 +317,7 @@ export function ImportJsonDialog({
     } catch (error) {
       toast.error('Failed to parse JSON content');
     }
-  }, [pasteContent, pasteError, setJsonData, onImport, onOpenChange]);
+  }, [pasteContent, pasteError, setJsonData, onImport, onOpenChange, allowInvalidJson]);
 
   // Reset state when dialog closes
   React.useEffect(() => {
@@ -342,10 +364,10 @@ export function ImportJsonDialog({
             </div>
             <Button 
               onClick={handlePasteImport}
-              disabled={!pasteContent.trim() || !!pasteError}
+              disabled={!pasteContent.trim() || (!allowInvalidJson && !!pasteError)}
               className="w-full"
             >
-              Import JSON
+              {allowInvalidJson ? 'Import JSON' : 'Import JSON'}
             </Button>
           </div>
         );

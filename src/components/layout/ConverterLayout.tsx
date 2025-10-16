@@ -72,6 +72,8 @@ interface ConverterLayoutProps {
   
   // 统计信息
   stats?: ReactNode;
+  // Allow invalid JSON import for repair workflows
+  allowInvalidJsonImport?: boolean;
 }
 
 export function ConverterLayout({
@@ -106,7 +108,8 @@ export function ConverterLayout({
   customInputContent,
   customOutputContent,
   extraActions,
-  stats
+  stats,
+  allowInvalidJsonImport = false,
 }: ConverterLayoutProps) {
 
   const defaultEmptyState = (
@@ -316,6 +319,7 @@ export function ConverterLayout({
           open={importDialogOpen}
           onOpenChange={onToggleImportDialog}
           onImport={onImport!}
+          allowInvalidJson={allowInvalidJsonImport}
         />
       )}
     </ToolPageLayoutServer>
