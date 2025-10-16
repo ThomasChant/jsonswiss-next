@@ -99,7 +99,7 @@ export default function JsonToIniPage() {
   const emptyStateContent = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
       <div className="text-center">
-        <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <FileText className="w-16 h-16 mx-auto mb-6 opacity-60" />
         <p>Add JSON data to see INI output</p>
         <p className="text-sm mt-2">Your converted INI configuration will appear here</p>
       </div>

@@ -186,8 +186,9 @@ export function jsonToExcel(jsonData: any, options: JsonToExcelOptions = {}): Ar
           });
     
     // Create worksheet from JSON
+    // Use skipHeader to control whether the header row is written
     const worksheet = XLSX.utils.json_to_sheet(processedData, {
-      header: includeHeaders ? undefined : [], // Let xlsx auto-generate headers or provide empty array
+      skipHeader: !includeHeaders,
     });
     
     // Create workbook and add worksheet

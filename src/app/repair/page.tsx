@@ -1,7 +1,6 @@
 
 "use client";
 
-import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
 import { AIRepairService } from "@/lib/ai-utils";
@@ -23,6 +22,8 @@ export default function RepairPage() {
   const [repairProvider, setRepairProvider] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [isInputMaximized, setIsInputMaximized] = useState(false);
+  const [isOutputMaximized, setIsOutputMaximized] = useState(false);
   const { copy } = useClipboard({ successMessage: 'JSON repaired and copied to clipboard' });
   
   const [aiService] = useState(() => new AIRepairService());
@@ -63,9 +64,15 @@ export default function RepairPage() {
   };
 
   const handleImport = (json: any) => {
-    const jsonString = JSON.stringify(json, null, 2);
-    setInputJson(jsonString);
-    handleInputChange(jsonString);
+    // Accept either parsed JSON or raw invalid JSON string
+    if (typeof json === 'string') {
+      setInputJson(json);
+      handleInputChange(json);
+    } else {
+      const jsonString = JSON.stringify(json, null, 2);
+      setInputJson(jsonString);
+      handleInputChange(jsonString);
+    }
   };
 
   const handleCopyRepaired = async () => {
@@ -84,6 +91,22 @@ export default function RepairPage() {
     a.download = "repaired.json";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleToggleInputMaximize = () => {
+    setIsInputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsOutputMaximized(false);
+      return next;
+    });
+  };
+
+  const handleToggleOutputMaximize = () => {
+    setIsOutputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsInputMaximized(false);
+      return next;
+    });
   };
 
 
@@ -124,8 +147,8 @@ export default function RepairPage() {
         inputData={inputJson}
         outputData={repairedJson}
         error={error}
-        isInputMaximized={false}
-        isOutputMaximized={false}
+        isInputMaximized={isInputMaximized}
+        isOutputMaximized={isOutputMaximized}
         showSettings={showSettings}
         importDialogOpen={importDialogOpen}
         inputValidationStatus={
@@ -161,10 +184,11 @@ export default function RepairPage() {
         onCopy={handleCopyRepaired}
         onDownload={handleDownload}
         onImport={handleImport}
-        onToggleInputMaximize={() => {}}
-        onToggleOutputMaximize={() => {}}
+        onToggleInputMaximize={handleToggleInputMaximize}
+        onToggleOutputMaximize={handleToggleOutputMaximize}
         onToggleSettings={() => setShowSettings(!showSettings)}
         onToggleImportDialog={setImportDialogOpen}
+        allowInvalidJsonImport
         settingsPanel={
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">How JSON Repair Works</h3>
@@ -234,11 +258,7 @@ export default function RepairPage() {
         }
       />
       
-      <ImportJsonDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImport}
-      />
+      {/* Import dialog is provided by ConverterLayout with allowInvalidJsonImport */}
     </>
   );
 }

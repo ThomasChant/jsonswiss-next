@@ -23,6 +23,32 @@ export const metadata: Metadata = {
 // Changelog entries - based on actual Git commit history
 const changelogEntries = [
   {
+    version: "v2.4.0",
+    date: "2025-10-16",
+    type: "feature",
+    title: "Excel preview fixes, Repair import improvements, and UI polish",
+    description: "Overhauled JSON→Excel experience (accurate preview, header control, TSV copy), enabled invalid JSON import for Repair, and refined empty‑state visuals across converters.",
+    changes: [
+      // JSON → Excel
+      "Fixed preview showing undefined cells by using explicit accessors for flattened keys",
+      "Added dual-line headers (Excel letter + field name) with truncation to prevent overlap",
+      "Include headers toggle now affects exported files (uses skipHeader) and live preview",
+      "Copy Excel Preview now copies a clean TSV table instead of raw JSON",
+      "Improved width calculations and scrolling; renders empty cells for null/undefined",
+
+      // JSON Repair
+      "Import dialog supports invalid JSON (Paste/File) for Repair workflows; Import button enabled on errors",
+      "Wired Repair page maximize controls so expand buttons actually toggle panes",
+
+      // UI/UX
+      "Enlarged and centered empty-state icons across converter pages",
+      "Adjusted icon sizes in TOML/INI/Excel converter empty states for consistency",
+      "Prevented long column titles from overlapping in preview headers"
+    ],
+    author: "Development Team",
+    commit: "local"
+  },
+  {
     version: "v2.3.0",
     date: "2025-09-01",
     type: "feature",

@@ -57,7 +57,7 @@ export default function JsonToExcelPage() {
   const [excelBuffer, setExcelBuffer] = useState<ArrayBuffer | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]); // 用于表格预览的数据
   const [isConverting, setIsConverting] = useState(false); // 转换状态
-  const { copy } = useClipboard({ successMessage: 'JSON copied to clipboard' });
+  const { copy } = useClipboard({ successMessage: 'Excel preview copied to clipboard' });
   
   const [options, setOptions] = useState<JsonToExcelOptions>({
     sheetName: 'Sheet1',
@@ -72,7 +72,7 @@ export default function JsonToExcelPage() {
     convertJsonToExcel(jsonValue);
   };
 
-  const convertJsonToExcel = (jsonInput: string) => {
+  const convertJsonToExcel = (jsonInput: string, effectiveOptions?: JsonToExcelOptions) => {
     if (!jsonInput.trim()) {
       setDownloadReady(false);
       setExcelBuffer(null);
@@ -87,6 +87,7 @@ export default function JsonToExcelPage() {
     try {
       const parsedData = JSON.parse(jsonInput);
       console.log('Converting JSON to Excel:', parsedData);
+      const opts = effectiveOptions || options;
       
       // 准备预览数据 - 和Excel转换使用相同的展平逻辑
       let previewArray: any[];
@@ -115,7 +116,7 @@ export default function JsonToExcelPage() {
       // 根据flatten选项处理预览数据（和converters.ts中的逻辑一致）
       const processedPreviewData = allPrimitive
         ? previewArray.map(item => ({ value: item })) // 为原始值数组使用一致的列名
-        : options.flattenData 
+        : opts.flattenData 
           ? previewArray.map((item, index) => {
               if (typeof item !== 'object' || item === null) {
                 return { [`value_${index}`]: item };
@@ -139,7 +140,7 @@ export default function JsonToExcelPage() {
             });
 
       // 生成Excel文件
-      const buffer = jsonToExcel(parsedData, options);
+      const buffer = jsonToExcel(parsedData, opts);
       console.log('Excel conversion successful, buffer type:', typeof buffer, 'byteLength:', buffer?.byteLength);
       
       setExcelBuffer(buffer);
@@ -162,7 +163,8 @@ export default function JsonToExcelPage() {
     setOptions(updatedOptions);
     
     if (inputJson.trim()) {
-      convertJsonToExcel(inputJson);
+      // Use the immediately updated options for conversion
+      convertJsonToExcel(inputJson, updatedOptions);
     }
   };
 
@@ -174,9 +176,30 @@ export default function JsonToExcelPage() {
   };
 
   const handleCopy = async () => {
-    if (inputJson) {
-      await copy(inputJson);
+    if (!previewData || previewData.length === 0) {
+      await copy("");
+      return;
     }
+
+    const columns = Object.keys(previewData[0]);
+
+    const sanitize = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      // Replace tabs/newlines to keep TSV structure intact
+      return str.replace(/\t/g, ' ').replace(/\r?\n/g, ' ');
+    };
+
+    const lines: string[] = [];
+    if (options.includeHeaders) {
+      lines.push(columns.join('\t'));
+    }
+    for (const row of previewData) {
+      lines.push(columns.map((key) => sanitize((row as any)[key])).join('\t'));
+    }
+
+    const tsv = lines.join('\n');
+    await copy(tsv);
   };
 
   const handleDownload = () => {
@@ -321,7 +344,7 @@ export default function JsonToExcelPage() {
   const emptyStateContent = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
       <div className="text-center">
-        <FileSpreadsheet className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <FileSpreadsheet className="w-16 h-16 mx-auto mb-6 opacity-60" />
         <p>Enter JSON data to see Excel preview</p>
         <p className="text-sm mt-2">Arrays of objects work best for table format</p>
         {downloadReady && (
@@ -340,6 +363,7 @@ export default function JsonToExcelPage() {
       maxHeight="100%"
       className="h-full"
       isLoading={isConverting}
+      showHeader={options.includeHeaders}
     />
   );
 

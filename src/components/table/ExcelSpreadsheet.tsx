@@ -48,7 +48,7 @@ function calculateColumnWidths(data: any[]): { [key: string]: number } {
     // 计算内容的最大宽度
     const maxContentLength = data.reduce((max, row) => {
       const value = row[key];
-      const stringValue = String(value || '');
+      const stringValue = value == null ? '' : String(value);
       return Math.max(max, stringValue.length);
     }, 0);
     
@@ -69,6 +69,7 @@ interface ExcelSpreadsheetProps {
   className?: string;
   maxHeight?: string;
   isLoading?: boolean;
+  showHeader?: boolean;
 }
 
 interface ColumnStats {
@@ -153,7 +154,7 @@ function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSpreadsheetProps) {
+export function ExcelSpreadsheet({ data, className, isLoading = false, showHeader = true }: ExcelSpreadsheetProps) {
   // 计算统计数据
   const stats = useMemo(() => calculateTableStats(data), [data]);
   
@@ -207,13 +208,20 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
     
     const firstRow = data[0];
     return Object.keys(firstRow).map((key, index) => ({
-      accessorKey: key,
-      header: getExcelColumnName(index), // 使用Excel风格的列名
+      id: key, // 显式ID，避免点路径被解析为嵌套访问
+      accessorFn: (row) => row[key], // 按原样读取展平后的键（包含点/中括号）
+      header: () => (
+        <div className="flex flex-col items-center min-w-0">
+          <div>{getExcelColumnName(index)}</div>
+          <div className="text-[10px] text-slate-400 truncate w-full" title={key}>{key}</div>
+        </div>
+      ), // 同时展示Excel列名与字段名
       cell: ({ getValue }) => {
         const value = getValue();
+        const display = value == null ? '' : String(value);
         return (
-          <div className="text-sm truncate" title={String(value)}>
-            {String(value)}
+          <div className="text-sm truncate" title={display}>
+            {display}
           </div>
         );
       },
@@ -315,39 +323,41 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
         </div>
       )}
       {/* 表头 */}
-      <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div 
-          ref={headerRef}
-          className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+      {showHeader && (
+        <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
           <div 
-            className="grid"
-            style={{ 
-              gridTemplateColumns,
-              minWidth: totalGridWidth
-            }}
+            ref={headerRef}
+            className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {/* 行号列表头 */}
-            <div className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-100 dark:bg-slate-700/50">
-              #
+            <div 
+              className="grid"
+              style={{ 
+                gridTemplateColumns,
+                minWidth: totalGridWidth
+              }}
+            >
+              {/* 行号列表头 */}
+              <div className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-100 dark:bg-slate-700/50">
+                #
+              </div>
+              {/* 列号表头 */}
+              {table.getHeaderGroups().map((headerGroup) =>
+                headerGroup.headers.map((header) => (
+                  <div
+                    key={header.id}
+                    className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0 min-w-0 overflow-hidden"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </div>
+                ))
+              )}
             </div>
-            {/* 列号表头 */}
-            {table.getHeaderGroups().map((headerGroup) =>
-              headerGroup.headers.map((header) => (
-                <div
-                   key={header.id}
-                   className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
-                 >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </div>
-              ))
-            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* 虚拟化表格内容 */}
       <div
@@ -387,7 +397,7 @@ export function ExcelSpreadsheet({ data, className, isLoading = false }: ExcelSp
                 {row.getVisibleCells().map((cell) => (
                   <div
                     key={cell.id}
-                    className="border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex items-center px-3 py-2"
+                    className="border-r border-slate-100 dark:border-slate-800 last:border-r-0 flex items-center px-3 py-2 min-w-0 overflow-hidden"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </div>

@@ -209,7 +209,7 @@ export default function ExcelToJsonPage() {
   const emptyStateContent = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
       <div className="text-center">
-        <FileSpreadsheet className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <FileSpreadsheet className="w-16 h-16 mx-auto mb-6 opacity-60" />
         <p>Import an Excel file to convert to JSON</p>
         <p className="text-sm mt-2">Supports .xlsx, .xlsm, and .xls files</p>
         {fileName && (
