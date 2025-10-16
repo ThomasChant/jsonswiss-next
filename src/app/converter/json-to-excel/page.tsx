@@ -57,7 +57,7 @@ export default function JsonToExcelPage() {
   const [excelBuffer, setExcelBuffer] = useState<ArrayBuffer | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]); // 用于表格预览的数据
   const [isConverting, setIsConverting] = useState(false); // 转换状态
-  const { copy } = useClipboard({ successMessage: 'JSON copied to clipboard' });
+  const { copy } = useClipboard({ successMessage: 'Excel preview copied to clipboard' });
   
   const [options, setOptions] = useState<JsonToExcelOptions>({
     sheetName: 'Sheet1',
@@ -176,9 +176,30 @@ export default function JsonToExcelPage() {
   };
 
   const handleCopy = async () => {
-    if (inputJson) {
-      await copy(inputJson);
+    if (!previewData || previewData.length === 0) {
+      await copy("");
+      return;
     }
+
+    const columns = Object.keys(previewData[0]);
+
+    const sanitize = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      // Replace tabs/newlines to keep TSV structure intact
+      return str.replace(/\t/g, ' ').replace(/\r?\n/g, ' ');
+    };
+
+    const lines: string[] = [];
+    if (options.includeHeaders) {
+      lines.push(columns.join('\t'));
+    }
+    for (const row of previewData) {
+      lines.push(columns.map((key) => sanitize((row as any)[key])).join('\t'));
+    }
+
+    const tsv = lines.join('\n');
+    await copy(tsv);
   };
 
   const handleDownload = () => {
