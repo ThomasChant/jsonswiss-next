@@ -99,7 +99,7 @@ export default function JsonToTomlPage() {
   const emptyStateContent = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
       <div className="text-center">
-        <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <Settings className="w-16 h-16 mx-auto mb-6 opacity-60" />
         <p>Add JSON data to see TOML output</p>
         <p className="text-sm mt-2">Your converted TOML configuration will appear here</p>
       </div>

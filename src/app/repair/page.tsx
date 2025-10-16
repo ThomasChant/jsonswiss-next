@@ -22,6 +22,8 @@ export default function RepairPage() {
   const [repairProvider, setRepairProvider] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [isInputMaximized, setIsInputMaximized] = useState(false);
+  const [isOutputMaximized, setIsOutputMaximized] = useState(false);
   const { copy } = useClipboard({ successMessage: 'JSON repaired and copied to clipboard' });
   
   const [aiService] = useState(() => new AIRepairService());
@@ -91,6 +93,22 @@ export default function RepairPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleToggleInputMaximize = () => {
+    setIsInputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsOutputMaximized(false);
+      return next;
+    });
+  };
+
+  const handleToggleOutputMaximize = () => {
+    setIsOutputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsInputMaximized(false);
+      return next;
+    });
+  };
+
 
   const isValidJson = (json: string): boolean => {
     try {
@@ -129,8 +147,8 @@ export default function RepairPage() {
         inputData={inputJson}
         outputData={repairedJson}
         error={error}
-        isInputMaximized={false}
-        isOutputMaximized={false}
+        isInputMaximized={isInputMaximized}
+        isOutputMaximized={isOutputMaximized}
         showSettings={showSettings}
         importDialogOpen={importDialogOpen}
         inputValidationStatus={
@@ -166,8 +184,8 @@ export default function RepairPage() {
         onCopy={handleCopyRepaired}
         onDownload={handleDownload}
         onImport={handleImport}
-        onToggleInputMaximize={() => {}}
-        onToggleOutputMaximize={() => {}}
+        onToggleInputMaximize={handleToggleInputMaximize}
+        onToggleOutputMaximize={handleToggleOutputMaximize}
         onToggleSettings={() => setShowSettings(!showSettings)}
         onToggleImportDialog={setImportDialogOpen}
         allowInvalidJsonImport

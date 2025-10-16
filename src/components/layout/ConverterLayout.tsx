@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, isValidElement, cloneElement } from "react";
 import { Editor } from "@monaco-editor/react";
 import {
   Download,
@@ -112,10 +112,24 @@ export function ConverterLayout({
   allowInvalidJsonImport = false,
 }: ConverterLayoutProps) {
 
+  const renderEmptyIcon = () => {
+    const baseIconClasses = "mx-auto mb-6 text-slate-400 opacity-60";
+    const iconSizePx = 64; // Extra large empty-state icon (w-32 h-32)
+    if (outputIcon && isValidElement(outputIcon)) {
+      // Force consistent size and centering for provided icons
+      const prev = (outputIcon.props as any)?.className || "";
+      return cloneElement(outputIcon as any, { 
+        className: cn(baseIconClasses, prev),
+        style: { ...(outputIcon.props as any)?.style, width: iconSizePx, height: iconSizePx }
+      });
+    }
+    return <ArrowRightLeft className={baseIconClasses} size={iconSizePx} />;
+  };
+
   const defaultEmptyState = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
       <div className="text-center">
-        {outputIcon || <ArrowRightLeft className="w-12 h-12 mx-auto mb-4 opacity-50" />}
+        {renderEmptyIcon()}
         <p>Enter {inputLanguageDisplayName} data to convert to {outputLanguageDisplayName}</p>
         <p className="text-sm mt-2">Your converted data will appear here</p>
       </div>
