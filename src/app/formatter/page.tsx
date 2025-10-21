@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { FileText } from "lucide-react";
+import { FileText, FoldVertical, UnfoldVertical } from "lucide-react";
 
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
@@ -16,6 +16,7 @@ export default function FormatterPage() {
   const [inputJson, setInputJson] = useState("");
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [indentSize, setIndentSize] = useState(2);
+  const [lastIndentSize, setLastIndentSize] = useState(2); // 记录上一次非0缩进
   const [sortKeys, setSortKeys] = useState(false);
   const [minify, setMinify] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -87,17 +88,26 @@ export default function FormatterPage() {
     }
   }, [inputJson, formatJson]);
 
-  const minifyJson = useCallback(() => {
-    if (!isValid || !formattedJson) return;
-    
+  const toggleMinify = useCallback(() => {
+    if (!isValid) return;
     try {
-      const parsed = JSON.parse(formattedJson);
-      const minified = JSON.stringify(parsed);
-      setFormattedJson(minified);
+      const parsed = JSON.parse(inputJson);
+      const dataToFormat = sortKeys ? sortObjectKeys(parsed) : parsed;
+      if (indentSize === 0) {
+        // 恢复缩进
+        const indent = lastIndentSize || 2;
+        setFormattedJson(JSON.stringify(dataToFormat, null, indent));
+        setIndentSize(indent);
+      } else {
+        // 压缩
+        setLastIndentSize(indentSize || 2);
+        setFormattedJson(JSON.stringify(dataToFormat));
+        setIndentSize(0);
+      }
     } catch (err) {
-      // Error already handled
+      // ignore; 仅在有效 JSON 才会触发
     }
-  }, [isValid, formattedJson]);
+  }, [isValid, inputJson, sortKeys, indentSize, lastIndentSize]);
 
   const handleCopyFormatted = useCallback(async () => {
     if (formattedJson) {
@@ -218,6 +228,24 @@ export default function FormatterPage() {
               <span>Status: {error ? 'Invalid' : 'Valid'}</span>
             </div>
           )
+        }
+        extraActions={
+          <button
+            onClick={toggleMinify}
+            disabled={!isValid}
+            className={`p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              indentSize === 0
+                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+            title={indentSize === 0 ? 'Pretty-print JSON' : 'Minify JSON'}
+          >
+            {indentSize === 0 ? (
+              <UnfoldVertical className="w-4 h-4" />
+            ) : (
+              <FoldVertical className="w-4 h-4" />
+            )}
+          </button>
         }
       />
       
