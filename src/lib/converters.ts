@@ -931,8 +931,9 @@ function parseSQLValue(value: string): any {
 export function jsonToSql(jsonData: any[], options: {
   tableName?: string;
   includeCreate?: boolean;
+  dialect?: 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver' | 'oracle';
 } = {}): string {
-  const { tableName = 'data_table', includeCreate = false } = options;
+  const { tableName = 'data_table', includeCreate = false, dialect = 'mysql' } = options;
   
   if (!Array.isArray(jsonData) || jsonData.length === 0) {
     return '';
@@ -956,7 +957,7 @@ export function jsonToSql(jsonData: any[], options: {
   // Add CREATE TABLE statement if requested
   if (includeCreate) {
     result += `CREATE TABLE ${tableName} (\n`;
-    result += columns.map(col => `  ${col} TEXT`).join(',\n');
+    result += columns.map(col => `  ${col} ${getSQLTypeForDialect(guessColumnSample(jsonData, col), dialect)}`).join(',\n');
     result += '\n);\n\n';
   }
   
@@ -964,7 +965,7 @@ export function jsonToSql(jsonData: any[], options: {
   jsonData.forEach(record => {
     if (typeof record === 'object' && record !== null) {
       const currentTableName = record._table || tableName;
-      const values = columns.map(col => formatSQLValue(record[col]));
+      const values = columns.map(col => formatSQLValue(record[col], dialect));
       
       result += `INSERT INTO ${currentTableName} (${columns.join(', ')}) VALUES (${values.join(', ')});\n`;
     }
@@ -973,7 +974,7 @@ export function jsonToSql(jsonData: any[], options: {
   return result;
 }
 
-function formatSQLValue(value: any): string {
+function formatSQLValue(value: any, dialect: 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver' | 'oracle' = 'mysql'): string {
   if (value === null || value === undefined) {
     return 'NULL';
   }
@@ -983,6 +984,9 @@ function formatSQLValue(value: any): string {
   }
   
   if (typeof value === 'boolean') {
+    if (dialect === 'sqlserver' || dialect === 'oracle' || dialect === 'sqlite') {
+      return value ? '1' : '0';
+    }
     return value ? 'TRUE' : 'FALSE';
   }
   
@@ -995,6 +999,88 @@ function formatSQLValue(value: any): string {
   }
   
   return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+// Infer a reasonable column type for a sample value and dialect
+function getSQLTypeForDialect(sample: any, dialect: 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver' | 'oracle'): string {
+  if (sample === null || sample === undefined) {
+    // Fallback text-like type per dialect
+    switch (dialect) {
+      case 'postgresql':
+        return 'TEXT';
+      case 'sqlserver':
+        return 'NVARCHAR(MAX)';
+      case 'oracle':
+        return 'CLOB';
+      case 'sqlite':
+        return 'TEXT';
+      default:
+        return 'TEXT';
+    }
+  }
+  if (typeof sample === 'boolean') {
+    switch (dialect) {
+      case 'postgresql':
+        return 'BOOLEAN';
+      case 'mysql':
+        return 'BOOLEAN';
+      case 'sqlserver':
+        return 'BIT';
+      case 'oracle':
+        return 'NUMBER(1)';
+      case 'sqlite':
+        return 'INTEGER';
+      default:
+        return 'BOOLEAN';
+    }
+  }
+  if (typeof sample === 'number') {
+    return Number.isInteger(sample) ? 'INTEGER' : 'DECIMAL(10,2)';
+  }
+  if (typeof sample === 'string') {
+    const long = sample.length > 255;
+    switch (dialect) {
+      case 'postgresql':
+        return long ? 'TEXT' : 'VARCHAR(255)';
+      case 'mysql':
+        return long ? 'TEXT' : 'VARCHAR(255)';
+      case 'sqlserver':
+        return long ? 'NVARCHAR(MAX)' : 'NVARCHAR(255)';
+      case 'oracle':
+        return long ? 'CLOB' : 'VARCHAR2(255)';
+      case 'sqlite':
+        return 'TEXT';
+      default:
+        return long ? 'TEXT' : 'VARCHAR(255)';
+    }
+  }
+  // arrays/objects -> JSON where available
+  if (Array.isArray(sample) || typeof sample === 'object') {
+    switch (dialect) {
+      case 'postgresql':
+      case 'mysql':
+        return 'JSON';
+      case 'sqlserver':
+        return 'NVARCHAR(MAX)';
+      case 'oracle':
+        return 'CLOB';
+      case 'sqlite':
+        return 'TEXT';
+      default:
+        return 'TEXT';
+    }
+  }
+  return 'TEXT';
+}
+
+// Try to find a representative sample value for a column
+function guessColumnSample(rows: any[], column: string): any {
+  for (const r of rows) {
+    if (r && typeof r === 'object' && column in r && r[column] != null) {
+      return r[column];
+    }
+  }
+  return null;
 }
 
 // Utility function to detect file format

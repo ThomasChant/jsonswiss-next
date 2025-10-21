@@ -18,7 +18,8 @@ export default function JsonToSqlPage() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [options, setOptions] = useState({
     tableName: "data_table",
-    includeCreate: false
+    includeCreate: false,
+    dialect: 'mysql' as 'mysql' | 'postgresql' | 'sqlite' | 'sqlserver' | 'oracle',
   });
   const { copy } = useClipboard({ 
     successMessage: 'SQL copied to clipboard',
@@ -45,7 +46,8 @@ export default function JsonToSqlPage() {
       const arrayData = Array.isArray(data) ? data : [data];
       const result = jsonToSql(arrayData, {
         tableName: options.tableName,
-        includeCreate: options.includeCreate
+        includeCreate: options.includeCreate,
+        dialect: options.dialect,
       });
       setSqlOutput(result);
       setError(null);
@@ -116,6 +118,22 @@ export default function JsonToSqlPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Database Dialect
+          </label>
+          <select
+            value={options.dialect}
+            onChange={(e) => setOptions(prev => ({ ...prev, dialect: e.target.value as any }))}
+            className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm"
+          >
+            <option value="mysql">MySQL</option>
+            <option value="postgresql">PostgreSQL</option>
+            <option value="oracle">Oracle</option>
+            <option value="sqlserver">SQL Server</option>
+            <option value="sqlite">SQLite</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Table Name
           </label>
           <input
@@ -146,7 +164,7 @@ export default function JsonToSqlPage() {
   return (
     <ConverterLayout
       title="JSON to SQL Converter"
-      description="Convert JSON data to SQL INSERT statements"
+      description="Convert JSON to SQL for MySQL, PostgreSQL, Oracle, SQL Server, and SQLite"
       faqItems={faqItems}
       inputData={inputJson}
       outputData={sqlOutput}
