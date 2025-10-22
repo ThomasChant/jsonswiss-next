@@ -38,11 +38,11 @@ const SelectContext = React.createContext<{
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   disabled?: boolean;
-  triggerRef: React.RefObject<HTMLButtonElement>;
+  triggerRef: React.MutableRefObject<HTMLButtonElement | null>;
 }>({
   isOpen: false,
   setIsOpen: () => {},
-  triggerRef: { current: null }
+  triggerRef: { current: null } as React.MutableRefObject<HTMLButtonElement | null>
 });
 
 export function Select({ value, onValueChange, disabled, children }: SelectProps) {

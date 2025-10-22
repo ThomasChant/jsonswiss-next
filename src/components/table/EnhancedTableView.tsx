@@ -1146,7 +1146,7 @@ export function EnhancedTableView({
         </Button>
       </div>
     );
-  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults, effectiveForcedExpandAll]);
+  }, [editingCell, editValue, expandedRows, path, data, tableInfo.type, density, onUpdate, handleStartEdit, handleSaveEdit, handleCancelEdit, handleToggleExpand, effectiveSearchTerm, caseSensitive, useRegex, wholeWord, currentSearchIndex, searchResults, effectiveForcedExpandAll, effectiveExpandTick, effectiveCollapseTick]);
   
   if (data === null || data === undefined) {
     return (
@@ -1636,7 +1636,7 @@ export function EnhancedTableView({
             <Input 
               value={newColumnDefaultValue}
               onChange={(e) => setNewColumnDefaultValue(e.target.value)}
-              placeholder='e.g. 0, "text", true, null, {}, []'
+              placeholder={'e.g. 0, \"text\", true, null, {}, []'}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -1646,7 +1646,7 @@ export function EnhancedTableView({
             />
 
             {pendingColumnAnchor && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">Will insert {pendingColumnAnchor.position} "{pendingColumnAnchor.key}"</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Will insert {pendingColumnAnchor.position} &quot;{pendingColumnAnchor.key}&quot;</p>
             )}
           </div>
           <DialogFooter>

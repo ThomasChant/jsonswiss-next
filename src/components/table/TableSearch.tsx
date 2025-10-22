@@ -840,7 +840,7 @@ export function TableSearch({
     } catch (error) {
       toast.error('Failed to replace value');
     }
-  }, [currentSearchIndex, searchResults, effectiveSearchTerm, replaceValue, data, tableInfo.type, onUpdate, createReplaceRegex]);
+  }, [currentSearchIndex, searchResults, effectiveSearchTerm, replaceValue, data, tableInfo.type, onUpdate, createReplaceRegex, calculateOccurrenceIndexInText, replaceSpecificOccurrence, useRegex, path, tableInfo]);
   
   const handleReplaceAll = useCallback(() => {
     if (!effectiveSearchTerm || !onUpdate) return;
