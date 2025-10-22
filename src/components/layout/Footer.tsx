@@ -58,7 +58,7 @@ export function Footer() {
                 <li><Link href="/generator/python" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Python</Link></li>
                 <li>
                   <Link 
-                    href="/generator" 
+                    href="/#generators" 
                     className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors inline-flex items-center space-x-1"
                   >
                     <span>View All Languages</span>

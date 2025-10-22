@@ -52,7 +52,9 @@ export default function Home() {
             </div>
 
             {/* Feature Cards */}
-            <FeatureCards />
+            <section id="generators" className="scroll-mt-24">
+              <FeatureCards />
+            </section>
           </div>
         </main>
 

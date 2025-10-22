@@ -28,7 +28,7 @@ import {
   WrenchIcon
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FeatureCard {
   id: string;
@@ -158,6 +158,18 @@ const schemaFeatures: FeatureCard[] = [
 
 export function FeatureCards() {
   const [activeCategory, setActiveCategory] = useState('all');
+  
+  // When visiting with #generators hash, auto-select the Generators tab
+  useEffect(() => {
+    const applyFromHash = () => {
+      if (typeof window !== 'undefined' && window.location.hash === '#generators') {
+        setActiveCategory('generator');
+      }
+    };
+    applyFromHash();
+    window.addEventListener('hashchange', applyFromHash);
+    return () => window.removeEventListener('hashchange', applyFromHash);
+  }, []);
   
   const allTools: FeatureCard[] = [
     ...coreFeatures,
