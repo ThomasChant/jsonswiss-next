@@ -198,6 +198,22 @@ export default function JsonComparePage() {
       answer: "You can ignore whitespace differences, case sensitivity, and object/array order. These options help focus on meaningful structural changes rather than formatting differences."
     },
     {
+      question: "What does 'Ignore whitespace' do?",
+      answer: "Ignores differences in whitespace within string values (e.g., 'Hello,  World' vs 'Hello,World'). Whitespace outside of strings is already ignored by JSON parsing."
+    },
+    {
+      question: "What does 'Ignore case' do?",
+      answer: "Compares keys and string values case-insensitively by lowercasing them before diffing. For example, 'Status' and 'status', or 'SUCCESS' and 'success', are treated as equal."
+    },
+    {
+      question: "What does 'Ignore order' do?",
+      answer: "Sorts object keys and array elements using a stable comparator before diffing, so reordering does not count as a change. This works for arrays of primitives and objects (objects are compared via their JSON representation)."
+    },
+    {
+      question: "Why is the editor sometimes read-only?",
+      answer: "When any ignore option is enabled, the view switches to a normalized preview so that visual highlighting matches the ignore rules exactly. Disable all ignore options to return to the editable raw view."
+    },
+    {
       question: "How do I interpret the diff results?",
       answer: "Green highlights show additions, red shows deletions, and yellow shows modifications. The statistics panel provides a summary of total changes, and the diff can be exported as a detailed report."
     },
