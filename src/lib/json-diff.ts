@@ -257,8 +257,11 @@ function preprocessObject(obj: any, options: DiffOptions): any {
   
   // Handle primitive values
   if (typeof obj !== 'object') {
-    if (typeof obj === 'string' && options.ignoreCase) {
-      return obj.toLowerCase();
+    if (typeof obj === 'string') {
+      let s = obj;
+      if (options.ignoreCase) s = s.toLowerCase();
+      if (options.ignoreWhitespace) s = s.replace(/\s+/g, ' ').trim();
+      return s;
     }
     return obj;
   }
@@ -266,7 +269,17 @@ function preprocessObject(obj: any, options: DiffOptions): any {
   // Handle arrays
   if (Array.isArray(obj)) {
     const processed = obj.map(item => preprocessObject(item, options));
-    return options.ignoreOrder ? processed.sort() : processed;
+    if (options.ignoreOrder) {
+      const toKey = (v: any) => {
+        try {
+          return typeof v === 'object' ? JSON.stringify(v) : String(v);
+        } catch {
+          return String(v);
+        }
+      };
+      return processed.slice().sort((a, b) => toKey(a).localeCompare(toKey(b)));
+    }
+    return processed;
   }
   
   // Handle objects

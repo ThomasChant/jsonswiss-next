@@ -42,6 +42,12 @@ export interface ImportJsonDialogProps {
   showComparisonSamples?: boolean;
   // When true, allow importing invalid JSON (pass raw content string)
   allowInvalidJson?: boolean;
+  // For JSON Compare dialog: which side is being imported
+  comparisonSide?: 'A' | 'B';
+  // Auto-import comparison sample immediately after selection
+  autoImportComparisonSelection?: boolean;
+  // Control whether the Sample Data tab is shown
+  showSampleTab?: boolean;
 }
 
 type TabId = ImportSource;
@@ -81,6 +87,9 @@ export function ImportJsonDialog({
   description = 'Choose how you want to import your JSON data',
   showComparisonSamples = false,
   allowInvalidJson = false,
+  comparisonSide,
+  autoImportComparisonSelection = true,
+  showSampleTab = true,
 }: ImportJsonDialogProps) {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [pasteContent, setPasteContent] = useState('');
@@ -258,20 +267,20 @@ export function ImportJsonDialog({
   }, [selectedSample, setJsonData, onImport, onOpenChange]);
 
   // Handle comparison sample import
-  const handleComparisonSampleImport = useCallback((side: 'A' | 'B') => {
-    if (!selectedComparisonSample) {
+  const importComparisonSample = useCallback((sampleKey: string, side: 'A' | 'B') => {
+    if (!sampleKey) {
       toast.error('Please select a comparison sample');
       return;
     }
 
     try {
-      const sample = compareSamples[selectedComparisonSample as keyof typeof compareSamples];
+      const sample = compareSamples[sampleKey as keyof typeof compareSamples];
       const jsonData = side === 'A' ? sample.jsonA : sample.jsonB;
       const parsedJson = JSON.parse(jsonData);
 
       const metadata: ImportMetadata = {
         source: 'sample',
-        sampleKey: `${selectedComparisonSample}-${side}`,
+        sampleKey: `${sampleKey}-${side}`,
       };
 
       setJsonData(parsedJson, `Import comparison sample: ${sample.name} (${side})`);
@@ -281,7 +290,11 @@ export function ImportJsonDialog({
     } catch (error) {
       toast.error('Failed to import comparison sample');
     }
-  }, [selectedComparisonSample, setJsonData, onImport, onOpenChange]);
+  }, [setJsonData, onImport, onOpenChange]);
+
+  const handleComparisonSampleImport = useCallback((side: 'A' | 'B') => {
+    importComparisonSample(selectedComparisonSample, side);
+  }, [selectedComparisonSample, importComparisonSample]);
 
   // Handle paste import
   const handlePasteImport = useCallback(() => {
@@ -330,6 +343,13 @@ export function ImportJsonDialog({
       setActiveTab(initialTab);
     }
   }, [open, initialTab]);
+
+  // If Sample tab is hidden while active, switch to paste tab
+  React.useEffect(() => {
+    if (!showSampleTab && activeTab === 'sample') {
+      setActiveTab('paste');
+    }
+  }, [showSampleTab, activeTab]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -479,7 +499,15 @@ export function ImportJsonDialog({
               <div>
                 <Label htmlFor="comparison-sample-select">Comparison Samples</Label>
                 <div className="mt-2">
-                  <Select value={selectedComparisonSample} onValueChange={setSelectedComparisonSample}>
+                  <Select 
+                    value={selectedComparisonSample} 
+                    onValueChange={(value) => {
+                      setSelectedComparisonSample(value);
+                      if (showComparisonSamples && autoImportComparisonSelection && comparisonSide) {
+                        importComparisonSample(value, comparisonSide);
+                      }
+                    }}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a comparison sample..." />
                     </SelectTrigger>
@@ -495,7 +523,7 @@ export function ImportJsonDialog({
                     </SelectContent>
                   </Select>
                 </div>
-                {selectedComparisonSample && (
+                {!autoImportComparisonSelection && selectedComparisonSample && (
                   <div className="flex gap-2 mt-4">
                     <Button 
                       onClick={() => handleComparisonSampleImport('A')}
@@ -575,9 +603,23 @@ export function ImportJsonDialog({
     }
   };
 
+  // Tabs to render (optionally hide 'sample')
+  const tabsToRender = React.useMemo(() => {
+    return showSampleTab ? TABS : TABS.filter(t => t.id !== 'sample');
+  }, [showSampleTab]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[85vh] min-h-[50vh] overflow-y-auto"
+        onInteractOutside={(e) => {
+          const el = e.target as HTMLElement;
+          // Allow interacting with portaled select dropdowns without the dialog intercepting
+          if (el.closest('[data-select-portal]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -585,7 +627,7 @@ export function ImportJsonDialog({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 dark:border-gray-700">
-          {TABS.map((tab) => (
+          {tabsToRender.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { DiffEditor } from "@monaco-editor/react";
 import { Upload, Copy, Download, ArrowLeftRight, RefreshCw, Settings2, FileText, GitCompare, Zap } from "lucide-react";
@@ -10,13 +10,16 @@ import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
 import { useJsonDiff } from "@/hooks/useJsonDiff";
 import { useClipboard } from "@/hooks/useClipboard";
 import { compareSamples, ComparisonSamplePair } from "@/sample-data";
-import { DiffOptions } from "@/lib/json-diff";
+import { DiffOptions, formatJsonForComparison } from "@/lib/json-diff";
 import { ImportJsonDialog } from "@/components/import";
 
 export default function JsonComparePage() {
   const { resolvedTheme } = useTheme();
   const [jsonA, setJsonA] = useState("");
   const [jsonB, setJsonB] = useState("");
+  // Keep values fed into DiffEditor props stable during typing to avoid cursor reset
+  const [editorOriginalValue, setEditorOriginalValue] = useState("");
+  const [editorModifiedValue, setEditorModifiedValue] = useState("");
   const [fileAName, setFileAName] = useState("");
   const [fileBName, setFileBName] = useState("");
   const [diffOptions, setDiffOptions] = useState<DiffOptions>({
@@ -64,14 +67,52 @@ export default function JsonComparePage() {
     }
   }, [jsonA, jsonB, diffOptions, compareJson, clearDiff]);
 
+  // Determine whether we show a normalized (preprocessed) view in the diff editor
+  const isNormalizedView = Boolean(
+    diffOptions.ignoreCase || diffOptions.ignoreOrder || diffOptions.ignoreWhitespace
+  );
+
+  // Prepare display strings for the diff editor
+  const displayA = useMemo(() => {
+    if (!jsonA.trim()) return "";
+    if (!isNormalizedView) return editorOriginalValue;
+    try {
+      return formatJsonForComparison(jsonA, diffOptions);
+    } catch {
+      return editorOriginalValue; // Fallback to raw on parse error
+    }
+  }, [jsonA, diffOptions, isNormalizedView, editorOriginalValue]);
+
+  const displayB = useMemo(() => {
+    if (!jsonB.trim()) return "";
+    if (!isNormalizedView) return editorModifiedValue;
+    try {
+      return formatJsonForComparison(jsonB, diffOptions);
+    } catch {
+      return editorModifiedValue;
+    }
+  }, [jsonB, diffOptions, isNormalizedView, editorModifiedValue]);
+
+  // When leaving normalized preview, refresh the editor props to latest raw content
+  useEffect(() => {
+    if (!isNormalizedView) {
+      setEditorOriginalValue(jsonA);
+      setEditorModifiedValue(jsonB);
+    }
+    // Only run when toggling normalized view state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNormalizedView]);
+
   // Handle import from dialog
   const handleImport = useCallback((json: any) => {
     const jsonString = JSON.stringify(json, null, 2);
     if (importTarget === 'left') {
       setJsonA(jsonString);
+      setEditorOriginalValue(jsonString);
       setFileAName('Imported JSON (A)');
     } else {
       setJsonB(jsonString);
+      setEditorModifiedValue(jsonString);
       setFileBName('Imported JSON (B)');
     }
   }, [importTarget]);
@@ -89,6 +130,8 @@ export default function JsonComparePage() {
     setJsonB(tempJson);
     setFileAName(fileBName);
     setFileBName(tempName);
+    setEditorOriginalValue(jsonB);
+    setEditorModifiedValue(tempJson);
   }, [jsonA, jsonB, fileAName, fileBName]);
 
   // Handle clear both sides
@@ -97,6 +140,8 @@ export default function JsonComparePage() {
     setJsonB("");
     setFileAName("");
     setFileBName("");
+    setEditorOriginalValue("");
+    setEditorModifiedValue("");
     clearDiff();
   }, [clearDiff]);
 
@@ -136,6 +181,8 @@ export default function JsonComparePage() {
     if (sample) {
       setJsonA(sample.jsonA);
       setJsonB(sample.jsonB);
+      setEditorOriginalValue(sample.jsonA);
+      setEditorModifiedValue(sample.jsonB);
       setFileAName(`${sample.name} (A)`);
       setFileBName(`${sample.name} (B)`);
     }
@@ -384,6 +431,11 @@ export default function JsonComparePage() {
                 Last compared: {lastComparisonTime.toLocaleTimeString()}
               </span>
             )}
+            {isNormalizedView && (
+              <span className="text-slate-500 dark:text-slate-500 text-xs">
+                Normalized preview (options applied)
+              </span>
+            )}
           </div>
         </div>
 
@@ -398,13 +450,14 @@ export default function JsonComparePage() {
         <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 min-h-0">
           {jsonA.trim() || jsonB.trim() ? (
             <DiffEditor
+              key={isNormalizedView ? 'normalized' : 'raw'}
               height="100%"
               language="json"
-              original={jsonA}
-              modified={jsonB}
+              original={displayA}
+              modified={displayB}
               theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
               options={{
-                readOnly: false,
+                readOnly: isNormalizedView,
                 minimap: { enabled: false },
                 fontSize: 14,
                 fontFamily: "var(--font-mono)",
@@ -415,23 +468,23 @@ export default function JsonComparePage() {
                 ignoreTrimWhitespace: diffOptions.ignoreWhitespace,
                 renderWhitespace: "selection",
                 diffWordWrap: "on",
-                originalEditable: true,
+                originalEditable: !isNormalizedView,
               }}
               onMount={(editor) => {
-                // Set up editor listeners
-                const originalModel = editor.getOriginalEditor().getModel();
-                const modifiedModel = editor.getModifiedEditor().getModel();
-                
-                if (originalModel) {
-                  originalModel.onDidChangeContent(() => {
-                    setJsonA(originalModel.getValue());
-                  });
-                }
-                
-                if (modifiedModel) {
-                  modifiedModel.onDidChangeContent(() => {
-                    setJsonB(modifiedModel.getValue());
-                  });
+                // Bind editing listeners only in editable mode
+                if (!isNormalizedView) {
+                  const originalModel = editor.getOriginalEditor().getModel();
+                  const modifiedModel = editor.getModifiedEditor().getModel();
+                  if (originalModel) {
+                    originalModel.onDidChangeContent(() => {
+                      setJsonA(originalModel.getValue());
+                    });
+                  }
+                  if (modifiedModel) {
+                    modifiedModel.onDidChangeContent(() => {
+                      setJsonB(modifiedModel.getValue());
+                    });
+                  }
                 }
               }}
             />
@@ -462,7 +515,9 @@ export default function JsonComparePage() {
           onImport={handleImport}
           title={`Import JSON for Side ${importTarget === 'left' ? 'A' : 'B'}`}
           description={`Import JSON data for the ${importTarget === 'left' ? 'left' : 'right'} side of the comparison`}
-          showComparisonSamples={true}
+          comparisonSide={importTarget === 'left' ? 'A' : 'B'}
+          autoImportComparisonSelection={true}
+          showSampleTab={false}
         />
       </div>
     </ToolPageLayoutServer>

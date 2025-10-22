@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,16 +38,19 @@ const SelectContext = React.createContext<{
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   disabled?: boolean;
+  triggerRef: React.RefObject<HTMLButtonElement>;
 }>({
   isOpen: false,
   setIsOpen: () => {},
+  triggerRef: { current: null }
 });
 
 export function Select({ value, onValueChange, disabled, children }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, disabled }}>
+    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, disabled, triggerRef }}>
       <div className="relative">
         {children}
       </div>
@@ -55,8 +59,7 @@ export function Select({ value, onValueChange, disabled, children }: SelectProps
 }
 
 export function SelectTrigger({ className, children }: SelectTriggerProps) {
-  const { isOpen, setIsOpen, disabled } = React.useContext(SelectContext);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const { isOpen, setIsOpen, disabled, triggerRef } = React.useContext(SelectContext);
 
   return (
     <button
@@ -88,33 +91,83 @@ export function SelectValue({ placeholder }: SelectValueProps) {
 }
 
 export function SelectContent({ children }: SelectContentProps) {
-  const { isOpen, setIsOpen } = React.useContext(SelectContext);
+  const { isOpen, setIsOpen, triggerRef } = React.useContext(SelectContext);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    openUpward: boolean;
+    maxHeight: number;
+  } | null>(null);
 
   useEffect(() => {
+    function computePosition() {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+
+      // Default max menu height
+      const maxMenuHeight = 240; // 15rem default cap
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const openUpward = spaceBelow < 180 && spaceAbove > spaceBelow;
+      const usableHeight = Math.min(maxMenuHeight, openUpward ? spaceAbove - 8 : spaceBelow - 8);
+      const top = openUpward ? Math.max(8, rect.top - usableHeight - 4) : rect.bottom + 4;
+      const left = rect.left;
+      const width = rect.width;
+      setPosition({ top, left, width, openUpward, maxHeight: Math.max(120, usableHeight) });
+    }
+
     function handleClickOutside(event: MouseEvent) {
-      if (contentRef.current && !contentRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        contentRef.current &&
+        !contentRef.current.contains(target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
 
     if (isOpen) {
+      computePosition();
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      window.addEventListener('resize', computePosition);
+      window.addEventListener('scroll', computePosition, true);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('resize', computePosition);
+        window.removeEventListener('scroll', computePosition, true);
+      };
     }
-  }, [isOpen, setIsOpen]);
+  }, [isOpen, setIsOpen, triggerRef]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !position) return null;
 
-  return (
+  const content = (
     <div
       ref={contentRef}
-      className="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg dark:bg-slate-950 dark:border-slate-800 max-h-60 overflow-auto"
+      className={
+        "z-[1000] overflow-auto bg-white border border-slate-200 rounded-md shadow-lg dark:bg-slate-950 dark:border-slate-800"
+      }
       role="listbox"
+      style={{
+        position: 'fixed',
+        top: position.top,
+        left: position.left,
+        width: position.width,
+        maxHeight: position.maxHeight,
+      }}
+      data-select-portal
     >
       {children}
     </div>
   );
+
+  // Render in a portal to escape clipping parents
+  return createPortal(content, document.body);
 }
 
 export function SelectItem({ value, children, className }: SelectItemProps) {
@@ -124,11 +177,13 @@ export function SelectItem({ value, children, className }: SelectItemProps) {
   return (
     <div
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-slate-100 focus:bg-slate-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:hover:bg-slate-800 dark:focus:bg-slate-800",
-        isSelected && "bg-slate-100 dark:bg-slate-800",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        isSelected && "bg-blue-50 dark:bg-blue-900/20",
         className
       )}
-      onClick={() => {
+      onMouseDown={(e) => {
+        // Use mousedown to avoid Dialog intercepting click outside
+        e.preventDefault();
         onValueChange?.(value);
         setIsOpen(false);
       }}

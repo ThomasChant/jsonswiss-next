@@ -23,6 +23,26 @@ export const metadata: Metadata = {
 // Changelog entries - based on actual Git commit history
 const changelogEntries = [
   {
+    version: "v2.5.0",
+    date: "2025-10-22",
+    type: "feature",
+    title: "JSON→SQL multi-dialects, Formatter minify toggle, table performance",
+    description: "Adds dialect support for JSON→SQL (MySQL, PostgreSQL, Oracle, SQL Server, SQLite), a Minify/Pretty toggle in the Formatter output toolbar, and major JSON Table View performance improvements via row virtualization and reduced deep copies. Also lets settings panels fill the card height in Converter/Generator layouts.",
+    changes: [
+      "JSON→SQL: Added Database Dialect selector supporting MySQL, PostgreSQL, Oracle, SQL Server, and SQLite.",
+      "JSON→SQL: Dialect-specific type and boolean mapping (e.g., SQL Server = BIT 1/0, Oracle = NUMBER(1), PostgreSQL/MySQL = BOOLEAN, SQLite = INTEGER).",
+      "JSON→SQL: CREATE TABLE infers column types from sample values (e.g., long strings, JSON columns).",
+      "JSON Formatter: Added Minify/Pretty toggle in the output toolbar; remembers last indent; highlighted state and refreshed icon.",
+      "Compare: Implemented robust ignore options (whitespace, case, order) in the diff engine with stable array/object sorting.",
+      "Compare: Auto-enables normalized preview when any ignore option is selected; visual diff matches options and reverts to editable raw view when all are off.",
+      "Compare: Fixed caret jumping to the first line after edits by stabilizing editor model values.",
+      "Compare: Import dialog cleanup (removed Sample Data tab on Compare); improved modal height and scrolling.",
+      "Compare: Dropdown UX hardened — portaled menus avoid clipping, have hover/selected states, correct z-index, and open up/down based on space.",
+    ],
+    author: "Development Team",
+    commit: "local"
+  },
+  {
     version: "v2.4.0",
     date: "2025-10-16",
     type: "feature",
