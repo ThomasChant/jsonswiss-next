@@ -23,6 +23,21 @@ export const metadata: Metadata = {
 // Changelog entries - based on actual Git commit history
 const changelogEntries = [
   {
+    version: "v2.5.1",
+    date: "2025-10-23",
+    type: "improvement",
+    title: "DeepSeek daily limit and Repair FAQ clarification",
+    description: "Introduced a daily limit for AI Repair (DeepSeek) on the free plan and clarified in-product messaging about our managed DeepSeek integration (no user API keys required). Local repair remains unlimited.",
+    changes: [
+      "Free plan: limit DeepSeek-powered AI repairs to 10 per day (per browser)",
+      "Show clear message when the daily AI limit is reached",
+      "Repair page FAQ: clarified that we use our managed DeepSeek API for complex cases; users do not need to provide API keys",
+      "Local repair via JSONRepair and built-in fixes remains unlimited"
+    ],
+    author: "Development Team",
+    commit: "local"
+  },
+  {
     version: "v2.5.0",
     date: "2025-10-22",
     type: "feature",

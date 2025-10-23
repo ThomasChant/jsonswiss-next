@@ -130,7 +130,7 @@ export default function RepairPage() {
     },
     {
       question: "Do I need API keys?",
-      answer: "No! The JSONRepair library and basic repair work without any configuration. AI providers are only used as a fallback for complex cases, and you can optionally configure API keys for better results."
+      answer: "No. You don't need any API keys. For complex cases, we enhance results using our DeepSeek API integration (managed by us) on top of local JSONRepair and built-in fixes—so it works out of the box. When AI is used, your JSON is sent to DeepSeek to complete the repair. On the free plan, you can use up to 10 AI repairs (DeepSeek) per day."
     },
     {
       question: "How accurate is the repair process?",

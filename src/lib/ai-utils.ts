@@ -14,6 +14,12 @@ export interface AIRepairResult {
   error?: string;
 }
 
+// Local type for tracking DeepSeek usage per day (per browser)
+interface DeepSeekUsage {
+  date: string; // YYYY-MM-DD
+  count: number;
+}
+
 export const defaultAIProviders: AIProvider[] = [
   // {
   //   name: "OpenRouter",
@@ -40,6 +46,8 @@ export class AIRepairService {
     ['DeepSeek', 60], // 60 requests per minute (DeepSeek has generous limits)
     ['OpenRouter', 10]// 30 requests per minute
   ]);
+  // Daily usage limit for free users (DeepSeek calls)
+  private deepSeekDailyLimit = 10;
 
   constructor() {
     this.loadProviders();
@@ -99,6 +107,62 @@ export class AIRepairService {
     this.lastRequestTime.set(providerName, Date.now());
   }
 
+  // ===== Daily DeepSeek usage (per browser) =====
+  private getTodayISO(): string {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private getDeepSeekUsage(): DeepSeekUsage {
+    const key = 'deepseek-usage';
+    const today = this.getTodayISO();
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return { date: today, count: 0 };
+      }
+      const raw = localStorage.getItem(key);
+      if (!raw) return { date: today, count: 0 };
+      const parsed = JSON.parse(raw) as DeepSeekUsage | null;
+      if (!parsed || typeof parsed.count !== 'number' || typeof parsed.date !== 'string') {
+        return { date: today, count: 0 };
+      }
+      if (parsed.date !== today) {
+        return { date: today, count: 0 };
+      }
+      return parsed;
+    } catch {
+      return { date: today, count: 0 };
+    }
+  }
+
+  private saveDeepSeekUsage(usage: DeepSeekUsage) {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('deepseek-usage', JSON.stringify(usage));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  private canUseDeepSeekToday(): boolean {
+    const usage = this.getDeepSeekUsage();
+    return usage.count < this.deepSeekDailyLimit;
+  }
+
+  private recordDeepSeekCall() {
+    const today = this.getTodayISO();
+    const usage = this.getDeepSeekUsage();
+    const next: DeepSeekUsage = {
+      date: today,
+      count: usage.date === today ? usage.count + 1 : 1,
+    };
+    this.saveDeepSeekUsage(next);
+  }
+
   async repairJson(invalidJson: string): Promise<AIRepairResult> {
     // First try jsonrepair library (third-party repair)
     try {
@@ -142,7 +206,8 @@ export class AIRepairService {
         error: "Local repair methods failed, and no AI providers are configured. The JSON may have complex structural issues."
       };
     }
-    
+    let lastError: string | undefined;
+
     for (const provider of enabledProviders) {
       if (this.isRateLimited(provider.name)) {
         console.log(`Skipping ${provider.name} due to rate limiting`);
@@ -153,15 +218,18 @@ export class AIRepairService {
         const result = await this.repairWithProvider(provider, invalidJson);
         if (result.success) {
           return result;
+        } else if (result.error) {
+          lastError = result.error;
         }
       } catch (error) {
         console.warn(`AI repair failed with ${provider.name}:`, error instanceof Error ? error.message : String(error));
+        lastError = error instanceof Error ? error.message : String(error);
       }
     }
 
     return {
       success: false,
-      error: "Could not repair JSON with any available method. The JSON may have severe structural issues that require manual correction."
+      error: lastError || "Could not repair JSON with any available method. The JSON may have severe structural issues that require manual correction."
     };
   }
 
@@ -207,6 +275,17 @@ export class AIRepairService {
   private async repairWithProvider(provider: AIProvider, invalidJson: string): Promise<AIRepairResult> {
     this.incrementRequestCount(provider.name);
 
+    // Enforce per-user daily limit for DeepSeek calls (free plan)
+    if (provider.name === 'DeepSeek') {
+      if (!this.canUseDeepSeekToday()) {
+        return {
+          success: false,
+          error: `Daily free limit reached: up to ${this.deepSeekDailyLimit} DeepSeek repairs per day. Please try again tomorrow or use local fixes.`
+        };
+      }
+      // We will record the call right before making the network request
+    }
+
     const prompt = `Please repair this invalid JSON,fix syntax errors, quote keys properly, return only the valid raw JSON 
     that can be parsed and without any explanation or format. The broken json is:
     ${invalidJson}`
@@ -237,6 +316,10 @@ export class AIRepairService {
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
+      // If using DeepSeek, record this API call attempt
+      if (provider.name === 'DeepSeek') {
+        this.recordDeepSeekCall();
+      }
       const response = await fetch(provider.apiUrl, {
         method: 'POST',
         headers,
@@ -402,3 +485,5 @@ export class AIRepairService {
     return cleaned;
   }
 }
+
+// (Daily DeepSeek usage helpers moved inside AIRepairService class)
