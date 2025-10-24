@@ -30,6 +30,7 @@ const changelogEntries = [
     description: "Introduced a cross‑page JSON input cache with unified Clear actions, clarified and enforced AI Repair length limits, and fixed Table View action menus and buttons (drag no longer blocks clicks).",
     changes: [
       // JSON cache + Clear
+      "Set default JSON values and improve reset functionality in JsonComparePage",
       "Added global JSON input caching: JSON inputs across Converter/Generator/Validator/Repair now prefill from the latest saved content.",
       "Unified Clear action with Trash2 icon: clears input and removes both raw cache and persisted jsonData, ensuring no cross‑page re‑hydration.",
       "ConverterLayout exposes controls to disable cache per page; JSON Mock Data Generator now disables cache prefill/write and hides Clear (schema input).",

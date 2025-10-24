@@ -272,10 +272,3 @@ export function CodeGeneratorLayout({
     </ToolPageLayoutServer>
   );
 }
-                    <button
-                      onClick={() => { clearCachedJson(); onInputChange(''); }}
-                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
-                      title="Clear input and local cache"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>

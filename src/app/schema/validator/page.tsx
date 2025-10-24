@@ -251,7 +251,7 @@ export default function SchemaValidatorPage() {
       onToggleInputMaximize={handleToggleInputMaximize}
       onToggleOutputMaximize={handleToggleOutputMaximize}
       onToggleSettings={handleToggleSettings}
-      onToggleImportDialog={() => openImportDialog('data')}
+      onToggleImportDialog={(open) => { setImportDialogOpen(open); if (open) setImportTarget('data'); }}
       settingsPanel={settingsPanel}
       onImport={handleImport}
       emptyStateContent={emptyStateContent}

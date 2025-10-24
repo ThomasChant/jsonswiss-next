@@ -14,13 +14,17 @@ import { DiffOptions, formatJsonForComparison } from "@/lib/json-diff";
 import { ImportJsonDialog } from "@/components/import";
 
 export default function JsonComparePage() {
-  const [jsonA, setJsonA] = useState("");
-  const [jsonB, setJsonB] = useState("");
+  // 提供默认的占位符内容，让用户可以直接开始输入
+  const defaultJsonA = '{\n  "name": "Example A",\n  "value": 123,\n  "items": []\n}';
+  const defaultJsonB = '{\n  "name": "Example B",\n  "value": 456,\n  "items": [1, 2, 3]\n}';
+  
+  const [jsonA, setJsonA] = useState(defaultJsonA);
+  const [jsonB, setJsonB] = useState(defaultJsonB);
   // Keep values fed into DiffEditor props stable during typing to avoid cursor reset
-  const [editorOriginalValue, setEditorOriginalValue] = useState("");
-  const [editorModifiedValue, setEditorModifiedValue] = useState("");
-  const [fileAName, setFileAName] = useState("");
-  const [fileBName, setFileBName] = useState("");
+  const [editorOriginalValue, setEditorOriginalValue] = useState(defaultJsonA);
+  const [editorModifiedValue, setEditorModifiedValue] = useState(defaultJsonB);
+  const [fileAName, setFileAName] = useState("JSON A (Default)");
+  const [fileBName, setFileBName] = useState("JSON B (Default)");
   const [diffOptions, setDiffOptions] = useState<DiffOptions>({
     ignoreWhitespace: false,
     ignoreCase: false,
@@ -135,15 +139,15 @@ export default function JsonComparePage() {
 
   // Handle clear both sides
   const handleClearBoth = useCallback(() => {
-    setJsonA("");
-    setJsonB("");
-    setFileAName("");
-    setFileBName("");
-    setEditorOriginalValue("");
-    setEditorModifiedValue("");
+    setJsonA(defaultJsonA);
+    setJsonB(defaultJsonB);
+    setFileAName("JSON A (Default)");
+    setFileBName("JSON B (Default)");
+    setEditorOriginalValue(defaultJsonA);
+    setEditorModifiedValue(defaultJsonB);
     clearDiff();
     clearCachedJson();
-  }, [clearDiff]);
+  }, [clearDiff, defaultJsonA, defaultJsonB]);
 
   // Handle copy diff report
   const handleCopyDiff = useCallback(async () => {
@@ -385,16 +389,10 @@ export default function JsonComparePage() {
 
             <button
               onClick={handleClearBoth}
-              disabled={(!jsonA || !jsonA.trim()) && (!jsonB || !jsonB.trim())}
-              className={cn(
-                "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium",
-                ((jsonA && jsonA.trim()) || (jsonB && jsonB.trim()))
-                  ? "text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  : "text-slate-400 dark:text-slate-600 cursor-not-allowed"
-              )}
+              className="flex items-center space-x-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm font-medium"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Clear</span>
+              <span>Reset to Default</span>
             </button>
           </div>
         </div>
@@ -405,20 +403,20 @@ export default function JsonComparePage() {
             <div className="flex items-center space-x-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                jsonA.trim() ? (jsonAValid ? "bg-green-500" : "bg-red-500") : "bg-slate-400"
+                jsonA.trim() ? (jsonAValid ? "bg-green-500" : "bg-red-500") : "bg-blue-500"
               )} />
               <span className="text-slate-600 dark:text-slate-400">
-                A: {fileAName || "No file"}
+                A: {fileAName}
               </span>
             </div>
             
             <div className="flex items-center space-x-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                jsonB.trim() ? (jsonBValid ? "bg-green-500" : "bg-red-500") : "bg-slate-400"
+                jsonB.trim() ? (jsonBValid ? "bg-green-500" : "bg-red-500") : "bg-green-500"
               )} />
               <span className="text-slate-600 dark:text-slate-400">
-                B: {fileBName || "No file"}
+                B: {fileBName}
               </span>
             </div>
 
@@ -464,65 +462,47 @@ export default function JsonComparePage() {
 
         {/* Diff Editor */}
         <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 min-h-0">
-          {jsonA.trim() || jsonB.trim() ? (
-            <DiffEditor
-              key={isNormalizedView ? 'normalized' : 'raw'}
-              height="100%"
-              language="json"
-              original={displayA}
-              modified={displayB}
-              theme="vs"
-              options={{
-                readOnly: isNormalizedView,
-                minimap: { enabled: false },
-                fontSize: 14,
-                fontFamily: "var(--font-mono)",
-                wordWrap: "on",
-                automaticLayout: true,
-                scrollBeyondLastLine: false,
-                renderSideBySide: true,
-                ignoreTrimWhitespace: diffOptions.ignoreWhitespace,
-                renderWhitespace: "selection",
-                diffWordWrap: "on",
-                originalEditable: !isNormalizedView,
-              }}
-              onMount={(editor) => {
-                // Bind editing listeners only in editable mode
-                if (!isNormalizedView) {
-                  const originalModel = editor.getOriginalEditor().getModel();
-                  const modifiedModel = editor.getModifiedEditor().getModel();
-                  if (originalModel) {
-                    originalModel.onDidChangeContent(() => {
-                      setJsonA(originalModel.getValue());
-                    });
-                  }
-                  if (modifiedModel) {
-                    modifiedModel.onDidChangeContent(() => {
-                      setJsonB(modifiedModel.getValue());
-                    });
-                  }
+          <DiffEditor
+            key={isNormalizedView ? 'normalized' : 'raw'}
+            height="100%"
+            language="json"
+            original={displayA}
+            modified={displayB}
+            theme="vs"
+            options={{
+              readOnly: isNormalizedView,
+              minimap: { enabled: false },
+              fontSize: 14,
+              fontFamily: "var(--font-mono)",
+              wordWrap: "on",
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+              renderSideBySide: true,
+              ignoreTrimWhitespace: diffOptions.ignoreWhitespace,
+              renderWhitespace: "selection",
+              diffWordWrap: "on",
+              originalEditable: !isNormalizedView,
+              // 添加占位符提示
+              placeholder: "Enter JSON content to compare...",
+            }}
+            onMount={(editor) => {
+              // Bind editing listeners only in editable mode
+              if (!isNormalizedView) {
+                const originalModel = editor.getOriginalEditor().getModel();
+                const modifiedModel = editor.getModifiedEditor().getModel();
+                if (originalModel) {
+                  originalModel.onDidChangeContent(() => {
+                    setJsonA(originalModel.getValue());
+                  });
                 }
-              }}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
-              <div className="text-center">
-                <GitCompare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">JSON Comparison Tool</p>
-                <p className="text-sm mb-4">Import or paste JSON content to compare</p>
-                <div className="flex items-center justify-center space-x-4">
-                  <div className="flex items-center space-x-2 text-xs text-slate-400">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>JSON A (Left)</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs text-slate-400">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>JSON B (Right)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                if (modifiedModel) {
+                  modifiedModel.onDidChangeContent(() => {
+                    setJsonB(modifiedModel.getValue());
+                  });
+                }
+              }
+            }}
+          />
         </div>
 
         <ImportJsonDialog
