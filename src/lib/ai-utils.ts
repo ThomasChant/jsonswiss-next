@@ -298,7 +298,7 @@ export class AIRepairService {
     if (invalidJson.length > AI_MAX_INPUT_CHARS) {
       return {
         success: false,
-        error: `Input JSON is too large for AI repair: ${invalidJson.length.toLocaleString()} characters (limit: ${AI_MAX_INPUT_CHARS.toLocaleString()}). Please split the JSON into smaller parts or use local repair methods.`
+        error: `Input JSON is too large for AI repair: ${invalidJson.length.toLocaleString()} characters (limit: ${AI_MAX_INPUT_CHARS.toLocaleString()}). Please split the JSON into smaller parts.`
       };
     }
 
