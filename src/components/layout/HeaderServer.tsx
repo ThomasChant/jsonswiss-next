@@ -128,28 +128,31 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 </Link>
               </div>
               
-              {/* Editor Dropdown */}
-              <DropdownMenu
-                trigger={
-                  <div className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
-                    isActivePathGroup(["/formatter", "/validator", "/repair", "/compare"])
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                  )}
-                >
-                  <Edit3 className={cn(
-                    "w-4 h-4",
-                    isActivePathGroup(["/formatter", "/validator", "/repair", "/compare"]) 
-                      ? "text-blue-600 dark:text-blue-400" 
-                      : "text-slate-600 dark:text-slate-400"
-                  )} />
-                  <span className="text-sm font-medium">Editor</span>
-                  <ChevronDown className="w-3 h-3" />
+              {/* Editor Links inline with main navigation */}
+              {editorMenuItems.map((item) => (
+                <div className="relative" key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
+                      isActivePath(item.href)
+                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                        : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                    )}
+                  >
+                    {renderIcon(
+                      item.icon,
+                      cn(
+                        "w-4 h-4",
+                        isActivePath(item.href)
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-slate-600 dark:text-slate-400"
+                      )
+                    )}
+                    <span className="text-sm font-medium">{item.title}</span>
+                  </Link>
                 </div>
-                }
-                items={editorMenuItems}
-              />
+              ))}
               
               {/* Converter Dropdown */}
               <DropdownMenu
@@ -223,18 +226,8 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
 
            
           </div>
-           {/* Additional Actions */}
-           <div className="flex items-center space-x-2 border-slate-200 dark:border-slate-700 pl-4">
-              {/* Theme Toggle - Invisible but with placeholder */}
-              <div className="p-2 rounded-lg invisible">
-                <div className="w-5 h-5" />
-              </div>
-
-              {/* Settings - Invisible but with placeholder */}
-              <div className="p-2 rounded-lg invisible">
-                <div className="w-5 h-5" />
-              </div>
-            </div>
+           {/* Right-side container now free for actions */}
+           <div className="flex items-center space-x-2 border-slate-200 dark:border-slate-700 pl-4" />
         </div>
       </div>
     </header>
