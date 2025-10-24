@@ -27,6 +27,8 @@ export default function FormatterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isInputMaximized, setIsInputMaximized] = useState(false);
+  const [isOutputMaximized, setIsOutputMaximized] = useState(false);
 
   const formatJson = useCallback((input: string) => {
     if (!input.trim()) {
@@ -153,6 +155,22 @@ export default function FormatterPage() {
     setShowImportDialog(false);
   }, [formatJson]);
 
+  const handleToggleInputMaximize = () => {
+    setIsInputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsOutputMaximized(false);
+      return next;
+    });
+  };
+
+  const handleToggleOutputMaximize = () => {
+    setIsOutputMaximized((prev) => {
+      const next = !prev;
+      if (next) setIsInputMaximized(false);
+      return next;
+    });
+  };
+
   const faqItems = [
     {
       question: "What does JSON formatting do?",
@@ -180,8 +198,8 @@ export default function FormatterPage() {
         inputData={inputJson}
         outputData={formattedJson}
         error={error}
-        isInputMaximized={false}
-        isOutputMaximized={false}
+        isInputMaximized={isInputMaximized}
+        isOutputMaximized={isOutputMaximized}
         showSettings={showSettings}
         importDialogOpen={showImportDialog}
         inputLanguage="json"
@@ -192,8 +210,8 @@ export default function FormatterPage() {
         onCopy={handleCopyFormatted}
         onDownload={handleDownload}
         onImport={handleImport}
-        onToggleInputMaximize={() => {}}
-        onToggleOutputMaximize={() => {}}
+        onToggleInputMaximize={handleToggleInputMaximize}
+        onToggleOutputMaximize={handleToggleOutputMaximize}
         onToggleSettings={() => setShowSettings(!showSettings)}
         onToggleImportDialog={setShowImportDialog}
         settingsPanel={
