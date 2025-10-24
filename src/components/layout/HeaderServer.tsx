@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
   Sun, 
   Moon, 
@@ -67,14 +70,16 @@ interface HeaderServerProps {
 }
 
 export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
+  const pathname = usePathname() || "";
+  const effectivePath = currentPath || pathname;
   // 辅助函数：检查路径是否激活
   const isActivePath = (path: string) => {
-    return currentPath === path;
+    return effectivePath === path;
   };
 
   // 辅助函数：检查路径组是否激活
   const isActivePathGroup = (paths: string[]) => {
-    return paths.some(path => currentPath.startsWith(path));
+    return paths.some(path => effectivePath.startsWith(path));
   };
 
   // 渲染图标
@@ -114,10 +119,17 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 <Link 
                   href="/json-table-editor"
                   className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
+                    // Base styles
+                    "relative flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
+                    // Active/inactive background + text
                     isActivePath("/json-table-editor")
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800",
+                    // Active underline indicator
+                    "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-1 after:h-0.5 after:rounded-full after:transition-opacity after:duration-200",
+                    isActivePath("/json-table-editor")
+                      ? "after:opacity-100 after:bg-blue-600 dark:after:bg-blue-400"
+                      : "after:opacity-0"
                   )}
                 >
                   <Table className={cn(
@@ -128,40 +140,23 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 </Link>
               </div>
               
-              {/* Editor Links inline with main navigation */}
-              {editorMenuItems.map((item) => (
-                <div className="relative" key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
-                      isActivePath(item.href)
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                    )}
-                  >
-                    {renderIcon(
-                      item.icon,
-                      cn(
-                        "w-4 h-4",
-                        isActivePath(item.href)
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-slate-600 dark:text-slate-400"
-                      )
-                    )}
-                    <span className="text-sm font-medium">{item.title}</span>
-                  </Link>
-                </div>
-              ))}
+             
               
               {/* Converter Dropdown */}
               <DropdownMenu
                 trigger={
                   <div className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Base styles
+                    "relative flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Active/inactive background + text
                     isActivePathGroup(["/converter/"])
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800",
+                    // Active underline indicator
+                    "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-1 after:h-0.5 after:rounded-full after:transition-opacity after:duration-200",
+                    isActivePathGroup(["/converter/"])
+                      ? "after:opacity-100 after:bg-blue-600 dark:after:bg-blue-400"
+                      : "after:opacity-0"
                   )}
                 >
                   <ArrowRightLeft className={cn(
@@ -181,10 +176,17 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
               <DropdownMenu
                 trigger={
                   <div className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Base styles
+                    "relative flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Active/inactive background + text
                     isActivePathGroup(["/generator/"])
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800",
+                    // Active underline indicator
+                    "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-1 after:h-0.5 after:rounded-full after:transition-opacity after:duration-200",
+                    isActivePathGroup(["/generator/"])
+                      ? "after:opacity-100 after:bg-blue-600 dark:after:bg-blue-400"
+                      : "after:opacity-0"
                   )}
                 >
                   <Code2 className={cn(
@@ -199,15 +201,52 @@ export function HeaderServer({ currentPath = "" }: HeaderServerProps) {
                 }
                 sections={generatorMenuSections}
               />
-              
+               {/* Editor Links inline with main navigation */}
+               {editorMenuItems.map((item) => (
+                <div className="relative" key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      // Base styles
+                      "relative flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors",
+                      isActivePath(item.href)
+                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                        : "hover:bg-slate-100 dark:hover:bg-slate-800",
+                      // Active underline indicator
+                      "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-1 after:h-0.5 after:rounded-full after:transition-opacity after:duration-200",
+                      isActivePath(item.href)
+                        ? "after:opacity-100 after:bg-blue-600 dark:after:bg-blue-400"
+                        : "after:opacity-0"
+                    )}
+                  >
+                    {renderIcon(
+                      item.icon,
+                      cn(
+                        "w-4 h-4",
+                        isActivePath(item.href)
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-slate-600 dark:text-slate-400"
+                      )
+                    )}
+                    <span className="text-sm font-medium">{item.title}</span>
+                  </Link>
+                </div>
+              ))}
               {/* Schema Dropdown */}
               <DropdownMenu
                 trigger={
                   <div className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Base styles
+                    "relative flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                    // Active/inactive background + text
                     isActivePathGroup(["/schema"])
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800",
+                    // Active underline indicator
+                    "after:content-[''] after:absolute after:left-2 after:right-2 after:-bottom-1 after:h-0.5 after:rounded-full after:transition-opacity after:duration-200",
+                    isActivePathGroup(["/schema"])
+                      ? "after:opacity-100 after:bg-blue-600 dark:after:bg-blue-400"
+                      : "after:opacity-0"
                   )}
                 >
                   <FileJson2 className={cn(
