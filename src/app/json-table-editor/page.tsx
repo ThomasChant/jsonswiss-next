@@ -171,8 +171,8 @@ export default function JsonTableEditorPage() {
   return (
     <>
       <ToolPageLayoutServer
-        title=""
-        description=""
+        title="JSON Table Viewer & Editor"
+        description="Clear, intuitive JSON table view: quickly locate, edit, and compare data."
         faqItems={faqItems}
         showSidebar={true}
         sidebarPosition="left"
