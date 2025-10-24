@@ -23,6 +23,38 @@ export const metadata: Metadata = {
 // Changelog entries - based on actual Git commit history
 const changelogEntries = [
   {
+    version: "v2.6.0",
+    date: "2025-10-24",
+    type: "feature",
+    title: "Global JSON cache + Clear actions, AI Repair limits, and Table View fixes",
+    description: "Introduced a cross‑page JSON input cache with unified Clear actions, clarified and enforced AI Repair length limits, and fixed Table View action menus and buttons (drag no longer blocks clicks).",
+    changes: [
+      // JSON cache + Clear
+      "Added global JSON input caching: JSON inputs across Converter/Generator/Validator/Repair now prefill from the latest saved content.",
+      "Unified Clear action with Trash2 icon: clears input and removes both raw cache and persisted jsonData, ensuring no cross‑page re‑hydration.",
+      "ConverterLayout exposes controls to disable cache per page; JSON Mock Data Generator now disables cache prefill/write and hides Clear (schema input).",
+      
+      // Generator and Formatter UX
+      "Generator pages: added Clear button to the JSON Input header and cache syncing.",
+      "Formatter: implemented working maximize/minimize for both panes.",
+      
+   
+      // Monaco theme stability
+      "Forced light theme (vs) for editors used in tools to avoid dark background mismatch issues.",
+      
+      // Table View fixes
+      "Fixed Table View and SingleObject actions: drag no longer steals clicks; action menus and buttons are now clickable.",
+      "Row drag now enabled only for arrays; non‑array tables disable row drag; menu triggers stop event propagation to avoid dnd capture.",
+      
+      // Stability fixes
+      "Resolved Invalid hook call in Validator/Schema Validator by ensuring useEffect runs inside components.",
+      "Generator outputs (e.g., Python/Groovy) now clear correctly when input is cleared (no fallback to previous input).",
+      "Compare page Clear now also clears the shared JSON cache; Sidebar editor Clear also removes cache.",
+    ],
+    author: "Development Team",
+    commit: "local"
+  },
+  {
     version: "v2.5.1",
     date: "2025-10-23",
     type: "improvement",
