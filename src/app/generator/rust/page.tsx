@@ -175,7 +175,7 @@ export default function RustGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Rust Generator"
+      title="JSON To Rust Generator"
       description="Generate Rust structs from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

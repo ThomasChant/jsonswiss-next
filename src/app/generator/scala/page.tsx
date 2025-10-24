@@ -176,7 +176,7 @@ export default function ScalaGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Scala Generator"
+      title="JSON To Scala Generator"
       description="Generate Scala case classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

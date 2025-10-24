@@ -160,7 +160,7 @@ export default function JavaScriptGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="JavaScript Generator"
+      title="JSON To JavaScript Generator"
       description="Generate JavaScript code from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

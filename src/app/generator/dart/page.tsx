@@ -171,7 +171,7 @@ export default function DartGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Dart Generator"
+      title="JSON To Dart Generator"
       description="Generate Dart classes with null safety and JSON serialization from JSON data"
       faqItems={faqItems}
       inputJson={inputJson}

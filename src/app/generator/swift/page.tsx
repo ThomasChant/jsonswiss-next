@@ -170,7 +170,7 @@ export default function SwiftGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Swift Generator"
+      title="JSON To Swift Generator"
       description="Generate Swift structs with Codable support from JSON data"
       faqItems={faqItems}
       inputJson={inputJson}

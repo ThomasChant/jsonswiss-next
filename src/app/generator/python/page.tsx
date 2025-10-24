@@ -193,7 +193,7 @@ export default function PythonGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Python Generator"
+      title="JSON To Python Generator"
       description="Generate Python dataclasses and classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

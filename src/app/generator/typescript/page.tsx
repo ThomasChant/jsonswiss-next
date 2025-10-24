@@ -206,7 +206,7 @@ export default function TypeScriptGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="TypeScript Generator"
+      title="JSON To TypeScript Generator"
       description="Generate TypeScript interfaces and types from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

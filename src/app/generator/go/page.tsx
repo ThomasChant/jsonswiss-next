@@ -168,7 +168,7 @@ export default function GoGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Go Generator"
+      title="JSON To Go Generator"
       description="Generate Go structs from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

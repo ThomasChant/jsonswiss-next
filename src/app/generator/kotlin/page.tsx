@@ -208,7 +208,7 @@ export default function KotlinGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Kotlin Generator"
+      title="JSON To Kotlin Generator"
       description="Generate Kotlin data classes and models from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

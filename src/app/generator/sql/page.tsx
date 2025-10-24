@@ -170,7 +170,7 @@ export default function SqlGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="SQL Generator"
+      title="JSON To SQL Generator"
       description="Generate SQL CREATE TABLE statements from JSON data"
       faqItems={faqItems}
       inputJson={inputJson}

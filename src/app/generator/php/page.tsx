@@ -189,7 +189,7 @@ export default function PhpGeneratorPage() {
   return (
     <>
       <CodeGeneratorLayoutServer
-        title="PHP Generator"
+        title="JSON To PHP Generator"
         description="Generate PHP classes from JSON data structures"
         faqItems={faqItems}
         inputJson={inputJson}

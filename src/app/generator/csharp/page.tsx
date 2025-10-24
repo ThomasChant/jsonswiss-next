@@ -214,7 +214,7 @@ export default function CSharpGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="C# Generator"
+      title="JSON To C# Generator"
       description="Generate C# classes and records from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

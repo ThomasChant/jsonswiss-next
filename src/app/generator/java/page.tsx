@@ -237,7 +237,7 @@ export default function JavaGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Java Generator"
+      title="JSON To Java Generator"
       description="Generate Java POJOs and classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

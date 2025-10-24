@@ -163,7 +163,7 @@ export default function RubyGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Ruby Generator"
+      title="JSON To Ruby Generator"
       description="Generate Ruby classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

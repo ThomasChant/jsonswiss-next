@@ -175,7 +175,7 @@ export default function CppGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="C++ Generator"
+      title="JSON To C++ Generator"
       description="Generate C++ classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

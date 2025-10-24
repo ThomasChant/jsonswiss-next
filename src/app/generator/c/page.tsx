@@ -162,7 +162,7 @@ export default function CGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="C Generator"
+      title="JSON To C Generator"
       description="Generate C structs from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}

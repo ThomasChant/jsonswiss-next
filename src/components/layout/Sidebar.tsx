@@ -574,15 +574,23 @@ export function Sidebar({ onNodeSelect }: SidebarProps = {}) {
               <button
                 onClick={handleModeToggle}
                 className={cn(
-                  "p-1 hover:bg-muted rounded transition-colors",
-                  "text-muted-foreground hover:text-foreground"
+                  // Base + affordance
+                  "group p-1 rounded transition-colors",
+                  // Hover/focus accents
+                  "hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:ring-1 hover:ring-emerald-300",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60",
+                  // Text color baseline
+                  "text-muted-foreground"
                 )}
+                aria-label={`Switch to ${sidebarMode === 'navigation' ? 'Editor' : 'Navigation'} Mode`}
                 title={`Switch to ${sidebarMode === 'navigation' ? 'Editor' : 'Navigation'} Mode`}
               >
                 {sidebarMode === 'navigation' ? (
-                  <PenTool className="w-4 h-4" />
+                  // Navigation mode (no data): show a file icon; keep neutral
+                  <FileText className="w-4 h-4 text-slate-500 transition-transform transition-colors duration-200 group-hover:scale-110 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
                 ) : (
-                  <TreePine className="w-4 h-4" />
+                  // Editor mode: Tree icon with hover emphasis
+                  <TreePine className="w-4 h-4 text-green-500 transition-transform transition-colors duration-200 group-hover:scale-110 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
                 )}
               </button>
               {sidebarMode === 'navigation' && (
@@ -686,15 +694,21 @@ export function Sidebar({ onNodeSelect }: SidebarProps = {}) {
             <button
               onClick={handleModeToggle}
               className={cn(
-                "p-1 hover:bg-muted rounded transition-colors",
-                sidebarMode === 'editor' ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                // Base + affordance
+                "group p-1 rounded transition-colors",
+                // Hover/focus accents
+                "hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:ring-1 hover:ring-emerald-300",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60",
+                // Baseline text color depending on mode
+                sidebarMode === 'editor' ? "text-primary" : "text-muted-foreground"
               )}
+              aria-label={`Switch to ${sidebarMode === 'navigation' ? 'Editor' : 'Navigation'} Mode`}
               title={`Switch to ${sidebarMode === 'navigation' ? 'Editor' : 'Navigation'} Mode`}
             >
               {sidebarMode === 'navigation' ? (
-                <PenTool className="w-4 h-4" />
+                <PenTool className="w-4 h-4 text-yellow-500 transition-transform transition-colors duration-200 group-hover:scale-110 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
               ) : (
-                <TreePine className="w-4 h-4" />
+                <TreePine className="w-4 h-4 text-yellow-500 transition-transform transition-colors duration-200 group-hover:scale-110 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
               )}
             </button>
             {sidebarMode === 'navigation' && (

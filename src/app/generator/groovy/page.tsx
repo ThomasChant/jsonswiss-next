@@ -178,7 +178,7 @@ export default function GroovyGeneratorPage() {
 
   return (
     <CodeGeneratorLayoutServer
-      title="Groovy Generator"
+      title="JSON To Groovy Generator"
       description="Generate Groovy classes from JSON data structures"
       faqItems={faqItems}
       inputJson={inputJson}
