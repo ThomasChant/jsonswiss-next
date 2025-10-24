@@ -402,6 +402,9 @@ export default function MockGeneratorPage() {
       settingsPanel={settingsPanel}
       onImport={handleImport}
       emptyStateContent={emptyStateContent}
+      disableCachePrefill
+      disableCacheWrite
+      showClearCacheButton={false}
       stats={generationStats ? (
         <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-1">

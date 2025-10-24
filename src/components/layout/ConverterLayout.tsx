@@ -76,6 +76,11 @@ interface ConverterLayoutProps {
   stats?: ReactNode;
   // Allow invalid JSON import for repair workflows
   allowInvalidJsonImport?: boolean;
+
+  // Caching behavior controls (for pages that don't want global JSON cache)
+  disableCachePrefill?: boolean; // do not read from cache on mount
+  disableCacheWrite?: boolean;   // do not write to cache on change or prop updates
+  showClearCacheButton?: boolean; // show/hide clear-cache button in header
 }
 
 export function ConverterLayout({
@@ -112,11 +117,14 @@ export function ConverterLayout({
   extraActions,
   stats,
   allowInvalidJsonImport = false,
+  disableCachePrefill = false,
+  disableCacheWrite = false,
+  showClearCacheButton = true,
 }: ConverterLayoutProps) {
 
   // Prefill input with cached JSON across converter pages when expecting JSON input
   useEffect(() => {
-    if (inputLanguage === 'json' && (!inputData || inputData.trim() === '')) {
+    if (!disableCachePrefill && inputLanguage === 'json' && (!inputData || inputData.trim() === '')) {
       const cached = getInitialCachedJson();
       if (cached) {
         onInputChange(cached);
@@ -128,10 +136,10 @@ export function ConverterLayout({
 
   // Keep cache in sync when parent updates the input programmatically (e.g., Import JSON)
   useEffect(() => {
-    if (inputLanguage === 'json') {
+    if (!disableCacheWrite && inputLanguage === 'json') {
       setCachedRawJson(inputData || '');
     }
-  }, [inputData, inputLanguage]);
+  }, [inputData, inputLanguage, disableCacheWrite]);
 
   const renderEmptyIcon = () => {
     const baseIconClasses = "mx-auto mb-6 text-slate-400 opacity-60";
@@ -203,6 +211,7 @@ export function ConverterLayout({
                       </button>
                     )}
                     {/* Clear cached/input JSON */}
+                    {showClearCacheButton && (
                     <button
                       onClick={() => {
                         clearCachedJson();
@@ -213,6 +222,7 @@ export function ConverterLayout({
                     >
                       <Minimize2 className="w-4 h-4 rotate-90" />
                     </button>
+                    )}
                     {onToggleImportDialog && (
                       <button
                         onClick={() => onToggleImportDialog(true)}
@@ -240,7 +250,7 @@ export function ConverterLayout({
                       defaultLanguage={inputLanguage}
                       value={inputData}
                       onChange={(val) => {
-                        setCachedRawJson(val || '');
+                        if (!disableCacheWrite) setCachedRawJson(val || '');
                         onInputChange(val);
                       }}
                       theme="vs"
