@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Editor } from "@monaco-editor/react";
+import { getInitialCachedJson, setCachedRawJson, clearCachedJson } from "@/lib/json-cache";
 import { 
   Shield, 
   Copy, 
@@ -47,6 +48,7 @@ export default function ValidatorPage() {
 
   const handleInputChange = (value: string | undefined) => {
     const jsonValue = value || "";
+    setCachedRawJson(jsonValue);
     setInputJson(jsonValue);
     validateJson(jsonValue);
   };
@@ -63,6 +65,7 @@ export default function ValidatorPage() {
     const jsonString = JSON.stringify(json, null, 2);
     setInputJson(jsonString);
     validateJson(jsonString);
+    setCachedRawJson(jsonString);
   };
 
   const isValidJson = (jsonString: string) => {
@@ -93,6 +96,14 @@ export default function ValidatorPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Prefill from local cache on mount
+  useEffect(() => {
+    if (!inputJson) {
+      const cached = getInitialCachedJson();
+      if (cached) setInputJson(cached);
+    }
+  }, []);
 
   const faqItems = [
     {
@@ -146,6 +157,13 @@ export default function ValidatorPage() {
                       title="Import JSON"
                     >
                       <Upload className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => { clearCachedJson(); handleInputChange(''); }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear input and local cache"
+                    >
+                      <Minimize2 className="w-4 h-4 rotate-90" />
                     </button>
                   </div>
                 </div>

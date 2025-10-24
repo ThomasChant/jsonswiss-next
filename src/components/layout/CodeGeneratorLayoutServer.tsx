@@ -1,7 +1,9 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
+import { setCachedRawJson, clearCachedJson } from "@/lib/json-cache";
+import { getInitialCachedJson } from "@/lib/json-cache";
 import {
   Download,
   Copy,
@@ -80,6 +82,15 @@ export function CodeGeneratorLayoutServer({
   settingsPanel,
   emptyStateContent
 }: CodeGeneratorLayoutProps) {
+  // Prefill input from local cache if page-level state is empty
+  useEffect(() => {
+    if (!inputJson || !inputJson.trim()) {
+      const cached = getInitialCachedJson();
+      if (cached) onInputChange(cached);
+    }
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const defaultEmptyState = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -142,7 +153,7 @@ export function CodeGeneratorLayoutServer({
                     height="100%"
                     defaultLanguage="json"
                     value={inputJson}
-                    onChange={onInputChange}
+                    onChange={(val) => { setCachedRawJson(val || ''); onInputChange(val); }}
                     theme="vs"
                     options={{
                       minimap: { enabled: false },
@@ -254,3 +265,10 @@ export function CodeGeneratorLayoutServer({
     </ToolPageLayoutServer>
   );
 }
+                    <button
+                      onClick={() => { clearCachedJson(); onInputChange(''); }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear input and local cache"
+                    >
+                      <Minimize2 className="w-4 h-4 rotate-90" />
+                    </button>

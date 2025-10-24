@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, isValidElement, cloneElement } from "react";
+import { ReactNode, isValidElement, cloneElement, useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
 import {
   Download,
@@ -13,8 +13,10 @@ import {
   ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clearCachedJson, setCachedRawJson } from "@/lib/json-cache";
 import { ImportJsonDialog, ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 import { ToolPageLayoutServer } from "./ToolPageLayoutServer";
+import { getInitialCachedJson } from "@/lib/json-cache";
 
 interface ConverterLayoutProps {
   // 页面基本信息
@@ -112,6 +114,25 @@ export function ConverterLayout({
   allowInvalidJsonImport = false,
 }: ConverterLayoutProps) {
 
+  // Prefill input with cached JSON across converter pages when expecting JSON input
+  useEffect(() => {
+    if (inputLanguage === 'json' && (!inputData || inputData.trim() === '')) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        onInputChange(cached);
+      }
+    }
+    // Intentionally run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep cache in sync when parent updates the input programmatically (e.g., Import JSON)
+  useEffect(() => {
+    if (inputLanguage === 'json') {
+      setCachedRawJson(inputData || '');
+    }
+  }, [inputData, inputLanguage]);
+
   const renderEmptyIcon = () => {
     const baseIconClasses = "mx-auto mb-6 text-slate-400 opacity-60";
     const iconSizePx = 64; // Extra large empty-state icon (w-32 h-32)
@@ -181,6 +202,17 @@ export function ConverterLayout({
                         <Upload className="w-4 h-4" />
                       </button>
                     )}
+                    {/* Clear cached/input JSON */}
+                    <button
+                      onClick={() => {
+                        clearCachedJson();
+                        onInputChange('');
+                      }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear input and local cache"
+                    >
+                      <Minimize2 className="w-4 h-4 rotate-90" />
+                    </button>
                     {onToggleImportDialog && (
                       <button
                         onClick={() => onToggleImportDialog(true)}
@@ -207,7 +239,10 @@ export function ConverterLayout({
                       height="100%"
                       defaultLanguage={inputLanguage}
                       value={inputData}
-                      onChange={onInputChange}
+                      onChange={(val) => {
+                        setCachedRawJson(val || '');
+                        onInputChange(val);
+                      }}
                       theme="vs"
                       options={{
                         minimap: { enabled: false },

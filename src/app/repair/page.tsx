@@ -12,7 +12,8 @@ import {
   Wrench,
   Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getInitialCachedJson, setCachedRawJson, clearCachedJson } from "@/lib/json-cache";
 
 export default function RepairPage() {
   const [inputJson, setInputJson] = useState("");
@@ -30,11 +31,22 @@ export default function RepairPage() {
 
   const handleInputChange = (value: string | undefined) => {
     const jsonValue = value || "";
+    setCachedRawJson(jsonValue);
     setInputJson(jsonValue);
     setError(null);
     setRepairedJson("");
     setRepairProvider(null);
   };
+
+  // Prefill from local cache on mount
+  useEffect(() => {
+    if (!inputJson) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        setInputJson(cached);
+      }
+    }
+  }, []);
 
   const repairJson = async () => {
     if (!inputJson || !inputJson.trim()) {

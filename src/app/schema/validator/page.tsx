@@ -10,6 +10,7 @@ import {
   Upload
 } from "lucide-react";
 import { validateJsonSchema } from "@/lib/json-utils";
+import { getInitialCachedJson, setCachedRawJson } from "@/lib/json-cache";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
@@ -31,6 +32,7 @@ export default function SchemaValidatorPage() {
     setInputJson(jsonValue);
     setError(null);
     setValidationResult(null);
+    setCachedRawJson(jsonValue);
     // Auto-validate if schema is available
     if (schemaJson.trim()) {
       setTimeout(() => validateWithSchema(jsonValue, schemaJson), 100);
@@ -118,6 +120,14 @@ export default function SchemaValidatorPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Prefill JSON data from cache
+  useEffect(() => {
+    if (!inputJson) {
+      const cached = getInitialCachedJson();
+      if (cached) setInputJson(cached);
+    }
+  }, []);
 
   const faqItems = [
     {

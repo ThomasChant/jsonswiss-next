@@ -8,6 +8,7 @@ import { FileText, FoldVertical, UnfoldVertical } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getInitialCachedJson, setCachedRawJson, clearCachedJson } from "@/lib/json-cache";
 
 export default function FormatterPage() {
   const { theme } = useTheme();
@@ -75,6 +76,7 @@ export default function FormatterPage() {
 
   const handleInputChange = useCallback((value: string | undefined) => {
     const jsonValue = value || "";
+    setCachedRawJson(jsonValue);
     setInputJson(jsonValue);
     formatJson(jsonValue);
   }, [formatJson]);
@@ -87,6 +89,17 @@ export default function FormatterPage() {
       formatJson(inputJson);
     }
   }, [inputJson, formatJson]);
+
+  // Prefill from local cache on mount
+  useEffect(() => {
+    if (!inputJson) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        setInputJson(cached);
+        formatJson(cached);
+      }
+    }
+  }, []);
 
   const toggleMinify = useCallback(() => {
     if (!isValid) return;

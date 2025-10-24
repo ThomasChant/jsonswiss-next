@@ -14,6 +14,7 @@ import {
   FileText
 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { setCachedRawJson, getInitialCachedJson } from "@/lib/json-cache";
 import { useClipboard } from "@/hooks/useClipboard";
 
 interface SidebarJsonEditorProps {
@@ -70,6 +71,7 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
     if (!value) return;
     
     isUpdatingFromStore.current = true;
+    setCachedRawJson(value);
     setSidebarEditorContent(value);
     validateJson(value);
     
@@ -77,6 +79,16 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
       isUpdatingFromStore.current = false;
     }, 100);
   };
+
+  // Prefill from cache on mount if empty
+  useEffect(() => {
+    if (!sidebarEditorContent?.trim()) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        setSidebarEditorContent(cached);
+      }
+    }
+  }, []);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;

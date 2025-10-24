@@ -6,6 +6,7 @@ import { useJsonStore } from "@/store/jsonStore";
 import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { JsonEditorEmptyState } from "@/components/ui/EmptyState";
+import { setCachedRawJson, getInitialCachedJson } from "@/lib/json-cache";
 
 interface JsonEditorProps {
   className?: string;
@@ -51,6 +52,7 @@ export function JsonEditor({ className }: JsonEditorProps) {
   const handleEditorChange = (value: string | undefined) => {
     if (!value) return;
     
+    setCachedRawJson(value);
     setEditorValue(value);
     
     // Validate JSON in real-time
@@ -116,6 +118,22 @@ export function JsonEditor({ className }: JsonEditorProps) {
 
   // 检查是否应该显示空状态
   const shouldShowEmptyState = !jsonData && editorValue.trim() === "";
+
+  // Prefill from cache on mount if empty
+  useEffect(() => {
+    if (!editorValue.trim()) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        setEditorValue(cached);
+        try {
+          const parsed = JSON.parse(cached);
+          setJsonData(parsed, "Prefill from cache");
+        } catch {
+          // keep as text; validation will show error until fixed
+        }
+      }
+    }
+  }, []);
 
   return (
     <div className={cn("relative h-full min-h-0", className)}>

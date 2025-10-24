@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Code2 } from "lucide-react";
 import { CodeGeneratorLayoutServer } from "@/components/layout/CodeGeneratorLayoutServer";  
 import { CodeGeneratorEmptyState } from "@/components/generator/CodeGeneratorEmptyState";
 import { JavaGenerator, CodeGenOptions } from "@/lib/code-generators";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getInitialCachedJson, setCachedRawJson } from "@/lib/json-cache";
 
 export default function JavaGeneratorPage() {
   const [inputJson, setInputJson] = useState("");
@@ -34,6 +35,7 @@ export default function JavaGeneratorPage() {
   // Handle input change
   const handleInputChange = (value: string | undefined) => {
     const newValue = value || "";
+    setCachedRawJson(newValue);
     setInputJson(newValue);
     generateCode(newValue);
   };
@@ -86,7 +88,19 @@ export default function JavaGeneratorPage() {
     const jsonString = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
     setInputJson(jsonString);
     generateCode(jsonString);
+    setCachedRawJson(jsonString);
   };
+
+  // Prefill from local cache on mount
+  useEffect(() => {
+    if (!inputJson) {
+      const cached = getInitialCachedJson();
+      if (cached) {
+        setInputJson(cached);
+        generateCode(cached);
+      }
+    }
+  }, []);
 
   const handleCopyCode = async () => {
     if (generatedCode) {
