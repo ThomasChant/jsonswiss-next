@@ -7,22 +7,38 @@ import {
   FileJson2, 
   CheckCircle2, 
   AlertCircle,
-  Upload
+  Upload,
+  Maximize2,
+  Minimize2,
+  Copy,
+  Download,
+  Trash2,
+  Settings
 } from "lucide-react";
 import { validateJsonSchema } from "@/lib/json-utils";
-import { getInitialCachedJson, setCachedRawJson } from "@/lib/json-cache";
-import { ConverterLayout } from "@/components/layout/ConverterLayout";
+import { getInitialCachedJson, setCachedRawJson, clearCachedJson } from "@/lib/json-cache";
+import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { ImportJsonDialog } from "@/components/import";
+import { cn } from "@/lib/utils";
 
 export default function SchemaValidatorPage() {
-  const [inputJson, setInputJson] = useState("");
-  const [schemaJson, setSchemaJson] = useState("");
+  // 提供默认的示例内容
+  const defaultJsonData = '{\n  "name": "John Doe",\n  "age": 30,\n  "email": "john@example.com",\n  "address": {\n    "street": "123 Main St",\n    "city": "New York",\n    "zipCode": "10001"\n  }\n}';
+  
+  const defaultSchema = '{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" },\n    "age": { "type": "number", "minimum": 0 },\n    "email": { "type": "string", "format": "email" },\n    "address": {\n      "type": "object",\n      "properties": {\n        "street": { "type": "string" },\n        "city": { "type": "string" },\n        "zipCode": { "type": "string", "pattern": "^\\\\d{5}$" }\n      },\n      "required": ["street", "city", "zipCode"]\n    }\n  },\n  "required": ["name", "age", "email", "address"]\n}';
+
+  const [inputJson, setInputJson] = useState(defaultJsonData);
+  const [schemaJson, setSchemaJson] = useState(defaultSchema);
   const [validationResult, setValidationResult] = useState<{valid: boolean; errors: string[]} | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isInputMaximized, setIsInputMaximized] = useState(false);
-  const [isOutputMaximized, setIsOutputMaximized] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  
+  // 三栏布局状态管理
+  const [isJsonMaximized, setIsJsonMaximized] = useState(false);
+  const [isSchemaMaximized, setIsSchemaMaximized] = useState(false);
+  const [isResultMaximized, setIsResultMaximized] = useState(false);
+  
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importTarget, setImportTarget] = useState<'data' | 'schema'>('data');
   const { copy } = useClipboard({ successMessage: 'Validation result copied to clipboard' });
@@ -50,18 +66,23 @@ export default function SchemaValidatorPage() {
     }
   };
 
-  const handleToggleInputMaximize = () => {
-    setIsInputMaximized(!isInputMaximized);
-    if (isOutputMaximized) setIsOutputMaximized(false);
+  // 三栏布局的最大化/最小化逻辑
+  const handleToggleJsonMaximize = () => {
+    setIsJsonMaximized(!isJsonMaximized);
+    if (isSchemaMaximized) setIsSchemaMaximized(false);
+    if (isResultMaximized) setIsResultMaximized(false);
   };
 
-  const handleToggleOutputMaximize = () => {
-    setIsOutputMaximized(!isOutputMaximized);
-    if (isInputMaximized) setIsInputMaximized(false);
+  const handleToggleSchemaMaximize = () => {
+    setIsSchemaMaximized(!isSchemaMaximized);
+    if (isJsonMaximized) setIsJsonMaximized(false);
+    if (isResultMaximized) setIsResultMaximized(false);
   };
 
-  const handleToggleSettings = () => {
-    setShowSettings(!showSettings);
+  const handleToggleResultMaximize = () => {
+    setIsResultMaximized(!isResultMaximized);
+    if (isJsonMaximized) setIsJsonMaximized(false);
+    if (isSchemaMaximized) setIsSchemaMaximized(false);
   };
 
   const validateWithSchema = (jsonData?: string, schemaData?: string) => {
@@ -123,9 +144,15 @@ export default function SchemaValidatorPage() {
 
   // Prefill JSON data from cache
   useEffect(() => {
-    if (!inputJson) {
+    if (!inputJson || inputJson === defaultJsonData) {
       const cached = getInitialCachedJson();
-      if (cached) setInputJson(cached);
+      if (cached) {
+        setInputJson(cached);
+        // Auto-validate if schema is available
+        if (schemaJson.trim()) {
+          setTimeout(() => validateWithSchema(cached, schemaJson), 100);
+        }
+      }
     }
   }, []);
 
@@ -150,49 +177,13 @@ export default function SchemaValidatorPage() {
 
   const outputData = validationResult ? JSON.stringify(validationResult, null, 2) : "";
 
-  const settingsPanel = (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">JSON Schema</label>
-          <button
-            onClick={() => openImportDialog('schema')}
-            className="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
-          >
-            <Upload className="w-3 h-3" />
-            <span>Import</span>
-          </button>
-        </div>
-        <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          <Editor
-            height="200px"
-            defaultLanguage="json"
-            value={schemaJson}
-            onChange={handleSchemaChange}
-            theme="vs"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 12,
-              fontFamily: "var(--font-mono)",
-              wordWrap: "on",
-              automaticLayout: true,
-              formatOnPaste: true,
-              formatOnType: true,
-              scrollBeyondLastLine: false,
-            }}
-          />
-        </div>
-      </div>
-      <button
-        onClick={() => validateWithSchema()}
-        disabled={!inputJson || !inputJson.trim() || !schemaJson || !schemaJson.trim()}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors w-full justify-center"
-      >
-        <CheckCircle2 className="w-4 h-4" />
-        <span>Validate Against Schema</span>
-      </button>
-    </div>
-  );
+  // 确定布局网格类
+  const getGridClasses = () => {
+    if (isJsonMaximized) return "grid-cols-1";
+    if (isSchemaMaximized) return "grid-cols-1";
+    if (isResultMaximized) return "grid-cols-1";
+    return "grid-cols-3";
+  };
 
   // 空状态内容
   const emptyStateContent = (
@@ -228,33 +219,254 @@ export default function SchemaValidatorPage() {
   );
 
   return (
-    <ConverterLayout
+    <ToolPageLayoutServer
       title="JSON Schema Validator"
       description="Validate JSON data against JSON schemas to ensure data integrity and compliance"
       faqItems={faqItems}
-      inputData={inputJson}
-      outputData={outputData}
-      error={error}
-      isInputMaximized={isInputMaximized}
-      isOutputMaximized={isOutputMaximized}
-      showSettings={showSettings}
-      importDialogOpen={importDialogOpen}
-      inputLanguage="json"
-      outputLanguage="json"
-      inputLanguageDisplayName="JSON Data"
-      outputLanguageDisplayName="Validation Results"
-      inputIcon={<FileJson2 className="w-4 h-4 text-blue-500" />}
-      outputIcon={validationResult?.valid ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : validationResult?.valid === false ? <AlertCircle className="w-4 h-4 text-red-500" /> : <FileJson2 className="w-4 h-4 text-purple-500" />}
-      onInputChange={handleInputChange}
-      onCopy={handleCopyOutput}
-      onDownload={handleDownload}
-      onToggleInputMaximize={handleToggleInputMaximize}
-      onToggleOutputMaximize={handleToggleOutputMaximize}
-      onToggleSettings={handleToggleSettings}
-      onToggleImportDialog={(open) => { setImportDialogOpen(open); if (open) setImportTarget('data'); }}
-      settingsPanel={settingsPanel}
-      onImport={handleImport}
-      emptyStateContent={emptyStateContent}
-    />
+      showSidebar={false}
+    >
+      <div className="h-full flex flex-col min-h-0">
+        {/* Error Display */}
+        {error && (
+          <div className="mx-4 mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex-shrink-0">
+            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Three Column Layout */}
+        <div className="p-2 min-h-0 min-h-core-min max-h-core-max h-core-default">
+          <div className={cn("grid gap-2 h-full min-h-0", getGridClasses())}>
+            
+            {/* JSON Data Input */}
+            {!isSchemaMaximized && !isResultMaximized && (
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col min-h-0">
+                <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center gap-2">
+                    <FileJson2 className="w-4 h-4 text-blue-500" />
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">JSON Data</h3>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openImportDialog('data')}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Import JSON Data"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearCachedJson();
+                        setInputJson("");
+                        setError(null);
+                        setValidationResult(null);
+                      }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear JSON data"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setInputJson(defaultJsonData);
+                        setError(null);
+                        setValidationResult(null);
+                        // Auto-validate with current schema
+                        if (schemaJson.trim()) {
+                          setTimeout(() => validateWithSchema(defaultJsonData, schemaJson), 100);
+                        }
+                      }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Reset to default JSON data"
+                    >
+                      <FileJson2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleToggleJsonMaximize}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title={isJsonMaximized ? "Minimize" : "Maximize"}
+                    >
+                      {isJsonMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0" style={{ minHeight: '300px' }}>
+                  <Editor
+                    height="100%"
+                    defaultLanguage="json"
+                    value={inputJson}
+                    onChange={(val) => {
+                      setCachedRawJson(val || '');
+                      handleInputChange(val);
+                    }}
+                    theme="vs"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      fontFamily: "var(--font-mono)",
+                      wordWrap: "on",
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      renderLineHighlight: 'none',
+                      cursorBlinking: 'smooth',
+                      formatOnPaste: true,
+                      formatOnType: true,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Schema Input */}
+            {!isJsonMaximized && !isResultMaximized && (
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col min-h-0">
+                <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-purple-500" />
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">JSON Schema</h3>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openImportDialog('schema')}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Import JSON Schema"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSchemaJson("");
+                        setError(null);
+                        setValidationResult(null);
+                      }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear JSON schema"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSchemaJson(defaultSchema);
+                        setError(null);
+                        setValidationResult(null);
+                        // Auto-validate with current JSON data
+                        if (inputJson.trim()) {
+                          setTimeout(() => validateWithSchema(inputJson, defaultSchema), 100);
+                        }
+                      }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Reset to default JSON schema"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleToggleSchemaMaximize}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title={isSchemaMaximized ? "Minimize" : "Maximize"}
+                    >
+                      {isSchemaMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0" style={{ minHeight: '300px' }}>
+                  <Editor
+                    height="100%"
+                    defaultLanguage="json"
+                    value={schemaJson}
+                    onChange={handleSchemaChange}
+                    theme="vs"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      fontFamily: "var(--font-mono)",
+                      wordWrap: "on",
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      renderLineHighlight: 'none',
+                      cursorBlinking: 'smooth',
+                      formatOnPaste: true,
+                      formatOnType: true,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Validation Results */}
+            {!isJsonMaximized && !isSchemaMaximized && (
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col min-h-0">
+                <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center gap-2">
+                    {validationResult?.valid ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : validationResult?.valid === false ? (
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <FileJson2 className="w-4 h-4 text-purple-500" />
+                    )}
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Validation Results</h3>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handleCopyOutput}
+                      disabled={!outputData}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Copy validation results"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleDownload}
+                      disabled={!outputData}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Download validation results"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleToggleResultMaximize}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title={isResultMaximized ? "Minimize" : "Maximize"}
+                    >
+                      {isResultMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0" style={{ minHeight: '300px' }}>
+                  {outputData ? (
+                    <Editor
+                      height="100%"
+                      defaultLanguage="json"
+                      value={outputData}
+                      theme="vs"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: "var(--font-mono)",
+                        wordWrap: "on",
+                        readOnly: true,
+                        automaticLayout: true,
+                        scrollBeyondLastLine: false,
+                        renderLineHighlight: 'none',
+                        cursorBlinking: 'smooth',
+                      }}
+                    />
+                  ) : (
+                    emptyStateContent
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      <ImportJsonDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImport}
+        title={`Import JSON ${importTarget === 'data' ? 'Data' : 'Schema'}`}
+        description={`Import JSON ${importTarget === 'data' ? 'data' : 'schema'} for validation`}
+      />
+    </ToolPageLayoutServer>
   );
 }
