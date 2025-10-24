@@ -7,7 +7,6 @@ import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
 import { useClipboard } from "@/hooks/useClipboard";
 import { cn } from "@/lib/utils";
 import { Editor } from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 
 interface AnalysisStats {
   totalFiles: number;
@@ -20,7 +19,6 @@ interface AnalysisStats {
 }
 
 export default function JarToJsonPage() {
-  const { resolvedTheme } = useTheme();
   const [jarFile, setJarFile] = useState<File | null>(null);
   const [outputJson, setOutputJson] = useState("");
   const [analysis, setAnalysis] = useState<JarAnalysis | null>(null);
@@ -512,7 +510,7 @@ export default function JarToJsonPage() {
                   height="100%"
                   language="json"
                   value={outputJson}
-                  theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                  theme="vs"
                   options={{
                     readOnly: true,
                     minimap: { enabled: false },

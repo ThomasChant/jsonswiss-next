@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useTheme } from "next-themes";
 import { DiffEditor } from "@monaco-editor/react";
 import { Upload, Copy, Download, ArrowLeftRight, RefreshCw, Settings2, FileText, GitCompare, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,7 +13,6 @@ import { DiffOptions, formatJsonForComparison } from "@/lib/json-diff";
 import { ImportJsonDialog } from "@/components/import";
 
 export default function JsonComparePage() {
-  const { resolvedTheme } = useTheme();
   const [jsonA, setJsonA] = useState("");
   const [jsonB, setJsonB] = useState("");
   // Keep values fed into DiffEditor props stable during typing to avoid cursor reset
@@ -471,7 +469,7 @@ export default function JsonComparePage() {
               language="json"
               original={displayA}
               modified={displayB}
-              theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+              theme="vs"
               options={{
                 readOnly: isNormalizedView,
                 minimap: { enabled: false },

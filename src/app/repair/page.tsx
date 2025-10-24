@@ -3,7 +3,7 @@
 
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
-import { AIRepairService } from "@/lib/ai-utils";
+import { AIRepairService, AI_MAX_INPUT_CHARS } from "@/lib/ai-utils";
 import {
   AlertCircle,
   CheckCircle2,
@@ -127,6 +127,10 @@ export default function RepairPage() {
     {
       question: "What repair methods are used?",
       answer: "1) JSONRepair library - Fast, accurate repair for most common issues. 2) Basic repair - Pattern-based fixes for simple syntax errors. 3) AI repair - DeepSeek and other AI providers for complex structural problems."
+    },
+    {
+      question: "Is there a size limit for AI repair?",
+      answer: `Yes. For reliability, AI repair supports inputs up to about (~${Math.round(AI_MAX_INPUT_CHARS / 1024)} KB) per request. Larger JSON can usually be fixed by the local JSONRepair/basic methods, or you can split it into smaller chunks before using AI repair.`
     },
     {
       question: "Do I need API keys?",

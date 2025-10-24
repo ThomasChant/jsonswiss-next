@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { useJsonStore } from "@/store/jsonStore";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { JsonEditorEmptyState } from "@/components/ui/EmptyState";
@@ -14,7 +13,6 @@ interface JsonEditorProps {
 
 export function JsonEditor({ className }: JsonEditorProps) {
   const { jsonData, setJsonData } = useJsonStore();
-  const { resolvedTheme } = useTheme();
   const [editorValue, setEditorValue] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const editorRef = useRef<any>(null);
@@ -181,7 +179,7 @@ export function JsonEditor({ className }: JsonEditorProps) {
           value={editorValue}
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
-          theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+          theme="vs"
           options={{
             minimap: { enabled: false },
             fontSize: 14,

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { useJsonStore } from "@/store/jsonStore";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { 
   AlertCircle, 
@@ -28,7 +27,6 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
     jsonData,
     setJsonData 
   } = useJsonStore();
-  const { resolvedTheme } = useTheme();
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isValidJson, setIsValidJson] = useState(false);
   const editorRef = useRef<any>(null);
@@ -261,7 +259,7 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
             value={sidebarEditorContent}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
-            theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+            theme="vs"
             options={{
               minimap: { enabled: false },
               fontSize: 12,

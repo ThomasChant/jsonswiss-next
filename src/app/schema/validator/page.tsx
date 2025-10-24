@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import { Editor } from "@monaco-editor/react";
 import { 
   FileJson2, 
@@ -16,7 +15,6 @@ import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 
 export default function SchemaValidatorPage() {
-  const { resolvedTheme } = useTheme();
   const [inputJson, setInputJson] = useState("");
   const [schemaJson, setSchemaJson] = useState("");
   const [validationResult, setValidationResult] = useState<{valid: boolean; errors: string[]} | null>(null);
@@ -161,7 +159,7 @@ export default function SchemaValidatorPage() {
             defaultLanguage="json"
             value={schemaJson}
             onChange={handleSchemaChange}
-            theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+            theme="vs"
             options={{
               minimap: { enabled: false },
               fontSize: 12,

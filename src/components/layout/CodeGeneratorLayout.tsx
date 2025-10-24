@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { useTheme } from "next-themes";
 import { Editor } from "@monaco-editor/react";
 import {
   Download,
@@ -81,7 +80,6 @@ export function CodeGeneratorLayout({
   settingsPanel,
   emptyStateContent
 }: CodeGeneratorLayoutProps) {
-  const { resolvedTheme } = useTheme();
 
   const defaultEmptyState = (
     <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -145,7 +143,7 @@ export function CodeGeneratorLayout({
                     defaultLanguage="json"
                     value={inputJson}
                     onChange={onInputChange}
-                    theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                    theme="vs"
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
@@ -225,7 +223,7 @@ export function CodeGeneratorLayout({
                       height="100%"
                       defaultLanguage={outputLanguage}
                       value={generatedCode}
-                      theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                      theme="vs"
                       options={{
                         minimap: { enabled: false },
                         fontSize: 14,

@@ -14,6 +14,11 @@ export interface AIRepairResult {
   error?: string;
 }
 
+// Recommended maximum input size (characters) for AI-based repair requests.
+// This keeps prompts within typical model context limits while allowing
+// reasonably large JSON inputs. Used for documentation/UX hints.
+export const AI_MAX_INPUT_CHARS = 51200;
+
 // Local type for tracking DeepSeek usage per day (per browser)
 interface DeepSeekUsage {
   date: string; // YYYY-MM-DD
@@ -286,6 +291,25 @@ export class AIRepairService {
       // We will record the call right before making the network request
     }
 
+    // Calculate a conservative max_tokens and pre-check input size
+    const maxTokens = Math.min(4000, Math.floor(AI_MAX_INPUT_CHARS / 4));
+
+    // If input exceeds our documented character guideline, bail early with a helpful hint
+    if (invalidJson.length > AI_MAX_INPUT_CHARS) {
+      return {
+        success: false,
+        error: `Input JSON is too large for AI repair: ${invalidJson.length.toLocaleString()} characters (limit: ${AI_MAX_INPUT_CHARS.toLocaleString()}). Please split the JSON into smaller parts or use local repair methods.`
+      };
+    }
+
+    // Also warn if character length exceeds the configured max_tokens budget
+    if (invalidJson.length > maxTokens) {
+      return {
+        success: false,
+        error: `Input exceeds current AI max_tokens budget (${maxTokens.toLocaleString()}). Please reduce input size or split it before using AI repair.`
+      };
+    }
+
     const prompt = `Please repair this invalid JSON,fix syntax errors, quote keys properly, return only the valid raw JSON 
     that can be parsed and without any explanation or format. The broken json is:
     ${invalidJson}`
@@ -299,7 +323,7 @@ export class AIRepairService {
           content: prompt
         }
       ],
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       temperature: 0.1,
     };
 

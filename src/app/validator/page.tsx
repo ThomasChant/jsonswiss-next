@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTheme } from "next-themes";
 import { Editor } from "@monaco-editor/react";
 import { 
   Shield, 
@@ -24,7 +23,6 @@ import { ImportJsonDialog } from "@/components/import/ImportJsonDialog";
 import { useClipboard } from "@/hooks/useClipboard";
 
 export default function ValidatorPage() {
-  const { theme } = useTheme();
   const { copy } = useClipboard();
   const [inputJson, setInputJson] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -157,7 +155,7 @@ export default function ValidatorPage() {
                     language="json"
                     value={inputJson}
                     onChange={(value) => handleInputChange(value || '')}
-                    theme={theme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme="vs"
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
