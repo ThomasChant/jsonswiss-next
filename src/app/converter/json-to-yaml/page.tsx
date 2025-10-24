@@ -6,6 +6,7 @@ import { FileText, Download, Copy, Code } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 // Simple JSON to YAML converter
 function jsonToYaml(obj: any, indent = 0): string {
@@ -193,6 +194,9 @@ export default function JsonToYamlPage() {
     </div>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-yaml') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to YAML Converter"
@@ -220,6 +224,7 @@ export default function JsonToYamlPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
       settingsPanel={settingsContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

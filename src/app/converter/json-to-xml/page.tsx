@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { jsonToXml } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToXmlPage() {
   const [inputJson, setInputJson] = useState("");
@@ -154,6 +155,9 @@ export default function JsonToXmlPage() {
     </div>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-xml') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to XML Converter"
@@ -181,6 +185,7 @@ export default function JsonToXmlPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
       settingsPanel={settingsContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

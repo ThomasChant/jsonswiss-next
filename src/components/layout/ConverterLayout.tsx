@@ -18,6 +18,8 @@ import { clearCachedJson, setCachedRawJson } from "@/lib/json-cache";
 import { ImportJsonDialog, ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 import { ToolPageLayoutServer } from "./ToolPageLayoutServer";
 import { getInitialCachedJson } from "@/lib/json-cache";
+import { ArrowLeftRight } from "lucide-react";
+import { ReverseConverterInfo } from "@/lib/converter-mappings";
 
 interface ConverterLayoutProps {
   // 页面基本信息
@@ -82,6 +84,9 @@ interface ConverterLayoutProps {
   disableCachePrefill?: boolean; // do not read from cache on mount
   disableCacheWrite?: boolean;   // do not write to cache on change or prop updates
   showClearCacheButton?: boolean; // show/hide clear-cache button in header
+  
+  // Reverse converter information
+  reverseConverter?: ReverseConverterInfo;
 }
 
 export function ConverterLayout({
@@ -121,6 +126,7 @@ export function ConverterLayout({
   disableCachePrefill = false,
   disableCacheWrite = false,
   showClearCacheButton = true,
+  reverseConverter,
 }: ConverterLayoutProps) {
 
   // Prefill input with cached JSON across converter pages when expecting JSON input
@@ -173,6 +179,28 @@ export function ConverterLayout({
       faqItems={faqItems}
       showSidebar={false}
     >
+      {/* Reverse Converter Banner */}
+      {reverseConverter && (
+        <div className="mx-4 mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ArrowLeftRight className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+              <div>
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  Need the reverse conversion?
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.location.href = reverseConverter.path}
+              className="flex items-center gap-2 px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors text-sm"
+            >
+              <ArrowLeftRight className="w-3 h-3" />
+              <span>{reverseConverter.title}</span>
+            </button>
+          </div>
+        </div>
+      )}
       <div className="h-full flex flex-col min-h-0">
         {/* Error Display */}
         {error && (

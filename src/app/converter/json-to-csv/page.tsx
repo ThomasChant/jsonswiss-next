@@ -8,6 +8,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useSampleData } from "@/hooks/useSampleData";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToCsvPage() {
   const [inputJson, setInputJson] = useState("");
@@ -266,6 +267,9 @@ export default function JsonToCsvPage() {
     </button>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-csv') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to CSV Converter"
@@ -294,6 +298,7 @@ export default function JsonToCsvPage() {
       onToggleImportDialog={setImportDialogOpen}
       settingsPanel={settingsContent}
       extraActions={extraActions}
+      reverseConverter={reverseConverter}
     />
   );
 }

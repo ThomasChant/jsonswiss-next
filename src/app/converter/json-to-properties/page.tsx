@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 import { jsonToProperties } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToPropertiesPage() {
   // Local state
@@ -110,6 +111,9 @@ export default function JsonToPropertiesPage() {
     </div>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-properties') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to Properties Converter"
@@ -136,6 +140,7 @@ export default function JsonToPropertiesPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
       emptyStateContent={emptyStateContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

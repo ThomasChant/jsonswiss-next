@@ -6,6 +6,7 @@ import { Code2, FileText } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { dictToJson } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function DictToJsonPage() {
   const [dictInput, setDictInput] = useState("");
@@ -101,6 +102,9 @@ export default function DictToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/dict-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="Python Dict to JSON Converter"
@@ -125,6 +129,7 @@ export default function DictToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

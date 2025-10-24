@@ -6,6 +6,7 @@ import { Settings, FileText } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { tomlToJson } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function TomlToJsonPage() {
   const [tomlInput, setTomlInput] = useState("");
@@ -101,6 +102,9 @@ export default function TomlToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/toml-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="TOML to JSON Converter"
@@ -125,6 +129,7 @@ export default function TomlToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

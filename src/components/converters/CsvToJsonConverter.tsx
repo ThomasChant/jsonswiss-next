@@ -3,6 +3,7 @@
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
 import { csvToJson } from "@/lib/converters";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 import {
   BookOpen,
   FileSpreadsheet,
@@ -143,6 +144,9 @@ export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: s
   );
 
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/csv-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="CSV to JSON Converter"
@@ -168,6 +172,7 @@ export function CsvToJsonConverter({ faqItems }: { faqItems: Array<{ question: s
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
       settingsPanel={settingsContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

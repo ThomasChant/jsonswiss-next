@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ExcelSpreadsheet } from "@/components/table/ExcelSpreadsheet";
 import { jsonToExcel, type JsonToExcelOptions } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 // Helper function to flatten nested objects (same logic as in converters.ts)
 function flattenObject(obj: any, prefix: string = '', separator: string = '.'): any {
@@ -218,7 +219,7 @@ export default function JsonToExcelPage() {
         }
       }
       
-      const blob = new Blob([bufferData], { 
+      const blob = new Blob([bufferData as BlobPart], { 
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
       });
       
@@ -367,6 +368,9 @@ export default function JsonToExcelPage() {
     />
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-excel') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to Excel Converter Online"
@@ -396,6 +400,7 @@ export default function JsonToExcelPage() {
       settingsPanel={settingsContent}
       emptyStateContent={emptyStateContent}
       customOutputContent={customOutputContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

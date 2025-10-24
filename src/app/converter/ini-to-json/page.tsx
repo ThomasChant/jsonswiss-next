@@ -6,6 +6,7 @@ import { FileText, Settings } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { iniToJson } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function IniToJsonPage() {
   const [iniInput, setIniInput] = useState("");
@@ -101,6 +102,9 @@ export default function IniToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/ini-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="INI to JSON Converter"
@@ -125,6 +129,7 @@ export default function IniToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

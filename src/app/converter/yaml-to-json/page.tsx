@@ -9,6 +9,7 @@ import {
 import { yamlToJson } from "@/lib/converters";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function YamlToJsonPage() {
   const [inputYaml, setInputYaml] = useState("");
@@ -98,6 +99,9 @@ export default function YamlToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/yaml-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="YAML to JSON Converter"
@@ -122,6 +126,7 @@ export default function YamlToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

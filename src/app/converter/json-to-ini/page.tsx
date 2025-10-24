@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
 import { jsonToIni } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToIniPage() {
   // Local state
@@ -106,6 +107,9 @@ export default function JsonToIniPage() {
     </div>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-ini') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to INI Converter"
@@ -132,6 +136,7 @@ export default function JsonToIniPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
       emptyStateContent={emptyStateContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

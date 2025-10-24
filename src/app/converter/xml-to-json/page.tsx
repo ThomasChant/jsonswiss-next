@@ -6,6 +6,7 @@ import { FileCode, FileText } from "lucide-react";
 import { xmlToJson } from "@/lib/converters";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 // 移除了多格式导入对话框的导入
 
 export default function XmlToJsonPage() {
@@ -97,6 +98,9 @@ export default function XmlToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/xml-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="XML to JSON Converter"
@@ -121,6 +125,7 @@ export default function XmlToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

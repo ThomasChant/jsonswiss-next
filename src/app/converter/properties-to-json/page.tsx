@@ -6,6 +6,7 @@ import { FileText, Settings } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { propertiesToJson } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function PropertiesToJsonPage() {
   const [propertiesInput, setPropertiesInput] = useState("");
@@ -105,6 +106,9 @@ export default function PropertiesToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/properties-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="Properties to JSON Converter"
@@ -129,6 +133,7 @@ export default function PropertiesToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { ExcelSpreadsheet } from "@/components/table/ExcelSpreadsheet";
 import { excelToJson, getExcelSheetNames, type ExcelToJsonOptions } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function ExcelToJsonPage() {
   const [inputData, setInputData] = useState(""); // Empty input for ConverterLayout compatibility
@@ -231,6 +232,9 @@ export default function ExcelToJsonPage() {
     />
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/excel-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="Excel to JSON Converter"
@@ -258,6 +262,7 @@ export default function ExcelToJsonPage() {
       settingsPanel={settingsContent}
       emptyStateContent={emptyStateContent}
       customInputContent={customInputContent}
+      reverseConverter={reverseConverter}
     />
   );
 }

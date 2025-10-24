@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { jsonToDict } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToDictPage() {
   const [inputJson, setInputJson] = useState("");
@@ -92,6 +93,9 @@ export default function JsonToDictPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-dict') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to Python Dict Converter"
@@ -118,6 +122,7 @@ export default function JsonToDictPage() {
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
+      reverseConverter={reverseConverter}
     />
   );
 }

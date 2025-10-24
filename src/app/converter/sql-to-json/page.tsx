@@ -6,6 +6,7 @@ import { Database, FileText } from "lucide-react";
 import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { sqlToJson } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function SqlToJsonPage() {
   const [sqlInput, setSqlInput] = useState("");
@@ -101,6 +102,9 @@ export default function SqlToJsonPage() {
     }
   ];
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/sql-to-json') || undefined;
+
   return (
     <ConverterLayout
       title="SQL to JSON Converter"
@@ -125,6 +129,7 @@ export default function SqlToJsonPage() {
       onToggleInputMaximize={() => setIsInputMaximized(!isInputMaximized)}
       onToggleOutputMaximize={() => setIsOutputMaximized(!isOutputMaximized)}
       onToggleSettings={() => setShowSettings(!showSettings)}
+      reverseConverter={reverseConverter}
     />
   );
 }

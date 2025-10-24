@@ -7,6 +7,7 @@ import { ConverterLayout } from "@/components/layout/ConverterLayout";
 import { jsonToSql } from "@/lib/converters";
 import { useClipboard } from "@/hooks/useClipboard";
 import { ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
+import { getReverseConverterInfo } from "@/lib/converter-mappings";
 
 export default function JsonToSqlPage() {
   const [inputJson, setInputJson] = useState("");
@@ -161,6 +162,9 @@ export default function JsonToSqlPage() {
     </div>
   );
 
+  // Get reverse converter info
+  const reverseConverter = getReverseConverterInfo('/converter/json-to-sql') || undefined;
+
   return (
     <ConverterLayout
       title="JSON to SQL Converter"
@@ -188,6 +192,7 @@ export default function JsonToSqlPage() {
       onToggleSettings={() => setShowSettings(!showSettings)}
       onToggleImportDialog={setImportDialogOpen}
       settingsPanel={settingsContent}
+      reverseConverter={reverseConverter}
     />
   );
 }
