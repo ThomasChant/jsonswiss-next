@@ -10,7 +10,8 @@ import {
   Minimize2,
   Settings,
   FileText,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearCachedJson, setCachedRawJson } from "@/lib/json-cache";
@@ -211,7 +212,7 @@ export function ConverterLayout({
                       </button>
                     )}
                     {/* Clear cached/input JSON */}
-                    {showClearCacheButton && (
+                    {showClearCacheButton && inputLanguage === 'json' && (
                     <button
                       onClick={() => {
                         clearCachedJson();
@@ -220,7 +221,7 @@ export function ConverterLayout({
                       className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
                       title="Clear input and local cache"
                     >
-                      <Minimize2 className="w-4 h-4 rotate-90" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                     )}
                     {onToggleImportDialog && (

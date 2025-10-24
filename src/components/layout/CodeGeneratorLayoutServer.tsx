@@ -12,7 +12,8 @@ import {
   Minimize2,
   Settings,
   FileText,
-  Code2
+  Code2,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ImportJsonDialog, ImportSource, ImportMetadata } from "@/components/import/ImportJsonDialog";
@@ -140,6 +141,13 @@ export function CodeGeneratorLayoutServer({
                       <Upload className="w-4 h-4" />
                     </button>
                     <button
+                      onClick={() => { clearCachedJson(); onInputChange(''); }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear input and local cache"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={onToggleInputMaximize}
                       className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
                       title={isInputMaximized ? "Minimize" : "Maximize"}
@@ -265,10 +273,3 @@ export function CodeGeneratorLayoutServer({
     </ToolPageLayoutServer>
   );
 }
-                    <button
-                      onClick={() => { clearCachedJson(); onInputChange(''); }}
-                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
-                      title="Clear input and local cache"
-                    >
-                      <Minimize2 className="w-4 h-4 rotate-90" />
-                    </button>

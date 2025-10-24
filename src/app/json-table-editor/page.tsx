@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { getValueType } from '@/lib/table-utils';
 import { useJsonStore } from '@/store/jsonStore';
 import { Database, Home, Trash2, Upload, Expand, Minimize } from 'lucide-react';
+import { clearCachedJson } from '@/lib/json-cache';
 import { useCallback, useMemo, useState } from 'react';
 
 const faqItems = [
@@ -106,6 +107,7 @@ export default function JsonTableEditorPage() {
   const handleClearData = useCallback(() => {
     setJsonData(null);
     setSelectedPath([]);
+    clearCachedJson();
   }, [setJsonData, setSelectedPath]);
 
   // Note: breadcrumb path generation removed as navigation is handled by ToolPageLayoutServer

@@ -14,7 +14,7 @@ import {
   FileText
 } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { setCachedRawJson, getInitialCachedJson } from "@/lib/json-cache";
+import { setCachedRawJson, getInitialCachedJson, clearCachedJson } from "@/lib/json-cache";
 import { useClipboard } from "@/hooks/useClipboard";
 
 interface SidebarJsonEditorProps {
@@ -213,6 +213,7 @@ export function SidebarJsonEditor({ className }: SidebarJsonEditorProps) {
     setJsonData(null, "Clear data"); // 同时清空主JSON数据
     setValidationError(null);
     setIsValidJson(false);
+    clearCachedJson();
     toast.success("Editor cleared");
   };
 

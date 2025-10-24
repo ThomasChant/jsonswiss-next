@@ -46,9 +46,28 @@ export function getInitialCachedJson(): string {
 export function clearCachedJson(): void {
   try {
     if (typeof window === 'undefined') return;
+    // Remove raw cached text
     localStorage.removeItem(RAW_CACHE_KEY);
+
+    // Also clear persisted Zustand jsonData so other pages don't rehydrate it
+    const raw = localStorage.getItem(ZUSTAND_PERSIST_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && parsed.state) {
+          // Reset only the relevant fields to avoid nuking other preferences
+          parsed.state.jsonData = null;
+          if (typeof parsed.state.sidebarEditorContent === 'string') {
+            parsed.state.sidebarEditorContent = '';
+          }
+          localStorage.setItem(ZUSTAND_PERSIST_KEY, JSON.stringify(parsed));
+        }
+      } catch {
+        // If parsing fails, remove the whole persisted entry as a safe fallback
+        localStorage.removeItem(ZUSTAND_PERSIST_KEY);
+      }
+    }
   } catch {
     // ignore
   }
 }
-

@@ -41,7 +41,7 @@ export default function PythonGeneratorPage() {
   const generateCode = (jsonInput?: string) => {
     try {
       setError(null);
-      const input = jsonInput || inputJson;
+      const input = (jsonInput !== undefined) ? jsonInput : inputJson;
       
       if (!input.trim()) {
         setGeneratedCode("");

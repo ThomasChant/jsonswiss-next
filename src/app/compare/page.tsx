@@ -4,6 +4,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import { Upload, Copy, Download, ArrowLeftRight, RefreshCw, Settings2, FileText, GitCompare, Zap } from "lucide-react";
+import { clearCachedJson } from "@/lib/json-cache";
 import { cn } from "@/lib/utils";
 import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
 import { useJsonDiff } from "@/hooks/useJsonDiff";
@@ -141,6 +142,7 @@ export default function JsonComparePage() {
     setEditorOriginalValue("");
     setEditorModifiedValue("");
     clearDiff();
+    clearCachedJson();
   }, [clearDiff]);
 
   // Handle copy diff report

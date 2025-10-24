@@ -11,7 +11,8 @@ import {
   Minimize2,
   Settings,
   FileText,
-  Code2
+  Code2,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolPageLayoutServer } from "@/components/layout/ToolPageLayoutServer";
@@ -137,6 +138,13 @@ export function CodeGeneratorLayout({
                       title="Import JSON"
                     >
                       <Upload className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => { clearCachedJson(); onInputChange(''); }}
+                      className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                      title="Clear input and local cache"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={onToggleInputMaximize}
@@ -269,5 +277,5 @@ export function CodeGeneratorLayout({
                       className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
                       title="Clear input and local cache"
                     >
-                      <Minimize2 className="w-4 h-4 rotate-90" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
